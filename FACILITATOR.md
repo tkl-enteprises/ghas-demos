@@ -184,21 +184,28 @@ Gaps still worth capturing live in your tenant for a follow-up deck:
 
 ## Bonus: Code Quality (preview)
 
-[Code Quality](https://github.com/tkl-enteprises/ghas-demos/security/quality) is a *separate* GitHub product from GHAS, but it runs on the same CodeQL engine. Instead of security queries (taint, SQLi, SSRF, etc.) it runs a **maintainability** query pack (cyclomatic complexity, dead code, unreachable branches, code smells). It's enabled on this repo so attendees can see the boundary clearly.
+[Code Quality](https://github.com/tkl-enteprises/ghas-demos/security/quality) is a *separate* GitHub product from GHAS, but it runs on the same CodeQL engine. Instead of security queries (taint, SQLi, SSRF, etc.) it runs a **maintainability + reliability** query pack (cyclomatic complexity, dead code, unreachable branches, code smells). It's enabled on this repo so attendees can see the boundary clearly.
+
+![Security overview now showing Code Quality enabled](docs/screenshots/security-overview-with-code-quality.png)
 
 **Why mention it in a GHAS workshop?**
 - Reinforces the "CodeQL is just an engine — the queries are the product" mental model from lesson 5.
-- Lets the room ask "wait, can I write quality queries with the same syntax?" — yes (the answer is: it's the same QL language, just different query suite).
+- Lets the room ask "wait, can I write quality queries with the same syntax?" — yes (the answer is: it's the same QL language, just a different query suite).
 - Useful counter-example to "every CodeQL alert is a security risk" — quality alerts are advisory, not blocking.
+
+**The teaching moment that makes this worth 3 minutes:** despite this repo having **132 security findings** (32 code-scanning + 98 Dependabot + 2 secret-scanning), it has **0 standard quality findings + 0 AI quality findings** — Maintainability and Reliability both rated "Excellent". Same engine, same code, totally different verdict. The point: "secure" and "high-quality" are independent axes, and you need both query packs to see both views.
+
+![Code Quality findings: 0 standard, 0 AI, Excellent rating](docs/screenshots/code-quality-findings.png)
 
 **How to demo (≤ 3 minutes, slot anywhere after lesson 5):**
 1. Settings → Security and quality → **Code quality** is *Enabled* (Preview tag visible).
-2. `Security and quality → Code quality` (left nav). Show the alerts list. Pick a representative alert (e.g. cyclomatic complexity in `lessons/01-codeql-code-scanning/vulnerable_app.py`).
-3. Compare side-by-side with a Code Scanning alert from lesson 1 — same UI, same alert shape, but the **Tool** filter says `CodeQL Quality` instead of `CodeQL`.
+2. `Security and quality → Code quality → Standard findings` (left nav). Show the empty state with "Excellent" Maintainability and Reliability scores.
+3. Compare side-by-side with `Code scanning` (also left nav) — same UI shell, but 32 alerts. Same engine, different query suite.
 4. Talking points:
    - **Billing**: charged as Action minutes (NOT GHAS seats) — important for buyers.
    - **Status**: Preview — UI may change before GA.
    - **Push protection / branch ruleset**: NOT applied to quality findings (advisory only).
+   - **Same workflow runner type as security CodeQL**: standard GitHub runner; the existing `Code Quality: CodeQL Setup` dynamic workflow handles it — no new YAML to author.
 
 **When to skip:** if your audience cares only about security (e.g. CISO briefing), drop this — it muddies the GHAS-vs-not-GHAS line. The 60-min agenda below skips it; the half-day agenda includes it as a 5-min interlude after lesson 5.
 
