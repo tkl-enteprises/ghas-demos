@@ -48,6 +48,7 @@ No clock times — pace varies wildly by audience. Use these qualitative buckets
 - ❌ **"Dependabot didn't open a PR."** Dependabot security updates require the manifest file (e.g. `requirements.txt`) to be at a path Dependabot knows about. The `dependabot.yml` in `.github/` is what tells it where to look — if attendees move files around in their fork, the PRs stop.
 - ❌ **"Autofix button is missing."** Either Autofix is off in repo settings, or the alert is in a language Autofix doesn't yet support. Lesson 4 picks alerts that are known-supported.
 - ❌ **"Code scanning shows zero alerts."** The CodeQL workflow either hasn't finished its first run, or it ran on a branch with no vulnerable code. Check `Actions → CodeQL` first.
+- ❌ **"Several 'Dependabot Updates' workflow runs show as failure."** Those red runs are Dependabot's *internal* rebase/recompute jobs, not the workshop's CI. They fire when Dependabot can't compute a clean update graph for a manifest (typically because a transitive dep also needs to move, or two PRs touch the same lockfile). They do **not** block PR creation — the seven pip-dep PRs in lesson 3 still appear, still surface their CVE annotations, and still merge correctly. Safe to ignore; do not panic-debug them mid-session.
 
 ## Reset between sessions
 
