@@ -21,6 +21,24 @@ Run through this before attendees join. None of these are reversible mid-session
    Tick *Push protection* on each if you want lesson 6's optional push-block step to work. See [lesson 6 README](lessons/06-custom-secret-patterns/README.md) for screenshots of the preflight.
 7. **Have the org Security Overview tab open on a second tab.** [https://github.com/orgs/tkl-enteprises/security/overview](https://github.com/orgs/tkl-enteprises/security/overview) — lesson 8 is entirely UI-driven and the page can take a few seconds to load on first visit.
 
+## Repo configuration baseline
+
+The repo ships with the following config applied. If you fork/copy this repo, replicate these settings:
+
+| Setting | Value | Why |
+| --- | --- | --- |
+| Secret scanning | enabled | Detects `AKIA…`, `sk_test_…`, `ghp_…` etc. |
+| Push protection | enabled | Blocks new partner-pattern secrets at push time |
+| Secret scanning AI detection | enabled | Catches generic secrets the partner patterns miss |
+| Validity checks | enabled | Tags alerts as Active / Inactive |
+| Non-provider patterns | enabled | Generic password/key detection |
+| Dependabot alerts + security updates | enabled | Powers lesson 3 |
+| CodeQL (advanced workflow) | `build-mode: none` for Python | Default setup is OFF — would conflict |
+| Branch protection on `main` | required checks: CodeQL, Bandit, Dependency Review; admins can bypass | Keeps `main` green |
+| Custom secret patterns (lesson 6) | UI-only, not in source | See lesson 6 README + preflight step 6 |
+
+Anything in the *Settings → Code security* sidebar that's NOT in the table above is intentionally left at GitHub's default — flag in a PR if you think we should change one.
+
 ## Per-lesson timing guidance
 
 No clock times — pace varies wildly by audience. Use these qualitative buckets when planning your agenda:
