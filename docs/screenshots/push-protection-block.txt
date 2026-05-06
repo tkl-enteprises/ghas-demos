@@ -1,0 +1,26 @@
+# Push-protection live test — captured 2026-05-06 (UTC)
+#
+# OBSERVED BEHAVIOR: push protection did NOT block this push.
+# The fresh canary committed was:
+#   TEST_AWS_KEY    = "AKIAQ7HYG3LZDFNV4P9X"   (20 chars, AKIA prefix)
+#   TEST_AWS_SECRET = "kMxR8JqLPmZbV5tNcW2yFhDgX7sQpA1RyZ4ePaT3"  (40 chars)
+#
+# These were placed adjacent in lessons/02-secret-scanning/canary-test.py
+# on branch test-push-protection-ephemeral and pushed. The push SUCCEEDED
+# (exit 0) — no GH013 secret-scanning rule violation was emitted from the
+# remote. The remote branch (and its canary) were deleted immediately
+# after capture.
+#
+# Verbatim push output follows (all stderr+stdout, no redaction):
+# ----------------------------------------------------------------
+remote: 
+remote: Create a pull request for 'test-push-protection-ephemeral' on GitHub by visiting:        
+remote:      https://github.com/tkl-enteprises/ghas-demos/pull/new/test-push-protection-ephemeral        
+remote: 
+remote: GitHub found 98 vulnerabilities on tkl-enteprises/ghas-demos's default branch (6 critical, 36 high, 46 moderate, 10 low). To find out more, visit:        
+remote:      https://github.com/tkl-enteprises/ghas-demos/security/dependabot        
+remote: 
+To https://github.com/tkl-enteprises/ghas-demos.git
+ * [new branch]      test-push-protection-ephemeral -> test-push-protection-ephemeral
+branch 'test-push-protection-ephemeral' set up to track 'origin/test-push-protection-ephemeral'.
+EXIT_CODE: 0
