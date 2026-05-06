@@ -99,6 +99,29 @@ For low-risk patch bumps you can auto-merge once CI is green. See:
 
 A common pattern: a workflow that listens for `pull_request` events from `dependabot[bot]`, reads `dependabot/fetch-metadata`, and calls `gh pr merge --auto --squash` when `update-type` is `version-update:semver-patch`.
 
+## Bonus: Malware alerts
+
+Dependabot doesn't only flag **known-vulnerable** versions of legitimate packages — it also flags **packages that are themselves malicious** (typosquats, account-takeover injections, deliberately-poisoned releases). These show up as a separate stream under **Security → Dependabot alerts** with a *Malware* tag and a different review workflow: there's no "fixed version" to bump to — the right action is **remove the dep entirely**.
+
+![Security → Dependabot alerts page filtered to Malware — empty state for this repo, with the "We didn't find any matching malware alerts" message and the filter chip visible](../../docs/screenshots/malware-alerts-empty.png)
+
+This repo's malware tab is **deliberately empty** — pinning a known-malicious package would risk it actually executing during a CI run or on an attendee's laptop. That's why the lesson points at well-known historical cases instead of staging a fresh one.
+
+**Real-world incidents to talk through (in roughly chronological order):**
+
+- **`event-stream` (Nov 2018)** — npm package, ~2M weekly downloads. Original maintainer transferred ownership to a "helpful contributor"; the new maintainer published a release that injected a wallet-stealing payload targeting the Copay Bitcoin app's bundled deps. Removed by npm within hours of disclosure.
+- **`ua-parser-js` (Oct 2021)** — npm. Maintainer's account was compromised; three patch versions were published containing a cryptominer + credential stealer. Pinned dependents who auto-updated were compromised on install.
+- **`colors` & `faker` (Jan 2022)** — npm. Original author **intentionally sabotaged his own packages** in a protest action: published versions that printed `LIBERTY LIBERTY LIBERTY` and entered an infinite loop. Hundreds of downstream tools broke until the bad versions were yanked. Not malicious in the criminal sense, but the supply-chain failure mode is identical.
+- **`node-ipc` peacenotwar (Mar 2022)** — npm. Maintainer added code to specific patch versions that overwrote files on disk for users in Russia / Belarus. Same pattern: account-trusted maintainer publishes a poisoned patch release.
+- **PyPI typosquat sweep (Oct 2024)** — multiple Python packages with names typo-close to popular libs (e.g. `requests` ↔ `request`, `urllib3` ↔ `urllib-3`) pushed to PyPI by a coordinated actor; payload was a credential exfiltrator targeting CI environment variables. Caught by PyPI + GHSA within ~48 hours.
+- **`xz-utils` CVE-2024-3094 (Mar 2024)** — Linux compression lib. **State-actor caliber social engineering** of the upstream maintainer; the attacker spent ~2 years building trust as a co-maintainer before landing a backdoored release that targeted sshd in distros that ship liblzma. Caught by a Postgres dev who noticed sshd was 500ms slower. The supply-chain story everyone in the room has heard of.
+
+**Defenses Dependabot's malware alert gives you:**
+
+- Surfacing the alert at the **dep graph** layer, before `pip install` / `npm install` runs in your CI or on a developer laptop.
+- A "remove the package" remediation — no fixed version exists, so the auto-PR shape is `delete the line` rather than `bump the pin`.
+- Push protection equivalent: dependency review on PRs **also** flags malware-tagged advisories — same pre-merge gate as for known-CVE deps.
+
 ## Files
 
 | File              | Purpose                                                          |
@@ -114,6 +137,7 @@ A common pattern: a workflow that listens for `pull_request` events from `depend
 1. How do you balance the urgency of a critical security update against the breaking-change risk of a major version bump (e.g. Flask 0.12 → 3.x)?
 2. When is it acceptable to **dismiss** a Dependabot alert? What evidence should accompany an "ignore — not exploitable in our context" decision?
 3. How does GitHub's dependency review compare to commercial SCA tools (Snyk, Mend, Sonatype)? Where does each shine, and where do they overlap?
+4. Suppose a malware alert fires for `node-ipc==10.1.1` (the peacenotwar release) on your repo. Walk through the remediation: bump or remove? (Answer: **remove**. There is no clean fixed version of a deliberately-poisoned release — the auto-PR shape is `delete the requirements.txt line`. Then audit the lockfile for any transitive pin still pointing at the bad version, and rotate any secrets that may have been exposed during install on a CI runner that fetched it.)
 
 ## Exit criteria
 
@@ -128,6 +152,7 @@ The demo has landed when:
 - **Alerts surface risk; PRs ship the fix.** Dependabot does both, but they're separate user-visible surfaces with separate review workflows.
 - Dependency review is the **prevention** half — it stops a contributor from re-introducing a vulnerable pin that Dependabot just removed.
 - Compatibility scores and release notes in the PR are the signal you use to choose *patch-bump auto-merge* vs *manual review*.
+- **Malware alerts are a different class of finding** — *no fixed version exists*, the right action is *removal*, and the historical incidents (event-stream, ua-parser-js, colors/faker, node-ipc, PyPI typosquats, xz-utils) prove the threat is real, recurring, and crosses every package ecosystem.
 
 ## Reset state
 
