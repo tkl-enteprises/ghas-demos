@@ -1,0 +1,36 @@
+# ---------------------------------------------------------------------------
+# Workshop demo health check
+#
+# Runs nightly + on-demand to validate that the live state of the demo repo
+# (alert counts, CodeQL runs, main-branch ruleset, GHAS toggles) hasn't
+# drifted before a facilitator runs the workshop. See scripts/demo-health.py
+# for the actual checks; this workflow is just the runner.
+#
+# future: auto-open issue on drift (label: demo-drift) when any check fails
+# ---------------------------------------------------------------------------
+
+name: Demo health
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  health-check:
+    name: Validate workshop demo state
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run health checks
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/demo-health.py
