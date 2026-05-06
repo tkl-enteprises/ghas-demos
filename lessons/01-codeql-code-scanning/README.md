@@ -27,6 +27,10 @@ After CodeQL runs against this lesson, expect alerts similar to the table below 
 
 > 💡 You should see between 7 and ~10 alerts depending on whether CodeQL splits some sinks into multiple findings. That is normal.
 
+![Code scanning alerts list filtered to CodeQL — SQL injection, command injection, path injection, code injection, clear-text logging, and weak-crypto findings on the intentionally vulnerable Python files.](../../docs/screenshots/01-code-scanning-alerts.png)
+
+*`Security → Code scanning` for this repo. Filter by **Tool: CodeQL** to reproduce this view._
+
 ## Hands-on steps
 
 1. **View the files in this folder.** Open `vulnerable_app.py` and `user_routes.py` and skim the comments above each function — every block names the CodeQL rule it triggers.
@@ -37,6 +41,10 @@ After CodeQL runs against this lesson, expect alerts similar to the table below 
    - The **data-flow path** — CodeQL highlights `request.args[...]` as the *source* and `cursor.execute(...)` as the *sink*. Click "Show paths" to step through every hop.
    - The **severity** and **security-severity** scores — used by branch-protection rules.
 5. **Try Copilot Autofix.** On any alert, click **Generate fix** to see Autofix propose a patch. We dive deeper into Autofix in [lesson 04](../04-copilot-autofix/README.md).
+
+![Detail page for a CodeQL Server-Side Template Injection alert with the dataflow path expanded — source highlighted at `request.args[...]`, sink at the template render call, with every intermediate hop listed.](../../docs/screenshots/02-codeql-alert-detail.png)
+
+*Alert detail with **Show paths** expanded. The source → sink path is the artefact unique to dataflow analysis — it's what separates CodeQL from regex-based linters._
 
 ## Files in this lesson
 

@@ -31,6 +31,14 @@ The Security Overview surface bundles four jobs into one tab:
 5. 📸 Insert screenshot here — Coverage view filtered to *Not enabled*.
 6. 📸 Insert screenshot here — Risk view sorted by severity.
 
+![Org-level Security Overview → Risk view for `tkl-enteprises` showing open alerts by severity and repository, with `ghas-demos` as the dominant contributor.](../../docs/screenshots/08-org-security-overview-risk.png)
+
+*The **Risk** view at the org level — the heatmap a CISO uses to find "where is the most exposure right now?" Numbers reflect every lesson in this workshop firing on the same repo._
+
+![Org-level Security Overview → Coverage view for `tkl-enteprises` showing per-repo enablement of CodeQL, Dependabot alerts, secret scanning, and push protection.](../../docs/screenshots/08-org-security-overview-coverage.png)
+
+*The **Coverage** view — the "are we even running the scanners everywhere?" answer. Filter by *Not enabled* to find your fleet's gaps._
+
 ## Security configurations
 
 Security configurations are **named, reusable policy bundles** that an org admin defines once and applies to many repos. They let you say *"these 50 repos all get CodeQL on default queries, Dependabot alerts on, secret scanning + push protection on, and they auto-apply to any new repo created in the `backend` team."*

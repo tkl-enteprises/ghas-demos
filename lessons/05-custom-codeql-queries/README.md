@@ -38,6 +38,14 @@ If you fork this repo and add a new `.ql` file in that directory, it is picked u
    - **Rule:** `py/tkl/hardcoded-debug-true`
    You should see exactly one alert, on `lessons/05-custom-codeql-queries/target.py` at the `DEBUG = True` line. `bypass.py` should not appear.
 
+![Code scanning alerts list filtered to rule `py/tkl/hardcoded-debug-true` showing exactly one alert — pointing at `target.py` — with `bypass.py` correctly absent.](../../docs/screenshots/05-custom-codeql-rule-list.png)
+
+*Filtered view proving the custom query has both **recall** (fires on `target.py`) and **precision** (silent on `bypass.py`)._
+
+![Detail page for alert #32 from `py/tkl/hardcoded-debug-true` showing the `DEBUG = True` line, the rule metadata, and the source location.](../../docs/screenshots/05-custom-codeql-alert-detail.png)
+
+*Alert detail surfaces the query's `@id`, `@kind`, and `@description` metadata exactly as the default-suite alerts do — custom queries are first-class citizens in the alerts UI._
+
 ## Writing your own query
 
 CodeQL queries are written in QL, a declarative logic language. The fastest path to your first useful query:

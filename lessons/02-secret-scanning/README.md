@@ -25,9 +25,21 @@ Modern secret scanning combines regex match with **AI-powered suppression** of o
 
 This is exactly why the **live push-protection moment** is the heart of this lesson. When an attendee pushes a *new* line that looks like a credential, GHAS evaluates it without the benefit of seeing it's already-known-fake — and push protection fires.
 
+![Default tab of Security → Secret scanning showing "No secrets found" — partner-pattern detections suppressed by AI heuristics on the committed FAKE / DEMO / EXAMPLE-marked canaries.](../../docs/screenshots/06-secret-scanning-default-empty.png)
+
+*The **Default** tab is empty by design — the committed canaries are flagged-and-suppressed by AI heuristics. This is the suppression behaviour described above; it is not a misconfiguration._
+
+![Generic AI tab of Security → Secret scanning showing alerts firing on `hunter2_FAKE_*`-style password assignments — caught by the AI-powered generic-secret classifier rather than a partner pattern.](../../docs/screenshots/06-secret-scanning-generic-ai.png)
+
+*The **Generic** tab (AI-powered detection) is where committed-but-unrecognized credential shapes do surface. Useful to show alongside the Default tab to explain why one looks empty and the other doesn't._
+
 ## Push protection demo
 
 Push protection runs **client-side at `git push` time** — GitHub refuses the push before the secret is written to the remote. Try it:
+
+![Repo Settings → Code security → Secret scanning showing Push protection toggled on, with the bypass-prompt copy displayed for contributors.](../../docs/screenshots/02-push-protection-settings.png)
+
+*Repo settings page showing push protection enabled. Confirm this checkbox is green before running the live demo — without it the push below will succeed silently._
 
 1. Clone the repo locally.
    ```bash
@@ -45,6 +57,38 @@ Push protection runs **client-side at `git push` time** — GitHub refuses the p
    git push
    ```
 4. Observe push protection block the push with a remote rejection that links to the offending file/line and includes a bypass URL. See https://docs.github.com/en/code-security/secret-scanning/working-with-push-protection for the full workflow.
+
+   > 📋 **Live verification capture (2026-05-06).** During preflight a fresh `AKIA…` access key + 40-char secret pair was pushed to an ephemeral branch on this repo. **The push was *not* blocked** (`EXIT_CODE: 0`) — this is captured verbatim below. Re-confirm push protection is actually enforcing in *Settings → Code security → Secret scanning* before running this demo for an audience; if you see the same behaviour, lean on the partner-pattern alert in *Security → Secret scanning* (the *Generic* AI tab) instead of the push-block moment for this run, and treat the lack of a block as a teaching point about feature-prerequisite verification rather than a script failure.
+
+   ```text
+   # Push-protection live test — captured 2026-05-06 (UTC)
+   #
+   # OBSERVED BEHAVIOR: push protection did NOT block this push.
+   # The fresh canary committed was:
+   #   TEST_AWS_KEY    = "AKIAQ7HYG3LZDFNV4P9X"   (20 chars, AKIA prefix)
+   #   TEST_AWS_SECRET = "kMxR8JqLPmZbV5tNcW2yFhDgX7sQpA1RyZ4ePaT3"  (40 chars)
+   #
+   # These were placed adjacent in lessons/02-secret-scanning/canary-test.py
+   # on branch test-push-protection-ephemeral and pushed. The push SUCCEEDED
+   # (exit 0) — no GH013 secret-scanning rule violation was emitted from the
+   # remote. The remote branch (and its canary) were deleted immediately
+   # after capture.
+   #
+   # Verbatim push output follows (all stderr+stdout, no redaction):
+   # ----------------------------------------------------------------
+   remote:
+   remote: Create a pull request for 'test-push-protection-ephemeral' on GitHub by visiting:
+   remote:      https://github.com/tkl-enteprises/ghas-demos/pull/new/test-push-protection-ephemeral
+   remote:
+   remote: GitHub found 98 vulnerabilities on tkl-enteprises/ghas-demos's default branch (6 critical, 36 high, 46 moderate, 10 low). To find out more, visit:
+   remote:      https://github.com/tkl-enteprises/ghas-demos/security/dependabot
+   remote:
+   To https://github.com/tkl-enteprises/ghas-demos.git
+    * [new branch]      test-push-protection-ephemeral -> test-push-protection-ephemeral
+   branch 'test-push-protection-ephemeral' set up to track 'origin/test-push-protection-ephemeral'.
+   EXIT_CODE: 0
+   ```
+
 5. **Bypass workflow** (only if you genuinely need to land a documented test value, e.g. a test fixture):
    ```bash
    git push -o secret-scanning.skip-push-protection=true

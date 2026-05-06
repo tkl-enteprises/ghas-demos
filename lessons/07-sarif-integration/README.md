@@ -38,6 +38,14 @@ Notes:
 4. Compare a Bandit finding (e.g. MD5 use in `weak_crypto.py`) to a CodeQL finding from lesson 01. Notice both surface in the same UI, with the same dismiss / autofix UX.
 5. Open `sample.sarif` in this folder and locate the matching `results[0]` entry. Cross-reference its `ruleId`, `locations[0].physicalLocation`, and `message.text` to understand SARIF structure.
 
+![Actions tab of the repo showing the CodeQL, Bandit-SARIF, Dependency review, and Dependabot Updates workflows — most recent runs green.](../../docs/screenshots/07-actions-tab.png)
+
+*The Actions tab is the upstream of every screenshot below — green checkmarks on `CodeQL` and `Bandit (SARIF upload)` are what populates the Code Scanning view._
+
+![Code scanning alerts filtered to **Tool: Bandit**, showing rules B303 (MD5 use), B301 (pickle), B307 (eval), B602/B603 (subprocess shell=True), B608 (SQL via format), and B101/B105/B107 (assert / hardcoded passwords).](../../docs/screenshots/07-bandit-sarif-findings.png)
+
+*Bandit findings surfaced in `Security → Code scanning` after `upload-sarif@v3` ran. Triage UI is identical to CodeQL's — same dismiss reasons, same alert lifecycle, same PR annotations._
+
 ## SARIF schema cheat sheet
 
 A SARIF 2.1.0 document is a JSON tree. The four parts you'll touch most:

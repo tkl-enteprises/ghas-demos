@@ -36,6 +36,20 @@ Every line in `requirements.txt` maps to at least one published advisory in the 
 
 > Advisory IDs are stable identifiers in the GitHub Advisory Database — search any of them at <https://github.com/advisories>.
 
+## Visual reference
+
+![Security → Dependabot alerts list showing dozens of advisories grouped by severity — Critical, High, Moderate, Low — across Flask, Jinja2, Werkzeug, urllib3, requests, PyYAML, and cryptography.](../../docs/screenshots/03-dependabot-alerts.png)
+
+*The Dependabot alerts page after the dependency graph parses `requirements.txt` and `pyproject.toml`. Each row maps back to a published advisory in the GitHub Advisory Database._
+
+![Pull requests tab filtered to `is:pr is:open author:app/dependabot` showing seven open pip security-update PRs against the lesson's vulnerable dependencies.](../../docs/screenshots/03-dependabot-prs-list.png)
+
+*Dependabot opens one PR per fixable alert. These are the **security updates** — the auto-PRs that bump vulnerable pins to safe versions._
+
+![Detail of a Dependabot PR bumping Flask, with the CVE annotation, severity badge, release notes, and compatibility score visible on the right rail.](../../docs/screenshots/03-dependabot-pr-detail.png)
+
+*A single security-update PR. Note the **CVE annotation**, **release notes pulled from the upstream repo**, and the **compatibility score** — Dependabot's signal that the bump is unlikely to break callers._
+
 ## Hands-on steps
 
 1. **Inspect the pins.** Open `requirements.txt` in this folder and note that every dep is pinned with `==` to an old, known-vulnerable version.

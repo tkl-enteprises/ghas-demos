@@ -12,6 +12,12 @@
 
 ---
 
+![Repository Security tab showing alert counts across Code scanning, Secret scanning, and Dependabot — the hero view this workshop builds toward.](docs/screenshots/00-security-overview.png)
+
+*The repo's `Security` tab — every lesson below ladders up to a number on this page._
+
+---
+
 ## What is GHAS?
 
 [GitHub Advanced Security](https://docs.github.com/en/code-security/getting-started/github-security-features) (GHAS) is GitHub's native application security suite. It bundles **CodeQL code scanning**, **secret scanning with push protection**, **Dependabot supply chain alerts**, **Copilot Autofix**, and **org-level security overview / governance** into the same UI your developers already use for code review. The goal of this workshop is to make every one of those features fire on a small, friendly Python codebase so attendees can see, with their own eyes, what shows up where.

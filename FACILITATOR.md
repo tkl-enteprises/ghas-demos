@@ -108,13 +108,29 @@ At org scale, per-repo alert pages don't scale. The [Security Overview](https://
 
 ## Where to capture screenshots
 
-For the follow-up deck. Capture from a real tenant — the workshop materials intentionally do not bundle screenshots so each delivery can use a fresh, current UI.
+The repo ships with a frozen set of screenshots under [`docs/screenshots/`](docs/screenshots/), captured against the live `tkl-enteprises/ghas-demos` tenant. They're already embedded in the relevant lesson READMEs and the root README, so attendees see the same UI in markdown that you'll demo live. Re-capture against your own tenant before a deck — the `tkl-enteprises` images are workshop-grade, not customer-deck-grade.
 
-- 📸 The **alert detail page** for one CodeQL finding (lesson 1) — show the dataflow path expanded.
-- 📸 The **push protection block** in the terminal **and** the corresponding *Bypass* dialog in the GitHub UI (lesson 2).
-- 📸 A **Dependabot security update PR** with the changelog and CVE link visible (lesson 3).
-- 📸 The **Copilot Autofix suggestion diff** before and after acceptance (lesson 4).
-- 📸 A **custom query** finding listed alongside default-suite findings in the same alerts list (lesson 5).
-- 📸 A **custom secret pattern** match with the masking applied (lesson 6).
-- 📸 A **third-party SARIF tool** finding (e.g. from Bandit) showing in `Security → Code scanning` (lesson 7).
-- 📸 The **org Security Overview** dashboard, the **Coverage** view, the **Risk** view, and the **Configurations** page (lesson 8 — capture all four).
+| File | Lesson | Shows |
+| --- | --- | --- |
+| [`docs/screenshots/00-security-overview.png`](docs/screenshots/00-security-overview.png) | (root README hero) | Repo `Security` tab landing page — alert counts across Code scanning, Secret scanning, and Dependabot. |
+| [`docs/screenshots/01-code-scanning-alerts.png`](docs/screenshots/01-code-scanning-alerts.png) | 1 — CodeQL Code Scanning | Code-scanning alerts list filtered to **Tool: CodeQL**. |
+| [`docs/screenshots/02-codeql-alert-detail.png`](docs/screenshots/02-codeql-alert-detail.png) | 1 — CodeQL Code Scanning | Alert detail page (SSTI) with the dataflow path expanded — source → sink hops visible. |
+| [`docs/screenshots/02-push-protection-settings.png`](docs/screenshots/02-push-protection-settings.png) | 2 — Secret Scanning + Push Protection | Repo `Settings → Code security → Secret scanning` showing the push-protection toggle on. |
+| [`docs/screenshots/06-secret-scanning-default-empty.png`](docs/screenshots/06-secret-scanning-default-empty.png) | 2 — Secret Scanning + Push Protection | `Security → Secret scanning` **Default** tab showing "No secrets found" — illustrates AI suppression on committed canaries. |
+| [`docs/screenshots/06-secret-scanning-generic-ai.png`](docs/screenshots/06-secret-scanning-generic-ai.png) | 2 + 6 — Secret scanning / Custom patterns | `Security → Secret scanning` **Generic** tab — the AI classifier firing on `hunter2_FAKE_*`-style password assignments. |
+| [`docs/screenshots/03-dependabot-alerts.png`](docs/screenshots/03-dependabot-alerts.png) | 3 — Dependabot / Supply Chain | `Security → Dependabot` alerts list across Flask, Jinja2, Werkzeug, urllib3, requests, PyYAML, cryptography. |
+| [`docs/screenshots/03-dependabot-prs-list.png`](docs/screenshots/03-dependabot-prs-list.png) | 3 — Dependabot / Supply Chain | Pull requests tab filtered to `app/dependabot` — the seven open pip security-update PRs. |
+| [`docs/screenshots/03-dependabot-pr-detail.png`](docs/screenshots/03-dependabot-pr-detail.png) | 3 — Dependabot / Supply Chain | A Flask-bump security-update PR with CVE annotation, release notes, and compatibility score. |
+| [`docs/screenshots/05-custom-codeql-rule-list.png`](docs/screenshots/05-custom-codeql-rule-list.png) | 5 — Custom CodeQL Queries | Code-scanning alerts filtered to rule `py/tkl/hardcoded-debug-true` — proves precision (`bypass.py` absent) and recall (`target.py` present). |
+| [`docs/screenshots/05-custom-codeql-alert-detail.png`](docs/screenshots/05-custom-codeql-alert-detail.png) | 5 — Custom CodeQL Queries | Alert detail for the custom-query finding — `@id`, `@kind`, source location. |
+| [`docs/screenshots/07-actions-tab.png`](docs/screenshots/07-actions-tab.png) | 7 — SARIF Integration | Repo `Actions` tab showing CodeQL, Bandit-SARIF, Dependency review, and Dependabot Updates workflows green. |
+| [`docs/screenshots/07-bandit-sarif-findings.png`](docs/screenshots/07-bandit-sarif-findings.png) | 7 — SARIF Integration | Code-scanning alerts filtered to **Tool: Bandit** — B303, B301, B307, B602/B603, B608, B101/B105/B107. |
+| [`docs/screenshots/08-org-security-overview-risk.png`](docs/screenshots/08-org-security-overview-risk.png) | 8 — Security Overview | Org-level **Risk** view — open alerts by severity and repo. |
+| [`docs/screenshots/08-org-security-overview-coverage.png`](docs/screenshots/08-org-security-overview-coverage.png) | 8 — Security Overview | Org-level **Coverage** view — per-repo enablement of CodeQL / Dependabot / secret scanning / push protection. |
+| [`docs/screenshots/push-protection-block.txt`](docs/screenshots/push-protection-block.txt) | 2 — Secret Scanning + Push Protection | Verbatim terminal capture from the 2026-05-06 verification run. **OBSERVED:** push protection did **not** block a fresh `AKIA…` canary on the ephemeral branch (`EXIT_CODE: 0`). Re-verify enforcement before each delivery — see *Common attendee gotchas* above for context. |
+
+Gaps still worth capturing live in your tenant for a follow-up deck:
+
+- 📸 Lesson 4 — the **Copilot Autofix** suggestion diff (before / after acceptance) on the `py/sql-injection` alert in `insecure_login.py`.
+- 📸 Lesson 8 — the **Configurations** page showing the `GitHub recommended` security configuration's feature toggles.
+- 📸 Lesson 8 — a **Security campaigns** detail page (paid feature) with assigned repos and progress bars.
