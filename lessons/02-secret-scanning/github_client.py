@@ -5,10 +5,12 @@ Every "secret" in this file is documented as fake by AWS/Stripe/GitHub or is cle
 Do not reuse in production.
 """
 
-# ⚠️ FAKE GitHub PAT — has the right ghp_ prefix and 40-char body so GHAS will
-# match the "GitHub Personal Access Token" partner pattern, but the body is
-# literally the word FAKE repeated. Validity check will mark it inactive.
-GITHUB_TOKEN = "ghp_FAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE0"
+# ⚠️ FAKE GitHub PAT — the partner pattern is `ghp_[A-Za-z0-9]{36}`
+# (exactly 36 alphanumeric chars, no underscores). The body below is
+# 36 chars: `FAKE` × 9 = 36, so the full string is `ghp_` + 36 = 40 chars,
+# matches the pattern, and is obviously non-real. Validity checks will
+# mark it inactive.
+GITHUB_TOKEN = "ghp_FAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE"
 
 
 def list_my_repos() -> list[dict]:

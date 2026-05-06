@@ -5,10 +5,13 @@ Every "secret" in this file is documented as fake by AWS/Stripe/GitHub or is cle
 Do not reuse in production.
 """
 
-# ⚠️ FAKE Stripe test key — clearly marked with FAKE in the body.
-# Real Stripe test keys start with sk_test_ but contain a 24-char random tail.
-# Secret scanning's "Stripe API Key" partner pattern will flag the prefix shape.
-STRIPE_API_KEY = "sk_test_FAKE_4eC39HqLyjWDarjtT1zdp7dc"
+# ⚠️ FAKE Stripe test key — Stripe's "Test API Key" partner pattern is
+# `sk_test_[A-Za-z0-9]{24,99}`. The body MUST be alphanumeric only — an
+# underscore (or any other punctuation) breaks the regex and secret
+# scanning silently skips it. The body below intentionally encodes the
+# word FAKE in alphanumeric characters so it matches the pattern AND
+# stays obviously non-real (no underscore, contains "FAKE").
+STRIPE_API_KEY = "sk_test_FAKE0000fake4eC39HqLyjWDarjtT1zdp7dcDEMO"
 
 
 def charge(amount_cents: int, source: str) -> dict:

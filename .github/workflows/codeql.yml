@@ -29,7 +29,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["python"]
+        include:
+          - language: python
+            # `none` skips the legacy autobuild step. Python is interpreted
+            # so CodeQL doesn't need to compile/install — and trying to
+            # `pip install -r requirements.txt` on intentionally-vulnerable
+            # pinned deps (Flask 0.12, urllib3 1.24.1, ...) breaks on modern
+            # Python versions, which is exactly what this repo plants.
+            build-mode: none
 
     steps:
       - name: Checkout repository
@@ -39,10 +46,8 @@ jobs:
         uses: github/codeql-action/init@v3 # v3.27.5
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
           config-file: ./.github/codeql/codeql-config.yml
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3 # v3.27.5
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3 # v3.27.5
