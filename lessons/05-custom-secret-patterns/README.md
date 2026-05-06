@@ -23,7 +23,7 @@ After this lesson you can:
 
 - GHAS + secret scanning enabled, with **custom patterns** available (Enterprise license tier).
 - Repo-admin permission on `tkl-enteprises/ghas-demos` (custom patterns are configured in repo Settings).
-- Facilitator preflight has both `TKL Internal Token` and `TKL Workshop Demo Key` patterns published — see *Configure the patterns* below.
+- Facilitator preflight has both `Contoso API Token` and `Contoso Workshop Demo Key` patterns published — see *Configure the patterns* below.
 
 ## Where the patterns live
 
@@ -33,21 +33,23 @@ This lesson exercises two custom patterns. The facilitator (or a workshop prefli
 
 | Pattern name | Regex | Test string |
 | --- | --- | --- |
-| TKL Internal Token | `TKL-INTERNAL-[A-Z0-9]{12,16}` | `TKL-INTERNAL-DEMO123ABC456` |
-| TKL Workshop Demo Key | `tkl_demo_[a-z0-9]{32}` | `tkl_demo_abcdef0123456789abcdef0123456789` |
+| Contoso API Token | `CONTOSO-API-[A-Z0-9]{16,}` | `CONTOSO-API-FAKEDEMO0123456789ABCDEF` |
+| Contoso Workshop Demo Key | `contoso_demo_[a-z0-9]{32}` | `contoso_demo_abcdef0123456789abcdef0123456789` |
 
 Each Python file in this lesson hard-codes one fake match. Once the patterns are saved in repo settings, GHAS scans the repo and surfaces both as alerts.
+
+> 🎯 **Why `Contoso`?** [Contoso](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/maui/converters/empty-string-converter) is Microsoft's canonical fictitious-customer name (alongside Fabrikam, Adventure Works, etc.). The prefix is **guaranteed not to collide with any real provider**, which makes it the safest choice for demo fixtures: a workshop screenshot ending up on Slack or in a deck can't be mistaken for a real credential. Custom patterns are vendor-neutral — pick any prefix that's distinctive in *your* org.
 
 ### Configure the patterns (facilitator preflight)
 
 1. Open `https://github.com/tkl-enteprises/ghas-demos/settings/security_analysis` (or *Settings → Code security*).
 2. Scroll to *Secret scanning → Custom patterns* and click **New pattern**.
 3. For pattern #1, paste:
-   - **Pattern name:** `TKL Internal Token`
-   - **Secret format:** `TKL-INTERNAL-[A-Z0-9]{12,16}`
-   - **Test string:** `TKL-INTERNAL-DEMO123ABC456` (verify the dry-run preview turns green).
+   - **Pattern name:** `Contoso API Token`
+   - **Secret format:** `CONTOSO-API-[A-Z0-9]{16,}`
+   - **Test string:** `CONTOSO-API-FAKEDEMO0123456789ABCDEF` (verify the dry-run preview turns green).
 4. Click *Publish pattern* → confirm it scans across the repo.
-5. Repeat for pattern #2 with name `TKL Workshop Demo Key`, format `tkl_demo_[a-z0-9]{32}`, test string `tkl_demo_abcdef0123456789abcdef0123456789`.
+5. Repeat for pattern #2 with name `Contoso Workshop Demo Key`, format `contoso_demo_[a-z0-9]{32}`, test string `contoso_demo_abcdef0123456789abcdef0123456789`.
 6. Optional: tick *Push protection* on each pattern so workshop attendees can demo push-protection on custom patterns too.
 
 Once both patterns are published, GHAS rescans automatically and the two demo files in this lesson will show up under **Security → Secret scanning**.
@@ -73,15 +75,15 @@ In a real workshop, you'd typically promote a working repo-level pattern to org-
 1. Confirm the facilitator preflight above is done — both custom patterns are *Published* in repo settings.
 2. Open `internal.py` and `demo_key.py` in this lesson — both contain a fake string that matches one of the custom patterns.
 3. Visit **Security → Secret scanning** for the repo: <https://github.com/tkl-enteprises/ghas-demos/security/secret-scanning>
-4. Filter by *Secret type* → look for "TKL Internal Token" and "TKL Workshop Demo Key".
+4. Filter by *Secret type* → look for "Contoso API Token" and "Contoso Workshop Demo Key".
 5. Confirm both alerts are open, with the file path and line number pointing at this lesson.
-6. Optionally: clone the repo, edit `internal.py` to add another `TKL-INTERNAL-…` value, and watch push protection block your push (works only if you ticked *Push protection* on the pattern in step 6 of the preflight).
+6. Optionally: clone the repo, edit `internal.py` to add another `CONTOSO-API-…` value, and watch push protection block your push (works only if you ticked *Push protection* on the pattern in step 6 of the preflight).
 
 ## Designing custom patterns — checklist
 
 A good custom pattern is **specific** (low false-positive rate) and **anchored** (only matches in the right context). Use this checklist when adding a new one:
 
-- ✅ **Stable, distinctive prefix.** `TKL-INTERNAL-`, `tkl_demo_`, `acme_pat_`, etc. The prefix is what saves you from matching every random base64 string.
+- ✅ **Stable, distinctive prefix.** `CONTOSO-API-`, `contoso_demo_`, `acme_pat_`, etc. The prefix is what saves you from matching every random base64 string.
 - ✅ **Length bounds.** `[A-Z0-9]{12,16}` is much better than `[A-Z0-9]+`. A bound makes accidental matches on log lines and short hashes less likely.
 - ✅ **Character-class precision.** If the body is base32, write `[A-Z2-7]`, not `[A-Za-z0-9]`. The narrower the class, the higher the precision.
 - ✅ **`regex_pattern_test_string`** in the YAML — every pattern should ship with a test string that the regex must match (and ideally a counter-example that it must *not* match). Treat it like a unit test.
@@ -92,24 +94,24 @@ A good custom pattern is **specific** (low false-positive rate) and **anchored**
 ## Where to look
 
 - Repo alerts: <https://github.com/tkl-enteprises/ghas-demos/security/secret-scanning>
-- Filter the alert list by *Secret type* → "TKL Internal Token" / "TKL Workshop Demo Key".
+- Filter the alert list by *Secret type* → "Contoso API Token" / "Contoso Workshop Demo Key".
 
 ## Files
 
 | File | Purpose |
 | --- | --- |
 | `README.md` | This lesson guide |
-| `internal.py` | Fake `TKL-INTERNAL-…` token, matches custom pattern #1 |
-| `demo_key.py` | Fake `tkl_demo_…` key, matches custom pattern #2 |
+| `internal.py` | Fake `CONTOSO-API-…` token, matches custom pattern #1 |
+| `demo_key.py` | Fake `contoso_demo_…` key, matches custom pattern #2 |
 | `solution.md` | How to revoke + how to design robust patterns |
 
 ## Exit criteria
 
 The demo has landed when:
 
-- **Security → Secret scanning** shows two custom-pattern alerts (`TKL Internal Token`, `TKL Workshop Demo Key`).
+- **Security → Secret scanning** shows two custom-pattern alerts (`Contoso API Token`, `Contoso Workshop Demo Key`).
 - Attendees can describe the difference between repo / org / enterprise pattern scope.
-- (Optional) A push of a new `TKL-INTERNAL-…` value is blocked by push protection.
+- (Optional) A push of a new `CONTOSO-API-…` value is blocked by push protection.
 
 ## Key takeaways
 
@@ -127,11 +129,11 @@ The demo has landed when:
 This lesson DOES mutate org/repo state because patterns live in Settings:
 
 1. Go to *Settings → Code security → Secret scanning → Custom patterns*.
-2. **Delete** `TKL Internal Token` and `TKL Workshop Demo Key` if the next cohort should configure them from scratch.
+2. **Delete** `Contoso API Token` and `Contoso Workshop Demo Key` if the next cohort should configure them from scratch.
 3. Otherwise leave them in place — the lesson is idempotent and the patterns can stay published between runs.
 
 ```bash
 git checkout main && git pull
 ```
 
-If push protection was demoed on a custom pattern, delete any `test-tkl-pattern-*` branches that got pushed.
+If push protection was demoed on a custom pattern, delete any `test-contoso-pattern-*` branches that got pushed.

@@ -8,6 +8,7 @@ Disable the leaked credential at the issuer **before** doing anything else. Remo
 
 | Provider | Action |
 | --- | --- |
+| Azure storage / SAS / Key Vault key | Portal → Storage account → *Access keys* → **Rotate key**, or `az storage account keys renew`. For Key Vault: rotate the secret version and update consumers. Federate Actions to Azure via OIDC where possible. |
 | AWS IAM access key | IAM → Users → *user* → Security credentials → **Make inactive**, then delete. Rotate via short-lived OIDC if possible. |
 | Stripe API key | Dashboard → Developers → API keys → **Roll key**. |
 | GitHub PAT | <https://github.com/settings/tokens> → Revoke. Re-issue as fine-grained PAT or replace with a GitHub App. |
@@ -17,6 +18,7 @@ Disable the leaked credential at the issuer **before** doing anything else. Remo
 
 Before assuming "no harm done", check what the leaked credential *did* in the time window between the leak and the rotation:
 
+- Azure: Monitor → Activity log + Storage / Key Vault diagnostic settings — search by AccountKey usage, look for unfamiliar IPs, regions, or operations (especially `Microsoft.Storage/storageAccounts/listKeys/action`, large-blob reads from customer containers, role assignments).
 - AWS: CloudTrail → search by access key ID, look for unfamiliar IPs, regions, or service calls (especially `iam:CreateUser`, `s3:GetObject` on customer buckets, `ec2:RunInstances`).
 - Stripe: Dashboard → Logs → filter by API key.
 - GitHub: org audit log + the PAT's "last used" timestamp.
@@ -31,7 +33,7 @@ Options:
 
 - **`git filter-repo`** (recommended): <https://github.com/newren/git-filter-repo>
   ```bash
-  git filter-repo --replace-text <(echo 'AKIA…==>REDACTED')
+  git filter-repo --replace-text <(echo 'AccountKey=FAKEDEMO…==>REDACTED')
   ```
 - **BFG Repo-Cleaner** (older but simpler): <https://rtyley.github.io/bfg-repo-cleaner/>
 - After rewriting, force-push and ask everyone with a clone to re-clone (their old clone still has the secret).
@@ -40,13 +42,13 @@ Options:
 
 Hard-coding is the disease; rotating is the cure for the symptom. Don't re-introduce the disease.
 
-- **GitHub Actions secrets** for CI: Settings → Secrets and variables → Actions. Reference as `${{ secrets.AWS_ACCESS_KEY_ID }}` in workflow YAML.
+- **GitHub Actions secrets** for CI: Settings → Secrets and variables → Actions. Reference as `${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}` in workflow YAML.
 - **Org-level secrets** for sharing across many repos: Org → Settings → Secrets and variables → Actions → "New organization secret".
-- **OIDC federation (best for cloud)** — no long-lived secret in GitHub at all. Federate Actions to AWS / Azure / GCP using their OIDC trust:
-  - AWS: <https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services>
+- **OIDC federation (best for cloud)** — no long-lived secret in GitHub at all. Federate Actions to Azure / AWS / GCP using their OIDC trust:
   - Azure: <https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure>
+  - AWS: <https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services>
   - GCP: <https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-google-cloud-platform>
-- **Cloud secrets managers** for runtime: AWS Secrets Manager, Azure Key Vault, GCP Secret Manager, HashiCorp Vault. The app reads the secret at startup (or on demand) using its workload identity.
+- **Cloud secrets managers** for runtime: Azure Key Vault, AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault. The app reads the secret at startup (or on demand) using its workload identity.
 - **`.env` for local dev only** — see `.env.example` in this lesson; ensure `.env` is in `.gitignore`.
 
 ## Why "removing it in the next commit" isn't enough

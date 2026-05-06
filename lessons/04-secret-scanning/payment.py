@@ -1,7 +1,7 @@
 """
 ⚠️ INTENTIONALLY VULNERABLE — fake/canary credentials only, for educational use.
 Part of GHAS workshop demos: https://github.com/tkl-enteprises/ghas-demos
-Every "secret" in this file is documented as fake by AWS/Stripe/GitHub or is clearly marked FAKE/EXAMPLE/DEMO.
+Every "secret" in this file is clearly marked FAKE/DEMO so secret scanning detects the shape without exposing a real credential.
 Do not reuse in production.
 """
 
@@ -19,8 +19,9 @@ def charge(amount_cents: int, source: str) -> dict:
 
     ⚠️ Calling Stripe with a hard-coded API key is the alert pattern this
     lesson exists to demonstrate. The right answer is to read STRIPE_API_KEY
-    from a secrets manager (Azure Key Vault, AWS Secrets Manager, GitHub
-    Actions secret) at runtime — see solution.md.
+    from a secrets manager (Azure Key Vault, GCP Secret Manager, AWS
+    Secrets Manager, HashiCorp Vault, or a GitHub Actions secret) at
+    runtime — see solution.md.
 
     A teammate looking for AI-detection bait would also write something like:
         password = "hunter2_FAKE_DEMO_PASSWORD"

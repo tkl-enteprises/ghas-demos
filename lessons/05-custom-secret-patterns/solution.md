@@ -20,7 +20,7 @@ A pattern is good if it (a) catches every real leak and (b) doesn't drown the se
 
 ### 1. Anchor with a unique prefix
 
-Most home-grown tokens already do this; if yours doesn't, add one. `TKL-INTERNAL-`, `tkl_demo_`, `acme_pat_v2_`, `_NSPK_` — all good. The prefix should be unlikely to appear in normal code or English text.
+Most home-grown tokens already do this; if yours doesn't, add one. `CONTOSO-API-`, `contoso_demo_`, `acme_pat_v2_`, `_NSPK_` — all good. The prefix should be unlikely to appear in normal code or English text.
 
 ### 2. Use a character class that matches the issuing format exactly
 
@@ -28,7 +28,7 @@ If your token-issuing service emits base32, the body is `[A-Z2-7]` — not `[A-Z
 
 ### 3. Bound the length
 
-A bound (`{32}`, `{12,16}`, …) prevents the regex from matching short prefixes-as-strings ("TKL-INTERNAL-USER" in a comment) and from catastrophic-backtracking on huge log lines.
+A bound (`{32}`, `{16,}`, `{12,16}`, …) prevents the regex from matching short prefixes-as-strings ("CONTOSO-API-USER" in a comment) and from catastrophic-backtracking on huge log lines.
 
 ### 4. Always supply a test string in the UI
 

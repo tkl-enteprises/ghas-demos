@@ -1,24 +1,33 @@
 """
 ⚠️ INTENTIONALLY VULNERABLE — fake/canary credentials only, for educational use.
 Part of GHAS workshop demos: https://github.com/tkl-enteprises/ghas-demos
-Every "secret" in this file is documented as fake by AWS/Stripe/GitHub or is clearly marked FAKE/EXAMPLE/DEMO.
+Every "secret" in this file is clearly marked FAKE/DEMO so secret scanning
+detects the *shape* without exposing a real credential.
 Do not reuse in production.
 """
 
-# ⚠️ AWS DOCS CANARY — these are documented fake credentials from AWS docs.
-# Secret scanning will detect them but they cannot be used.
-# Reference: https://docs.aws.amazon.com/IAM/latest/UserGuide/security-creds.html
-AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
-AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+# ⚠️ FAKE Azure Storage connection string — the partner pattern matches
+# `AccountKey=<88-char base64>` inside a connection string. The body below
+# is exactly the Azure shape (DefaultEndpointsProtocol / AccountName /
+# AccountKey / EndpointSuffix) but every visible character spells `FAKEDEMO`,
+# so secret scanning fires on the pattern while a human reader can see at
+# a glance that no real key is committed. Validity probing will mark it
+# inactive — by design.
+AZURE_STORAGE_CONNECTION_STRING = (
+    "DefaultEndpointsProtocol=https;"
+    "AccountName=fakedemoaccount;"
+    "AccountKey=FAKEDEMOFAKEDEMOFAKEDEMOFAKEDEMOFAKEDEMOFAKEDEMOFAKEDEMOFAKEDEMOFAKEDEMOFAKEDE==;"
+    "EndpointSuffix=core.windows.net"
+)
 
-REGION = "eu-west-1"
+REGION = "westeurope"
 
 
 def get_credentials() -> tuple[str, str]:
     """Return the hard-coded credentials.
 
     ⚠️ This is exactly the anti-pattern secret scanning is designed to catch.
-    The right answer is to read from the environment, an instance role, or
-    GitHub Actions OIDC federation — see solution.md.
+    The right answer is to read from the environment, a managed identity, or
+    GitHub Actions OIDC federation to Azure — see solution.md.
     """
-    return AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+    return AZURE_STORAGE_CONNECTION_STRING, REGION

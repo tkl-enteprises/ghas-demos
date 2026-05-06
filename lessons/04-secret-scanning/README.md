@@ -11,7 +11,7 @@ Experience secret scanning and push protection end-to-end. The **live demo** is 
 After this lesson you can:
 
 - Distinguish secret scanning (detection) from push protection (prevention).
-- Trigger push protection by pushing a partner-pattern shaped value (e.g. `AKIA…`).
+- Trigger push protection by pushing a partner-pattern shaped value (e.g. an Azure storage connection string with a fresh `AccountKey=…`).
 - Read a partner-pattern alert and check its **validity** badge.
 - Bypass push protection with `secret-scanning.skip-push-protection=true` and explain when that's appropriate.
 
@@ -27,20 +27,22 @@ After this lesson you can:
 
 ## What's in this lesson
 
-Four Python files plus a `.env.example`. Each Python file hard-codes a *fake* credential that matches a partner pattern — `AKIA…`, `sk_test_…`, `ghp_…` — but every value is either documented as fake by its issuer or clearly marked `FAKE` / `EXAMPLE` / `DEMO`.
+Four Python files plus a `.env.example`. Each Python file hard-codes a *fake* credential that matches a partner pattern — an Azure storage `AccountKey=…`, `sk_test_…`, `ghp_…` — but every value is clearly marked `FAKE` / `DEMO` so a human reader can tell at a glance there's no real credential committed.
 
 | File | Format demonstrated |
 | --- | --- |
-| `config.py` | `AWS Access Key ID` + `AWS Secret Access Key` (AWS-documented canaries) |
+| `config.py` | `Azure Storage Connection String` (FAKEDEMO-marked AccountKey) |
 | `payment.py` | `Stripe API Key` (test key with `sk_test_` prefix) |
 | `github_client.py` | `GitHub Personal Access Token` (`ghp_` prefix) |
 | `.env.example` | **Nothing** — placeholders only. This teaches the right pattern. |
 
 > ⚠️ Every file (except `.env.example`) starts with a "this is intentionally vulnerable" header. Do not copy these patterns into real code.
 
+> 🎯 **Why Azure-first?** GHAS partner-pattern coverage spans 200+ providers (Azure, AWS, GCP, Stripe, Slack, OpenAI, Snowflake, …); secret scanning is vendor-neutral and the **same workshop runs unchanged for an AWS- or GCP-shop customer** — only the screenshots change. We've picked Azure as the headline fixture because the typical delivery audience for this material is a Microsoft-tenant team. If your audience is multi-cloud or AWS-first, lean on the [Stripe](payment.py) and [GitHub PAT](github_client.py) fixtures (also partner patterns) and frame Azure as "one example of a 200+ list".
+
 ## Why the alert tab might look empty before you start
 
-Modern secret scanning combines regex match with **AI-powered suppression** of obvious test/example values, **provider denylists** (AWS publishes its own list of well-known canary keys like `AKIAIOSFODNN7EXAMPLE`), and **validity probing**. When the static files in this lesson contain words like `FAKE`, `DEMO`, or AWS's canary value, GHAS may correctly suppress them as "obviously not a real leak" — that's the feature working as designed for the production case, not a bug.
+Modern secret scanning combines regex match with **AI-powered suppression** of obvious test/example values, **provider denylists** (each provider publishes its own list of well-known canary keys), and **validity probing**. When the static files in this lesson contain words like `FAKE` or `DEMO`, GHAS may correctly suppress them as "obviously not a real leak" — that's the feature working as designed for the production case, not a bug.
 
 This is exactly why the **live push-protection moment** is the heart of this lesson. When an attendee pushes a *new* line that looks like a credential, GHAS evaluates it without the benefit of seeing it's already-known-fake — and push protection fires.
 
@@ -65,9 +67,13 @@ Push protection runs **client-side at `git push` time** — GitHub refuses the p
    git clone https://github.com/tkl-enteprises/ghas-demos.git
    cd ghas-demos
    ```
-2. Edit `lessons/04-secret-scanning/payment.py` and add a new line that *looks* like a real AWS Access Key ID — anything matching the pattern `AKIA[A-Z0-9]{16}` will do. For example:
+2. Edit `lessons/04-secret-scanning/payment.py` and add a new line that *looks* like a real Azure storage connection string — anything matching the partner pattern (`AccountKey=<88-char base64>` inside a `DefaultEndpointsProtocol=…` block) will do. For example:
    ```python
-   NEW_AWS_KEY = "AKIA" + "EXAMPLE" + "PUSHBLOCK1"  # 20 chars total
+   NEW_AZURE_KEY = (
+       "DefaultEndpointsProtocol=https;AccountName=demo;"
+       "AccountKey=PUSHBLOCKDEMOPUSHBLOCKDEMOPUSHBLOCKDEMOPUSHBLOCKDEMOPUSHBLOCKDEMOPUSHBLOCKDEMOPS==;"
+       "EndpointSuffix=core.windows.net"
+   )
    ```
 3. Commit and try to push:
    ```bash
@@ -77,10 +83,14 @@ Push protection runs **client-side at `git push` time** — GitHub refuses the p
    ```
 4. Observe push protection block the push with a remote rejection that links to the offending file/line and includes a bypass URL. See https://docs.github.com/en/code-security/secret-scanning/working-with-push-protection for the full workflow.
 
-   > 📋 **Live verification capture (2026-05-06).** During preflight a fresh `AKIA…` access key + 40-char secret pair was pushed to an ephemeral branch on this repo. **The push was *not* blocked** (`EXIT_CODE: 0`) — this is captured verbatim below. Re-confirm push protection is actually enforcing in *Settings → Code security → Secret scanning* before running this demo for an audience; if you see the same behaviour, lean on the partner-pattern alert in *Security → Secret scanning* (the *Generic* AI tab) instead of the push-block moment for this run, and treat the lack of a block as a teaching point about feature-prerequisite verification rather than a script failure.
+   > 📜 **Historical artifact — push-protection-block transcript.** The verbatim terminal capture below (and the full text in [`docs/screenshots/push-protection-block.txt`](../../docs/screenshots/push-protection-block.txt)) was recorded in May 2026 against the workshop's *previous* AWS-first fixtures (an `AKIA…`-shaped access-key pair). It documents a still-relevant gotcha — push protection silently ignored an admin push and returned `EXIT_CODE: 0` — but the AWS-shaped strings in the transcript do **not** match the current Azure-first fixtures in this lesson. We deliberately keep the historical evidence intact rather than re-recording: the *failure mode* is what matters (admin bypass list + validity-check deprioritisation), and re-recording would only change the surface key shape, not the diagnosis. See **FACILITATOR.md → Push protection bypass — mitigations for live demos** for the full root-cause analysis and the three mitigations.
 
    ```text
-   # Push-protection live test — captured 2026-05-06 (UTC)
+   # Push-protection live test — captured 2026-05-06 (UTC) — HISTORICAL ARTIFACT
+   # The fixtures used below are the workshop's previous AWS-first canaries;
+   # the lesson's current Azure-first fixture lives in config.py. The transcript
+   # is preserved verbatim because the *failure mode* (admin push not blocked)
+   # is what teaches the lesson — not the surface key shape.
    #
    # OBSERVED BEHAVIOR: push protection did NOT block this push.
    # The fresh canary committed was:
@@ -116,7 +126,7 @@ Push protection runs **client-side at `git push` time** — GitHub refuses the p
 
 ## Validity checks
 
-For partners that support it (AWS, GitHub, Slack, …) GHAS pings the issuer's API to check whether the leaked token is currently valid. The alerts in the security tab will be tagged `Active` or `Inactive`. The canary credentials in this lesson should all show as **inactive / unknown** — they were never live, by design. In a real leak, an `Active` tag means "rotate, *now*".
+For partners that support it (Azure, AWS, GCP, GitHub, Slack, Stripe, …) GHAS pings the issuer's API to check whether the leaked token is currently valid. The alerts in the security tab will be tagged `Active` or `Inactive`. The canary credentials in this lesson should all show as **inactive / unknown** — they were never live, by design. In a real leak, an `Active` tag means "rotate, *now*".
 
 ## AI detection
 
@@ -130,24 +140,25 @@ With AI-powered detection enabled at the org level, GHAS will also surface gener
 ## Hands-on steps
 
 1. Open the repo's **Security → Secret scanning alerts** tab.
-2. Confirm at least three alerts are present: AWS Access Key ID, Stripe test key (or generic API key), GitHub PAT.
-3. Click into the AWS alert. Note: the file path, the line number, the validity badge, and the recommended remediation.
+2. Confirm at least three alerts are present: Azure Storage connection string, Stripe test key (or generic API key), GitHub PAT.
+3. Click into the Azure alert. Note: the file path, the line number, the validity badge, and the recommended remediation.
 4. Clone the repo, follow the *Push protection demo* steps above to get a hard rejection.
 5. Bypass the rejection with `-o secret-scanning.skip-push-protection=true`, then immediately revert/force-push to clean up your branch (so we don't leave canaries scattered around).
 6. Open `solution.md` and walk through the remediation runbook.
 
 ## Discussion prompts
 
-1. A teammate accidentally committed a **production** AWS access key 30 minutes ago. Walk through your incident response — what's step 1, step 2, step 3?
+1. A teammate accidentally committed a **production** Azure storage connection string 30 minutes ago. Walk through your incident response — what's step 1, step 2, step 3?
 2. When is bypassing push protection the right call, and when is it a smell? How do you tell the two apart in PR review?
 3. What's the conceptual difference between secret scanning (detection on existing code) and push protection (prevention at push time)? Why do you need both?
+4. Your customer is multi-cloud (Azure + AWS) — would you re-record this lesson with `AKIA…`-shaped fixtures, or argue that the Azure-shaped demo translates 1:1 to AWS partner-pattern coverage? What evidence would you bring to the conversation?
 
 ## Files
 
 | File | Purpose |
 | --- | --- |
 | `README.md` | This lesson guide |
-| `config.py` | AWS canary access key + secret key |
+| `config.py` | Fake Azure storage connection string (`AccountKey=FAKEDEMO…==`) |
 | `payment.py` | Fake Stripe `sk_test_FAKE_…` token |
 | `github_client.py` | Fake GitHub `ghp_FAKE…` PAT |
 | `.env.example` | The right way to share config — placeholders only, no values |
@@ -158,7 +169,7 @@ With AI-powered detection enabled at the org level, GHAS will also surface gener
 The demo has landed when:
 
 - The push of a fresh canary is blocked (or, if a regression, attendees can articulate why and pivot to the partner-pattern alert).
-- Attendees locate the AWS / Stripe / GitHub PAT alerts on the **Default** or **Generic** tab.
+- Attendees locate the Azure / Stripe / GitHub PAT alerts on the **Default** or **Generic** tab.
 - Attendees know the bypass syntax (`-o secret-scanning.skip-push-protection=true`) and when it's appropriate.
 
 ## Key takeaways

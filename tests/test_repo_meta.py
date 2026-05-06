@@ -92,3 +92,38 @@ def test_root_readme_has_pillar_grouped_intro(repo_root: Path):
     assert "Code Scanning" in text and "Secret Scanning" in text and "Supply Chain" in text, (
         "README.md should mention the GHAS pillars (Code Scanning / Secret Scanning / Supply Chain)"
     )
+
+
+def test_no_aws_first_fixtures_in_lessons_04_05(repo_root: Path):
+    """Lessons 04 + 05 must lead with Azure-first / Contoso fixtures, not AWS.
+
+    Microsoft FTEs deliver this workshop to customers; AWS-shaped values
+    (`AKIA…`) in source files or screenshots are off-brand. Vendor-neutrality
+    may appear in *prose* (incident-response runbooks reference Azure / AWS /
+    GCP side-by-side), but:
+
+      - Lesson 05 README must not reference the legacy AKIA pattern at all
+        — its custom-pattern fixtures are Contoso-prefixed.
+      - Lesson 04 README may discuss AWS as a secondary vendor in prose, but
+        the FIRST mention of a cloud provider in the file must be Azure.
+        (Anchors the Azure-first framing for the live demo.)
+    """
+    l5_readme = (
+        repo_root / "lessons" / "05-custom-secret-patterns" / "README.md"
+    ).read_text(encoding="utf-8")
+    assert "AKIA" not in l5_readme, (
+        "lesson 05 README must not reference the legacy AWS AKIA pattern; "
+        "lesson 05 custom-pattern fixtures are Contoso-prefixed"
+    )
+
+    l4_readme = (
+        repo_root / "lessons" / "04-secret-scanning" / "README.md"
+    ).read_text(encoding="utf-8")
+    aws_positions = [p for p in (l4_readme.find("AWS"), l4_readme.find("AKIA")) if p != -1]
+    if aws_positions:
+        first_aws = min(aws_positions)
+        first_azure = l4_readme.find("Azure")
+        assert first_azure != -1 and first_azure < first_aws, (
+            "lesson 04 README must mention Azure before any AWS/AKIA reference "
+            "(Azure-first optics for Microsoft-FTE delivery)"
+        )

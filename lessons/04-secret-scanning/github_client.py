@@ -1,7 +1,7 @@
 """
 ⚠️ INTENTIONALLY VULNERABLE — fake/canary credentials only, for educational use.
 Part of GHAS workshop demos: https://github.com/tkl-enteprises/ghas-demos
-Every "secret" in this file is documented as fake by AWS/Stripe/GitHub or is clearly marked FAKE/EXAMPLE/DEMO.
+Every "secret" in this file is clearly marked FAKE/DEMO so secret scanning detects the shape without exposing a real credential.
 Do not reuse in production.
 """
 

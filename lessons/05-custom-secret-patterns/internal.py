@@ -1,16 +1,18 @@
 """
 ⚠️ INTENTIONALLY VULNERABLE — fake/canary credentials only, for educational use.
 Part of GHAS workshop demos: https://github.com/tkl-enteprises/ghas-demos
-Every "secret" in this file is documented as fake by AWS/Stripe/GitHub or is clearly marked FAKE/EXAMPLE/DEMO.
+Every "secret" in this file is clearly marked FAKE/DEMO so secret scanning detects the shape without exposing a real credential.
 Do not reuse in production.
 """
 
-# Fake match for the custom pattern "TKL Internal Token".
-# Format: TKL-INTERNAL-[A-Z0-9]{12,16}
+# Fake match for the custom pattern "Contoso API Token".
+# Format: CONTOSO-API-[A-Z0-9]{16,}
 # The pattern is published in repo Settings → Code security → Secret scanning →
 # Custom patterns. See lesson README for the facilitator preflight that
-# configures it. This value is workshop-only and matches no real service.
-INTERNAL_API_TOKEN = "TKL-INTERNAL-DEMO123ABC456"
+# configures it. This value is workshop-only and matches no real service —
+# `Contoso` is Microsoft's canonical fictitious-customer name, so the prefix
+# is guaranteed not to collide with any real provider.
+INTERNAL_API_TOKEN = "CONTOSO-API-FAKEDEMO0123456789ABCDEF"
 
 
 def call_internal_service(payload: dict) -> dict:
@@ -22,7 +24,7 @@ def call_internal_service(payload: dict) -> dict:
     """
     return {
         "ok": False,
-        "error": "demo only — TKL-INTERNAL token is fake",
-        "token_prefix": INTERNAL_API_TOKEN[:13],
+        "error": "demo only — CONTOSO-API token is fake",
+        "token_prefix": INTERNAL_API_TOKEN[:12],
         "payload_keys": sorted(payload.keys()),
     }
