@@ -1,0 +1,20 @@
+{
+  "name": "GHAS Demos Workshop",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "github.vscode-github-actions",
+        "github.vscode-pull-request-github",
+        "github.copilot"
+      ]
+    }
+  },
+  "postCreateCommand": ".devcontainer/post-create.sh",
+  "forwardPorts": [],
+  "remoteUser": "vscode"
+}
