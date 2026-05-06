@@ -64,14 +64,14 @@ The five pillars below are the mental model attendees should leave with — ever
 
 ```mermaid
 flowchart LR
-  P1[Code Scanning]      --> L1[Lesson 1: CodeQL]
-  P1                     --> L4[Lesson 4: Copilot Autofix]
-  P1                     --> L5[Lesson 5: Custom queries]
-  P2[Secret Scanning]    --> L2[Lesson 2: Detection + push protection]
-  P2                     --> L6[Lesson 6: Custom patterns]
-  P3[Supply Chain]       --> L3[Lesson 3: Dependabot]
-  P4[3rd-party / SARIF]  --> L7[Lesson 7: Bandit + SARIF upload]
-  P5[Governance]         --> L8[Lesson 8: Org Security Overview]
+  P1["Code Scanning"]      --> L1["Lesson 1: CodeQL"]
+  P1                       --> L4["Lesson 4: Copilot Autofix"]
+  P1                       --> L5["Lesson 5: Custom queries"]
+  P2["Secret Scanning"]    --> L2["Lesson 2: Detection + push protection"]
+  P2                       --> L6["Lesson 6: Custom patterns"]
+  P3["Supply Chain"]       --> L3["Lesson 3: Dependabot"]
+  P4["3rd-party / SARIF"]  --> L7["Lesson 7: Bandit + SARIF upload"]
+  P5["Governance"]         --> L8["Lesson 8: Org Security Overview"]
 ```
 
 ## Lessons
