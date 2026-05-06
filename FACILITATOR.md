@@ -8,6 +8,8 @@ Instructor-side companion to [`README.md`](README.md). Read this once before run
 
 ## Pre-flight checklist
 
+> 🤖 **Run [`scripts/preflight.sh`](scripts/preflight.sh) ~24 hours before the workshop.** It verifies items 1–5 of this checklist plus current alert counts via the GitHub API and returns a green/red summary. Requires `gh` authenticated with `repo` + `read:org` scopes and admin on the demo repo. The manual list below is still authoritative for items the API can't observe (UI-only custom patterns, second-tab setup).
+
 Run through this before attendees join. None of these are reversible mid-session and most will silently break the demo if missed.
 
 1. **Confirm GHAS is on for this repo.** Repo → `Settings → Code security`. Look for green checkmarks next to *Code scanning*, *Secret scanning*, and *Dependabot alerts*. The org [`tkl-enteprises`](https://github.com/tkl-enteprises) has a GHAS license; new repos in the org may still need the recommended security configuration applied.
@@ -68,6 +70,20 @@ No clock times — pace varies wildly by audience. Use these qualitative buckets
 - ❌ **"Code scanning shows zero alerts."** The CodeQL workflow either hasn't finished its first run, or it ran on a branch with no vulnerable code. Check `Actions → CodeQL` first.
 - ❌ **"Several 'Dependabot Updates' workflow runs show as failure."** Those red runs are Dependabot's *internal* rebase/recompute jobs, not the workshop's CI. They fire when Dependabot can't compute a clean update graph for a manifest (typically because a transitive dep also needs to move, or two PRs touch the same lockfile). They do **not** block PR creation — the seven pip-dep PRs in lesson 3 still appear, still surface their CVE annotations, and still merge correctly. Safe to ignore; do not panic-debug them mid-session.
 
+### Push protection bypass — mitigations for live demos
+
+The verification run logged in [`docs/screenshots/push-protection-block.txt`](docs/screenshots/push-protection-block.txt) shows the failure mode that surprises facilitators most: **a fresh `AKIA…`-shaped canary pushed by an admin pushes through cleanly with `EXIT_CODE: 0` and no block prompt**, even with push protection switched on in repo settings.
+
+**Root cause.** Push protection is gated by the branch ruleset's *bypass list*. On this repo (and on most repos created from GitHub's recommended security configuration) the bypass list defaults to **"Anyone with write access"** — which means every admin and every collaborator with `write` silently bypasses the block. Worse, partner patterns like `AKIA…` are filtered through **validity checks** before push protection fires; an inactive / fake-looking key can be deprioritised by the validator and never trip the block, regardless of the bypass list.
+
+**Three mitigations**, in increasing order of facilitator effort:
+
+1. **Option 3 — Demo with a custom secret pattern (recommended for live workshops).** Lesson 06 ships two custom patterns (`TKL-INTERNAL-…` and `tkl_demo_…`). Custom patterns do **not** route through validity checks, and their push-protection enforcement is per-pattern instead of governed by the partner-pattern path. Pushing a fresh `TKL-INTERNAL-DEMO123ABC456` line on a workshop branch fires the block reliably for every account, every time. **No org-settings change required**, which is why this is the default for live delivery.
+2. **Option 2 — Temporarily restrict the bypass list.** Repo → `Settings → Rules → Rulesets → main-branch-protection` → *Bypass list*. Switch from "Anyone with write access" to "Specific roles or teams" and leave the list empty for the duration of the workshop, then revert immediately afterwards. Side effect: while the bypass list is empty, *you* also can't bypass — emergency hotfixes during the session will fail. Set a calendar reminder to revert.
+3. **Option 1 — Run the demo from a non-admin account.** The most realistic reproduction of an attendee experience. Create a `workshop-attendee` user (or use a personal scratch account), invite them with `write` access only, and demo the live `git push` from *that* account. Combined with Option 2 (empty bypass list) this gives you a perfectly clean block. Requires advance setup: a separate browser profile and SSH/HTTPS credentials wired up for the demo user.
+
+**Recommendation.** Default to **Option 3** for every delivery. Reach for Option 2 only when an attendee specifically asks "but does it block my admin too?" and you want to demonstrate the answer. Option 1 is the right path for a customer pilot — not for a 60-minute workshop where setup time is already tight.
+
 ## Reset between sessions
 
 Several options, in order of cleanliness:
@@ -106,6 +122,37 @@ Beyond the ~200 partner patterns, GHAS lets org admins define **custom secret pa
 ### 8. Security Overview (Org-level Governance)
 At org scale, per-repo alert pages don't scale. The [Security Overview](https://docs.github.com/en/code-security/security-overview/about-security-overview) tab is the **CISO view**: which repos have which features enabled, where alerts are concentrating by severity, which teams own the most risk, and what *security configurations* are applied across the fleet. This is the upsell story — it's the difference between "we have GHAS" and "we manage GHAS."
 
+## Per-lesson notes
+
+Lessons whose demo flow needs more than the timing bucket and the talking-point paragraph go here. Lessons not listed are fully captured by their lesson README and their *Talking points per pillar* entry above.
+
+### 4. Copilot Autofix — live walkthrough
+
+**Why no committed screenshot.** Lesson 04 is the only pillar with no embedded image. Autofix is intrinsically interactive — the proposed fix is generated on demand inside the PR review UI, takes 10–30 seconds to render, and then needs to be discussed live (accept / edit / dismiss). A still screenshot strips out everything that makes the lesson land.
+
+**Recommended live alert.** Pick one of these two — both are deterministic and Autofix-supported on this repo:
+
+| Alert | Rule | File | Why it's a good demo |
+| --- | --- | --- | --- |
+| **#21** | `py/template-injection` (SSTI) | `lessons/01-codeql-code-scanning/insecure_login.py` | High severity, dataflow path is short, Copilot's fix typically introduces `escape()` / autoescape config — easy to read. |
+| **#28** | `py/weak-cryptographic-algorithm` | `lessons/01-codeql-code-scanning/insecure_login.py` | Smallest possible fix surface (one-line MD5 → SHA-256 swap). Use this when you have ≤ 5 minutes for the lesson. |
+
+**Demo flow** (≈ 90 seconds end to end):
+
+1. `Security → Code scanning → Alerts`. Filter to **Tool: CodeQL** and click into alert #21 (or #28).
+2. Click **Generate fix** (button label may also read *"Autofix this alert"*). Wait 10–30 seconds — narrate the suggestion preview as it loads.
+3. Click **Create PR with fix**. Walk through the diff Copilot proposes — *out loud, in the PR review UI*, before merging. This is the part attendees remember.
+4. Demonstrate the **edit-then-accept** flow: change one line of Copilot's diff, push to the branch, show that the alert is still resolved when CodeQL re-runs on the PR. Reinforces that Autofix is a starting point, not a rubber stamp.
+5. Close with the **dismiss with reason** flow on a separate alert — shows that not every Autofix suggestion has to land.
+
+**License caveat.** The *Generate fix* button only renders for users on a Copilot-enabled organization. If the org doesn't have a Copilot license attached, the button is silently absent — the alert page looks identical otherwise. Verify before the workshop:
+
+```sh
+gh api orgs/tkl-enteprises/copilot/billing --jq '.seat_breakdown.total // "none"'
+```
+
+A non-zero number means the seat pool exists; `none` (or a 404) means Copilot isn't enabled on the org and lesson 04 should be **swapped for an extra pass through lesson 1** (CodeQL alert triage UI). Document this in the agenda you send attendees so nobody opens a Copilot tab and finds it empty.
+
 ## Where to capture screenshots
 
 The repo ships with a frozen set of screenshots under [`docs/screenshots/`](docs/screenshots/), captured against the live `tkl-enteprises/ghas-demos` tenant. They're already embedded in the relevant lesson READMEs and the root README, so attendees see the same UI in markdown that you'll demo live. Re-capture against your own tenant before a deck — the `tkl-enteprises` images are workshop-grade, not customer-deck-grade.
@@ -134,3 +181,62 @@ Gaps still worth capturing live in your tenant for a follow-up deck:
 - 📸 Lesson 4 — the **Copilot Autofix** suggestion diff (before / after acceptance) on the `py/sql-injection` alert in `insecure_login.py`.
 - 📸 Lesson 8 — the **Configurations** page showing the `GitHub recommended` security configuration's feature toggles.
 - 📸 Lesson 8 — a **Security campaigns** detail page (paid feature) with assigned repos and progress bars.
+
+## Sample agendas
+
+Three pre-built agendas. Pick one based on audience size, audience role, and the room you've been given. Total times below assume the [Pre-flight checklist](#pre-flight-checklist) has already been run and the repo is in a known-good state — they do **not** include setup time on the day.
+
+### 60-minute executive overview (lessons 1, 2, 3, 8)
+
+For C-suite, security leadership, or non-technical buyers. Skips lessons 4–7 — those land flatter without an engineering audience. Goal: leave the room knowing GHAS catches code bugs, leaked secrets, and vulnerable dependencies, and that there's a single org-level cockpit for all three.
+
+| Time | Lesson | Demo | Discussion |
+| --- | --- | --- | --- |
+| 0:00–0:05 | — | Welcome + repo tour (`README.md` only) | Set expectations: repo is *intentionally* vulnerable; every alert is real. |
+| 0:05–0:15 | 1 — CodeQL | Open alert #21 (SSTI). Walk the dataflow path source → sink. | Where does this fit in the SDLC? What changes if a developer never opens the PR? |
+| 0:15–0:25 | 2 — Secret Scanning | Live `git push` of a fresh `TKL-INTERNAL-…` line on a workshop branch (custom pattern from lesson 6 — see *Push protection bypass* mitigations above). | What's our current MTTR on a leaked production secret? |
+| 0:25–0:35 | 3 — Dependabot | Show the seven open pip security-update PRs. Open one and walk the CVE annotation. | Who owns merging these today? How long do they sit? |
+| 0:35–0:50 | 8 — Security Overview | Org-level **Risk** + **Coverage** views. Highlight enablement gaps. | Which 5 repos do we turn this on next? Who signs off? |
+| 0:50–1:00 | — | Q&A + close | Action items: pick the next 5 repos; assign an owner. |
+
+**Total: 60 min.** ⚠️ The lesson-2 demo *must* use the lesson-06 custom pattern — partner-pattern push protection silently bypasses for admins (see mitigation note above).
+
+### 2-hour developer enablement (lessons 1, 2, 3, 4, 6, 7, 8)
+
+For platform / appsec / senior dev audiences who own day-to-day triage. Covers seven of eight lessons; deliberately skips lesson 5 (custom CodeQL queries) — that's its own half-day topic and you'll lose the room if you try to compress it into 15 minutes. Goal: every attendee leaves able to triage an alert, push past a custom-pattern block, and read a SARIF upload.
+
+| Time | Lesson | Demo | Discussion |
+| --- | --- | --- | --- |
+| 0:00–0:10 | — | Repo tour + GHAS pillar map (root README) | Today's three pillars: code, secrets, supply chain. |
+| 0:10–0:25 | 1 — CodeQL | Alerts list → alert detail → dataflow. Triage one alert as "won't fix" with reason. | When should you mark something `won't fix` vs `false positive`? |
+| 0:25–0:35 | 2 — Secret Scanning | Live custom-pattern push protection block (see lesson 06). Show the secret-scanning Default + Generic tabs. | Why doesn't AWS canary `AKIA…` block? (Validity checks + bypass list.) |
+| 0:35–0:50 | 3 — Dependabot | PR list filter `app/dependabot`. Walk one PR; mention the red "Dependabot Updates" runs are internal rebase jobs (gotchas). | Auto-merge policy: green CI + Dependabot? Where's the line? |
+| 0:50–1:00 | 4 — Copilot Autofix | Generate-fix on alert #21 or #28. Edit-then-accept the diff. | When *not* to trust Autofix? What's your code-review SLA? |
+| 1:00–1:10 | — | ☕ Break | — |
+| 1:10–1:25 | 6 — Custom Patterns | Settings → Secret scanning → Custom patterns. Walk the two `TKL_…` patterns (pre-published per pre-flight step 6). Push a fresh `tkl_demo_…` and watch it block. | What internal token shapes belong here? (Badge IDs, internal API keys, vendor IDs.) |
+| 1:25–1:40 | 7 — SARIF | Code-scanning alerts → filter Tool: Bandit. Show the same triage UI as CodeQL. | Which third-party scanners do we want in this view? |
+| 1:40–1:55 | 8 — Security Overview | Org **Risk** + **Coverage** + Configurations. | Coverage gap → action plan. |
+| 1:55–2:00 | — | Q&A + close | — |
+
+**Total: 120 min.** Plan one ☕ break at the 1:00 mark to keep energy up.
+
+### Half-day deep dive (all 8 lessons)
+
+For mixed appsec + platform engineering audiences who want the full toolkit — including authoring custom CodeQL queries. 4 hours with two breaks. Goal: every attendee can walk away and stand this up on their own repo on Monday.
+
+| Time | Lesson | Demo | Discussion |
+| --- | --- | --- | --- |
+| 0:00–0:15 | — | Welcome, repo tour, pre-flight walkthrough (`scripts/preflight.sh`) | What does "GHAS turned on" actually mean? Five toggles. |
+| 0:15–0:40 | 1 — CodeQL | Full triage flow on alert #21: detail → dataflow → close as fixed via PR. | When CodeQL is wrong: investigation flow + dismissal reasons. |
+| 0:40–1:00 | 2 — Secret Scanning | Custom-pattern push block (lesson 06). Show AI-suppressed `AKIA…` canary. Walk validity-check flag in alert detail. | Threat model: leaked secrets in commits vs CI logs vs container images. |
+| 1:00–1:25 | 3 — Dependabot | Alerts list → PR list → PR detail. Show CVSS + EPSS + compatibility score. | Dependabot vs reachability: where do we draw the line? |
+| 1:25–1:40 | — | ☕ Break | — |
+| 1:40–1:55 | 4 — Copilot Autofix | Autofix on alert #21. Edit-then-accept. Try a second alert and dismiss-with-reason. | Where Autofix earns its keep; where it doesn't. |
+| 1:55–2:40 | 5 — Custom CodeQL | Walk `lessons/05-custom-codeql-queries/queries/` — read `py/tkl/hardcoded-debug-true.ql`. Run locally with `codeql database analyze`. Show the alert appearing on the next PR. | Authoring custom queries: when is this the right tool vs. a lint rule? |
+| 2:40–2:55 | — | ☕ Break | — |
+| 2:55–3:15 | 6 — Custom Patterns | Walk the two `TKL_…` patterns; push-block a fresh `tkl_demo_…`; show the matching alert. | Pattern hygiene: pre/post-match heuristics, false-positive rate. |
+| 3:15–3:35 | 7 — SARIF | `Bandit-SARIF` workflow run → upload-sarif step → unified Code-scanning view. Show how Bandit findings interleave with CodeQL findings. | Tool consolidation: which scanners stay, which go? |
+| 3:35–3:55 | 8 — Security Overview | Org **Risk**, **Coverage**, **Configurations**, **Campaigns** (if licensed). Walk a Configurations apply. | 90-day rollout plan: who, what, when. |
+| 3:55–4:00 | — | Wrap, action items, follow-up resources | — |
+
+**Total: 240 min** with two 15-minute breaks. Lesson 5 gets the largest slot (45 min) because authoring + running a custom query takes real time and is the most technical content of the day.
