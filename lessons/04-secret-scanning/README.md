@@ -1,4 +1,4 @@
-# Lesson 02 — Secret Scanning + Push Protection
+# Lesson 04 — Secret Scanning + Push Protection
 
 See GitHub Advanced Security detect hard-coded credentials in source, block new ones at `git push`, and validate live tokens with partner providers.
 
@@ -65,13 +65,13 @@ Push protection runs **client-side at `git push` time** — GitHub refuses the p
    git clone https://github.com/tkl-enteprises/ghas-demos.git
    cd ghas-demos
    ```
-2. Edit `lessons/02-secret-scanning/payment.py` and add a new line that *looks* like a real AWS Access Key ID — anything matching the pattern `AKIA[A-Z0-9]{16}` will do. For example:
+2. Edit `lessons/04-secret-scanning/payment.py` and add a new line that *looks* like a real AWS Access Key ID — anything matching the pattern `AKIA[A-Z0-9]{16}` will do. For example:
    ```python
    NEW_AWS_KEY = "AKIA" + "EXAMPLE" + "PUSHBLOCK1"  # 20 chars total
    ```
 3. Commit and try to push:
    ```bash
-   git add lessons/02-secret-scanning/payment.py
+   git add lessons/04-secret-scanning/payment.py
    git commit -m "test push protection"
    git push
    ```
@@ -87,7 +87,7 @@ Push protection runs **client-side at `git push` time** — GitHub refuses the p
    #   TEST_AWS_KEY    = "AKIAQ7HYG3LZDFNV4P9X"   (20 chars, AKIA prefix)
    #   TEST_AWS_SECRET = "kMxR8JqLPmZbV5tNcW2yFhDgX7sQpA1RyZ4ePaT3"  (40 chars)
    #
-   # These were placed adjacent in lessons/02-secret-scanning/canary-test.py
+   # These were placed adjacent in lessons/04-secret-scanning/canary-test.py
    # on branch test-push-protection-ephemeral and pushed. The push SUCCEEDED
    # (exit 0) — no GH013 secret-scanning rule violation was emitted from the
    # remote. The remote branch (and its canary) were deleted immediately

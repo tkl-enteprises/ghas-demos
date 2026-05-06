@@ -1,4 +1,4 @@
-# Lesson 06 — Custom Secret Scanning Patterns
+# Lesson 05 — Custom Secret Scanning Patterns
 
 Detect *org-specific* secret formats that no partner pattern covers, by defining your own regex.
 

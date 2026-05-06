@@ -44,4 +44,4 @@ Each lesson `README.md` MUST include these sections, in this order:
 
 ## Don't add real secrets
 
-This repo's secret-scanning lessons rely on **fake / canary** credentials. Use the existing `FAKE-` marker pattern (see [`lessons/02-secret-scanning/`](lessons/02-secret-scanning/) and [`lessons/06-custom-secret-patterns/`](lessons/06-custom-secret-patterns/)). Never paste a real key, token, or password — even temporarily, even in a branch you plan to delete. If you do, rotate it immediately and tell a maintainer.
+This repo's secret-scanning lessons rely on **fake / canary** credentials. Use the existing `FAKE-` marker pattern (see [`lessons/04-secret-scanning/`](lessons/04-secret-scanning/) and [`lessons/05-custom-secret-patterns/`](lessons/05-custom-secret-patterns/)). Never paste a real key, token, or password — even temporarily, even in a branch you plan to delete. If you do, rotate it immediately and tell a maintainer.

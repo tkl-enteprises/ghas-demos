@@ -1,4 +1,4 @@
-# Lesson 04 — Copilot Autofix
+# Lesson 02 — Copilot Autofix
 
 Use Copilot Autofix to convert a real CodeQL alert into a one-click pull request.
 

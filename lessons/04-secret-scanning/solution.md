@@ -1,4 +1,4 @@
-# Solution / Remediation Runbook — Lesson 02
+# Solution / Remediation Runbook — Lesson 04
 
 When a real (non-canary) secret leaks into a repo, treat it as an incident. The order matters: rotate first, *then* clean up history.
 

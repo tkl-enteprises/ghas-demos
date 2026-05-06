@@ -1,4 +1,4 @@
-# Lesson 05 — Evolving the Query
+# Lesson 03 — Evolving the Query
 
 The starter `HardcodedDebugFlag.ql` flags the literal pattern:
 

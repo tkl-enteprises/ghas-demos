@@ -18,7 +18,7 @@ After this lesson you can:
 - Trigger CodeQL by pushing to a branch or opening a PR.
 - Filter alerts by **Tool**, **rule id**, and **severity** in the Security tab.
 - Walk through a source → sink data-flow path inside an alert.
-- Compare a default-suite alert against a custom-query alert (lesson 05).
+- Compare a default-suite alert against a custom-query alert (lesson 03).
 
 ## Estimated time
 
@@ -59,7 +59,7 @@ After CodeQL runs against this lesson, expect alerts similar to the table below 
    - The **rule id** (top-right) — this is what you grep for in CodeQL docs.
    - The **data-flow path** — CodeQL highlights `request.args[...]` as the *source* and `cursor.execute(...)` as the *sink*. Click "Show paths" to step through every hop.
    - The **severity** and **security-severity** scores — used by branch-protection rules.
-5. **Try Copilot Autofix.** On any alert, click **Generate fix** to see Autofix propose a patch. We dive deeper into Autofix in [lesson 04](../04-copilot-autofix/README.md).
+5. **Try Copilot Autofix.** On any alert, click **Generate fix** to see Autofix propose a patch. We dive deeper into Autofix in [lesson 02](../02-copilot-autofix/README.md).
 
 ![Detail page for a CodeQL Server-Side Template Injection alert with the dataflow path expanded — source highlighted at `request.args[...]`, sink at the template render call, with every intermediate hop listed.](../../docs/screenshots/02-codeql-alert-detail.png)
 
@@ -93,8 +93,8 @@ The demo has landed when:
 ## Key takeaways
 
 - CodeQL is **dataflow-aware** — it traces user input from source to sink, not just regex matches on dangerous APIs.
-- **Default setup** is one-click but the **advanced (workflow-based) setup** is required for custom queries (see lesson 05).
-- The same alert UI hosts CodeQL, third-party SARIF (lesson 07), and Copilot Autofix (lesson 04) — one triage surface.
+- **Default setup** is one-click but the **advanced (workflow-based) setup** is required for custom queries (see lesson 03).
+- The same alert UI hosts CodeQL, third-party SARIF (lesson 07), and Copilot Autofix (lesson 02) — one triage surface.
 
 ## Reset state
 

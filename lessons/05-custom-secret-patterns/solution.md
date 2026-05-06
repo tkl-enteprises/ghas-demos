@@ -1,10 +1,10 @@
-# Solution — Lesson 06
+# Solution — Lesson 05
 
 How to respond when a custom-pattern alert fires, and how to design new patterns that earn their keep.
 
 ## How to revoke
 
-In this workshop the "tokens" are fake — there's nothing to revoke. In a real org, a custom-pattern alert kicks off the same incident response as any other secret leak (see `lessons/02-secret-scanning/solution.md` for the general runbook), with one extra step at the front:
+In this workshop the "tokens" are fake — there's nothing to revoke. In a real org, a custom-pattern alert kicks off the same incident response as any other secret leak (see `lessons/04-secret-scanning/solution.md` for the general runbook), with one extra step at the front:
 
 0. **Verify it's actually one of your tokens.** Custom patterns can false-positive on test fixtures, log samples, sample data, or third-party code that uses the same prefix. Triage before you wake anyone up at 02:00.
 1. **Rotate** via your internal token-issuing service (or whatever owns the format).

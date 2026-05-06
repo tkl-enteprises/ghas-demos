@@ -1,4 +1,4 @@
-# Lesson 04 — Reference Solution
+# Lesson 02 — Reference Solution
 
 The manual fix you'd expect a careful reviewer to write — and the rough shape of what Copilot Autofix should suggest.
 

@@ -1,4 +1,4 @@
-# Lesson 03 — Dependabot & Supply Chain Security
+# Lesson 06 — Dependabot & Supply Chain Security
 
 A Python project pinned to **intentionally vulnerable** dependencies so you can experience GitHub's supply-chain features end-to-end: dependency graph, Dependabot alerts, Dependabot security updates, and PR-time dependency review.
 
