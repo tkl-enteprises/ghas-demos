@@ -42,7 +42,10 @@
 [Open this repo in a Codespace](https://codespaces.new/tkl-enteprises/ghas-demos?quickstart=1) — the dev container pre-installs Python, the `gh` CLI, and the lesson dependencies. You can be running lesson 01 in under 60 seconds.
 
 **Option B — Local clone:**
-`git clone https://github.com/tkl-enteprises/ghas-demos.git && cd ghas-demos && pip install -r lessons/01-codeql-code-scanning/requirements.txt` (some intentionally-vulnerable deps in lesson 03 will not install — that's expected).
+```bash
+git clone https://github.com/tkl-enteprises/ghas-demos.git && cd ghas-demos
+```
+That's it — lessons 01, 02, 04, 05, 06, 07, 08 are stdlib-only and don't need `pip install`. Lesson 03 (Dependabot) is *intentionally* a list of vulnerable old pins in `lessons/03-dependabot-supply-chain/requirements.txt` — those packages won't install on Python 3.11 on purpose, and that's the demo (you don't need them locally; Dependabot scans the manifest from GitHub).
 
 ## What is GHAS?
 
