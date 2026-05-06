@@ -38,7 +38,7 @@ Four Python files plus a `.env.example`. Each Python file hard-codes a *fake* cr
 
 > ⚠️ Every file (except `.env.example`) starts with a "this is intentionally vulnerable" header. Do not copy these patterns into real code.
 
-> 🎯 **Why Azure-first?** GHAS partner-pattern coverage spans 200+ providers (Azure, AWS, GCP, Stripe, Slack, OpenAI, Snowflake, …); secret scanning is vendor-neutral and the **same workshop runs unchanged for an AWS- or GCP-shop customer** — only the screenshots change. We've picked Azure as the headline fixture because the typical delivery audience for this material is a Microsoft-tenant team. If your audience is multi-cloud or AWS-first, lean on the [Stripe](payment.py) and [GitHub PAT](github_client.py) fixtures (also partner patterns) and frame Azure as "one example of a 200+ list".
+> 🎯 **Why Azure-first?** GHAS partner-pattern coverage spans 200+ providers across every major cloud, payment, observability, and SaaS vendor; secret scanning is vendor-neutral and the **same workshop runs unchanged for any cloud or multi-cloud customer** — only the screenshots change. We've picked Azure as the headline fixture because the typical delivery audience for this material is a Microsoft-tenant team. If your audience leans toward a different cloud, lean on the [Stripe](payment.py) and [GitHub PAT](github_client.py) fixtures (also partner patterns) and frame Azure as "one example of a 200+ list".
 
 ## Why the alert tab might look empty before you start
 
@@ -87,22 +87,16 @@ Push protection runs **client-side at `git push` time** — GitHub refuses the p
 
    ```text
    # Push-protection live test — captured 2026-05-06 (UTC) — HISTORICAL ARTIFACT
-   # The fixtures used below are the workshop's previous AWS-first canaries;
+   # The fixtures referenced below are the workshop's previous canary shape;
    # the lesson's current Azure-first fixture lives in config.py. The transcript
    # is preserved verbatim because the *failure mode* (admin push not blocked)
    # is what teaches the lesson — not the surface key shape.
    #
    # OBSERVED BEHAVIOR: push protection did NOT block this push.
-   # The fresh canary committed was:
-   #   TEST_AWS_KEY    = "AKIAQ7HYG3LZDFNV4P9X"   (20 chars, AKIA prefix)
-   #   TEST_AWS_SECRET = "kMxR8JqLPmZbV5tNcW2yFhDgX7sQpA1RyZ4ePaT3"  (40 chars)
-   #
-   # These were placed adjacent in lessons/04-secret-scanning/canary-test.py
-   # on branch test-push-protection-ephemeral and pushed. The push SUCCEEDED
-   # (exit 0) — no GH013 secret-scanning rule violation was emitted from the
-   # remote. The remote branch (and its canary) were deleted immediately
-   # after capture.
-   #
+   # The fresh canary committed was a 20-char access-key-shape token plus its
+   # 40-char paired secret (literal values omitted from the lesson copy so
+   # this transcript stays vendor-neutral on screen — see the captured
+   # `push-protection-block.txt` for the raw evidence).
    # Verbatim push output follows (all stderr+stdout, no redaction):
    # ----------------------------------------------------------------
    remote:
@@ -126,7 +120,7 @@ Push protection runs **client-side at `git push` time** — GitHub refuses the p
 
 ## Validity checks
 
-For partners that support it (Azure, AWS, GCP, GitHub, Slack, Stripe, …) GHAS pings the issuer's API to check whether the leaked token is currently valid. The alerts in the security tab will be tagged `Active` or `Inactive`. The canary credentials in this lesson should all show as **inactive / unknown** — they were never live, by design. In a real leak, an `Active` tag means "rotate, *now*".
+For partners that support it (Azure, GitHub, Stripe, Slack, OpenAI, Snowflake, and many others) GHAS pings the issuer's API to check whether the leaked token is currently valid. The alerts in the security tab will be tagged `Active` or `Inactive`. The canary credentials in this lesson should all show as **inactive / unknown** — they were never live, by design. In a real leak, an `Active` tag means "rotate, *now*".
 
 ## AI detection
 
@@ -151,7 +145,7 @@ With AI-powered detection enabled at the org level, GHAS will also surface gener
 1. A teammate accidentally committed a **production** Azure storage connection string 30 minutes ago. Walk through your incident response — what's step 1, step 2, step 3?
 2. When is bypassing push protection the right call, and when is it a smell? How do you tell the two apart in PR review?
 3. What's the conceptual difference between secret scanning (detection on existing code) and push protection (prevention at push time)? Why do you need both?
-4. Your customer is multi-cloud (Azure + AWS) — would you re-record this lesson with `AKIA…`-shaped fixtures, or argue that the Azure-shaped demo translates 1:1 to AWS partner-pattern coverage? What evidence would you bring to the conversation?
+4. Your customer is multi-cloud (Azure + a non-Microsoft provider) — would you re-record this lesson with that provider's key shape, or argue that the Azure-shaped demo translates 1:1 to the partner program's other 200+ patterns? What evidence would you bring to the conversation?
 
 ## Files
 
