@@ -42,6 +42,17 @@ Each lesson `README.md` MUST include these sections, in this order:
 - The `main` branch is protected by a ruleset that requires the **CodeQL**, **Bandit**, and **Dependency Review** checks to pass before merge.
 - Keep PRs small and scoped to one lesson where possible.
 
+## Running tests locally
+
+The repo ships a workshop-infrastructure pytest suite under [`tests/`](tests/) that validates static repo invariants (lesson layout, link integrity, workflow paths, script smoke, manifest shape). It does **not** assert security properties of the intentionally-vulnerable demo code — those are the GHAS scanners' job.
+
+```bash
+pip install -r tests/requirements.txt
+python -m pytest tests/ -v
+```
+
+The same suite runs in CI on every push/PR via the [`tests`](.github/workflows/tests.yml) workflow. It is *not* part of the required-status-checks ruleset on `main`; treat a red `tests` run as an early-warning signal that a recent change drifted the workshop scaffolding.
+
 ## Don't add real secrets
 
 This repo's secret-scanning lessons rely on **fake / canary** credentials. Use the existing `FAKE-` marker pattern (see [`lessons/04-secret-scanning/`](lessons/04-secret-scanning/) and [`lessons/05-custom-secret-patterns/`](lessons/05-custom-secret-patterns/)). Never paste a real key, token, or password — even temporarily, even in a branch you plan to delete. If you do, rotate it immediately and tell a maintainer.

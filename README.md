@@ -1,6 +1,7 @@
 # ghas-demos
 
 ![CodeQL](https://github.com/tkl-enteprises/ghas-demos/actions/workflows/codeql.yml/badge.svg)
+![tests](https://github.com/tkl-enteprises/ghas-demos/actions/workflows/tests.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Lessons: 9](https://img.shields.io/badge/Lessons-9-brightgreen)
 

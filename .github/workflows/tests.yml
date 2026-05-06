@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# Workshop-infrastructure tests
+#
+# Runs the pytest suite under tests/ on every push/PR to main. These tests
+# validate static repo invariants (lesson layout, link integrity, workflow
+# paths, script smoke, manifest shape) — they do NOT assert security
+# properties of the intentionally-vulnerable demo code.
+#
+# This workflow is intentionally NOT part of the required-status-checks
+# ruleset on main. It's an early-warning canary for facilitator-ergonomics
+# regressions; the security workflows (CodeQL, Bandit SARIF, Dependency
+# Review) remain the gating signal.
+# ---------------------------------------------------------------------------
+
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    name: pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install test dependencies
+        run: pip install -r tests/requirements.txt
+
+      - name: Run pytest
+        run: python -m pytest tests/ -v --tb=short
