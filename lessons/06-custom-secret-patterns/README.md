@@ -6,6 +6,25 @@ Detect *org-specific* secret formats that no partner pattern covers, by defining
 
 Most teams have at least one home-grown credential format — an internal service token, a workshop key, a build-system bearer. Partner patterns don't know about these. Custom secret scanning patterns let you teach GHAS what *your* secrets look like.
 
+## Learning objectives
+
+After this lesson you can:
+
+- Define a repo-level custom secret pattern with regex, name, and test string.
+- Verify a custom pattern fires only on its intended shape (precision check).
+- Decide when to scope a pattern at repo / org / enterprise level.
+- Apply the "specific + anchored" design rules to a pattern of your own.
+
+## Estimated time
+
+**~10 min demo + 5 min discussion**
+
+## Prerequisites
+
+- GHAS + secret scanning enabled, with **custom patterns** available (Enterprise license tier).
+- Repo-admin permission on `tkl-enteprises/ghas-demos` (custom patterns are configured in repo Settings).
+- Facilitator preflight has both `TKL Internal Token` and `TKL Workshop Demo Key` patterns published — see *Configure the patterns* below.
+
 ## Where the patterns live
 
 > 🛠️ **Custom patterns are configured in the GitHub UI, not in source control.** A common misconception is that `.github/secret_scanning.yml` defines custom patterns — it does not. That file only supports `paths:` exclusions for the scanner. Custom patterns must be added through repo / org / enterprise *Settings* and are not yet exposed via a public REST API at the repo level.
@@ -83,3 +102,36 @@ A good custom pattern is **specific** (low false-positive rate) and **anchored**
 | `internal.py` | Fake `TKL-INTERNAL-…` token, matches custom pattern #1 |
 | `demo_key.py` | Fake `tkl_demo_…` key, matches custom pattern #2 |
 | `solution.md` | How to revoke + how to design robust patterns |
+
+## Exit criteria
+
+The demo has landed when:
+
+- **Security → Secret scanning** shows two custom-pattern alerts (`TKL Internal Token`, `TKL Workshop Demo Key`).
+- Attendees can describe the difference between repo / org / enterprise pattern scope.
+- (Optional) A push of a new `TKL-INTERNAL-…` value is blocked by push protection.
+
+## Key takeaways
+
+- Custom patterns live in **GitHub Settings, not source control** — `.github/secret_scanning.yml` only supports `paths:` exclusions, not pattern definitions.
+- A good custom pattern is **specific** (distinctive prefix + bounded length) and **anchored** (predictable surrounding context).
+- Promote a pattern from **repo → org → enterprise** once it's proven not to false-positive — the GitHub UI is the lifecycle tool, not git.
+
+## Discussion questions
+
+1. Who in your org owns the custom-pattern lifecycle — security team, platform team, or each repo's maintainers? What's the review process before publishing at the org level?
+2. Would you accept a 5% false-positive rate on a custom pattern to catch 95% of real leaks, or do you require near-zero false-positives before rolling out at org scope?
+
+## Reset state
+
+This lesson DOES mutate org/repo state because patterns live in Settings:
+
+1. Go to *Settings → Code security → Secret scanning → Custom patterns*.
+2. **Delete** `TKL Internal Token` and `TKL Workshop Demo Key` if the next cohort should configure them from scratch.
+3. Otherwise leave them in place — the lesson is idempotent and the patterns can stay published between runs.
+
+```bash
+git checkout main && git pull
+```
+
+If push protection was demoed on a custom pattern, delete any `test-tkl-pattern-*` branches that got pushed.

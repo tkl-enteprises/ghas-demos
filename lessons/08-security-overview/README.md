@@ -8,6 +8,25 @@ Walk attendees through the **org-level Security Overview** at [https://github.co
 
 This is the **GHAS governance story** — the upsell vs. the free, public-repo features the previous lessons demonstrated. Per-repo alerts are great for developers; an org-wide rollup is what security and compliance teams need. Org-level views require a **GHAS license**, which [`tkl-enteprises`](https://github.com/tkl-enteprises) has.
 
+## Learning objectives
+
+After this lesson you can:
+
+- Navigate the org-level **Security Overview** tabs (Overview, Coverage, Risk, Alerts, Configurations).
+- Identify which repos are missing GHAS features from the **Coverage** view.
+- Identify the highest-risk repos from the **Risk** view.
+- Explain what a security configuration is and when you'd clone the default vs build a custom one.
+
+## Estimated time
+
+**~10 min demo + 10 min discussion**
+
+## Prerequisites
+
+- Org-level GHAS license on `tkl-enteprises` (paid feature — required for org-level Security Overview).
+- Org admin or security-manager role to view the **Configurations** tab.
+- Lessons 01–07 have run at least once so the org has real alert data to display.
+
 ## What it shows
 
 The Security Overview surface bundles four jobs into one tab:
@@ -68,3 +87,27 @@ Use these to spark the room — don't try to answer them all yourself.
 ## Where this fits in the workshop
 
 This is the **closer** lesson. By this point, attendees have seen each pillar fire on a single repo. Lesson 8 is the moment to zoom out and show that the same data feeds an org-wide governance surface — which is the conversation that turns "we use GHAS" into "we manage GHAS."
+
+## Exit criteria
+
+The demo has landed when:
+
+- Attendees navigate from the `tkl-enteprises` org page to **Security → Risk** without prompting.
+- Attendees identify the repo with the most open critical alerts using the Risk view.
+- Attendees describe what a security configuration is in their own words.
+
+## Key takeaways
+
+- **Risk view aggregates per-repo alert counts; Coverage view shows which repos are missing GHAS features** — they answer different CISO questions.
+- **Security configurations** turn "we use GHAS" into "we manage GHAS" — they are the policy-as-deployment surface for rolling out features consistently.
+- **Security campaigns** are the project-management layer on top — they batch-assign alerts to owning teams with deadlines.
+
+## Reset state
+
+This is a docs-only lesson — there's no repo state to reset.
+
+```bash
+git checkout main && git pull
+```
+
+Org-level alert counts drift between cohorts as the rest of the workshop runs; that's expected and is part of the demo (the numbers should never look static).

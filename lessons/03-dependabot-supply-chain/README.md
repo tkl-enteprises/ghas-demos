@@ -11,6 +11,25 @@ Experience GitHub's supply-chain stack in a real repo:
 - **Dependabot security updates** — automated PRs that bump vulnerable pins to safe versions.
 - **Dependency review** — a PR check that blocks new vulnerable deps from sneaking in.
 
+## Learning objectives
+
+After this lesson you can:
+
+- Read a Dependabot alert: advisory id, affected version range, fixed version, call-path link.
+- Distinguish **Dependabot alerts** (signal) from **Dependabot security update PRs** (action).
+- Trigger PR-time **dependency review** by adding a vulnerable dep on a PR.
+- Articulate a triage strategy when the queue of Dependabot PRs grows non-trivially.
+
+## Estimated time
+
+**~10 min demo + 10 min discussion**
+
+## Prerequisites
+
+- GHAS + Dependabot alerts + Dependabot security updates enabled on the repo.
+- `.github/dependabot.yml` and `.github/workflows/dependency-review.yml` exist (owned by the platform / devcontainer track).
+- Dependency graph has parsed `requirements.txt` — confirm via **Insights → Dependency graph**.
+
 ## What's in this lesson
 
 - `requirements.txt` — the canonical, pinned, intentionally-vulnerable dep list.
@@ -95,3 +114,27 @@ A common pattern: a workflow that listens for `pull_request` events from `depend
 1. How do you balance the urgency of a critical security update against the breaking-change risk of a major version bump (e.g. Flask 0.12 → 3.x)?
 2. When is it acceptable to **dismiss** a Dependabot alert? What evidence should accompany an "ignore — not exploitable in our context" decision?
 3. How does GitHub's dependency review compare to commercial SCA tools (Snyk, Mend, Sonatype)? Where does each shine, and where do they overlap?
+
+## Exit criteria
+
+The demo has landed when:
+
+- Attendees can name two of the seven pinned advisories without looking at the table.
+- Attendees see at least one Dependabot security update PR in the **Pull requests** tab.
+- Attendees describe what dependency review does on a PR.
+
+## Key takeaways
+
+- **Alerts surface risk; PRs ship the fix.** Dependabot does both, but they're separate user-visible surfaces with separate review workflows.
+- Dependency review is the **prevention** half — it stops a contributor from re-introducing a vulnerable pin that Dependabot just removed.
+- Compatibility scores and release notes in the PR are the signal you use to choose *patch-bump auto-merge* vs *manual review*.
+
+## Reset state
+
+This lesson does not need a hard reset between cohorts — the pinned vulnerabilities stay deliberately old.
+
+```bash
+git checkout main && git pull
+```
+
+If you opened a "test dependency review" PR during the demo, close it without merging.

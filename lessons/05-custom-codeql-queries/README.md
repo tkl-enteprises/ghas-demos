@@ -10,6 +10,25 @@ You will:
 2. See it fire on `target.py` and stay silent on `bypass.py`, demonstrating query *precision*.
 3. Learn how custom queries are loaded into the CodeQL workflow and how to evolve them.
 
+## Learning objectives
+
+After this lesson you can:
+
+- Read a small CodeQL `.ql` file and identify imports, predicates, and select clauses.
+- Configure custom queries via `.github/codeql/codeql-config.yml` so they load alongside the default suite.
+- Verify a custom query has both **recall** (fires on positive control) and **precision** (silent on negative control).
+- Run a custom query locally with the CodeQL CLI before pushing to CI.
+
+## Estimated time
+
+**~15 min demo + 5 min discussion**
+
+## Prerequisites
+
+- GHAS enabled, with **workflow-based CodeQL setup** (default setup does not load custom queries).
+- `.github/codeql/codeql-config.yml` references the `custom-queries/` directory.
+- The `CodeQL` workflow has run after the custom query was committed — check the Actions tab.
+
 ## Where the query lives
 
 The query file lives in the repository at:
@@ -72,3 +91,30 @@ CodeQL queries are written in QL, a declarative logic language. The fastest path
 | `bypass.py` | Negative control — should not produce any alert from the custom query. |
 | `solution.md` | Ideas for evolving the query (broaden the truthy check, raise precision, reduce false positives). |
 | `README.md` | This file. |
+
+## Exit criteria
+
+The demo has landed when:
+
+- Attendees find the `py/tkl/hardcoded-debug-true` rule in the **Security → Code scanning** filter.
+- The alert list shows exactly one alert (on `target.py`) and `bypass.py` is silent.
+- Attendees can name the file in `.github/codeql/` that hooks the custom query into the workflow.
+
+## Key takeaways
+
+- Custom queries are **first-class** in the alerts UI — same dismiss, same Autofix, same severity scoring as default-suite queries.
+- **Recall** (does it fire when it should?) and **precision** (does it stay silent when it should?) are the two metrics you tune over time. Both `target.py` and `bypass.py` exist to test the latter.
+- You can iterate locally with the CodeQL CLI — no need to round-trip through Actions until you trust the query.
+
+## Discussion questions
+
+1. Where in your team's process would you draft, review, and promote a new custom query — does it live with the security org, the platform team, or alongside production code?
+2. The default suite ships hundreds of queries. Would you ever ship a *negative* custom query that **suppresses** a default rule the team has decided not to enforce, or is that always a smell?
+
+## Reset state
+
+```bash
+git checkout main && git pull
+```
+
+The custom query lives at `.github/codeql/custom-queries/HardcodedDebugFlag.ql` and is intended to remain enabled between cohorts. No reset needed.

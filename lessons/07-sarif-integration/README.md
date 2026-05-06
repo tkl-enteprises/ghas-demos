@@ -8,6 +8,25 @@ Layer Bandit (and any other SARIF-emitting SAST tool) on top of CodeQL so every 
 
 Show how to ingest 3rd-party SAST results into GitHub Code Scanning via SARIF, using Bandit (Python-focused security linter) as the example tool.
 
+## Learning objectives
+
+After this lesson you can:
+
+- Upload a third-party SARIF file via `github/codeql-action/upload-sarif`.
+- Configure a tool (Bandit) to emit SARIF and identify the four key paths in the SARIF JSON.
+- Filter Code Scanning by **Tool** to separate Bandit findings from CodeQL findings.
+- Use `category:` to keep multiple SARIF uploaders from overwriting each other.
+
+## Estimated time
+
+**~10 min demo + 5 min discussion**
+
+## Prerequisites
+
+- GHAS + Code Scanning enabled on the repo.
+- `.github/workflows/sarif-bandit.yml` exists and has run at least once (check the Actions tab).
+- `.github/codeql/codeql-config.yml` excludes `lessons/07-sarif-integration/**` from CodeQL so Bandit owns this folder uncontested.
+
 ## Why use SARIF integration
 
 GitHub Code Scanning is a **SARIF receiver**, not just a CodeQL frontend. Any tool that produces a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/) file — Bandit, Semgrep, Trivy, Checkov, Snyk, KICS, ESLint, gitleaks, you name it — can upload via `github/codeql-action/upload-sarif@v3` and findings appear alongside CodeQL results. That means triage, dismissals, autofix branches, and PR annotations all happen in one UI. Layer multiple scanners for breadth (Bandit catches Python footguns CodeQL deprioritises; Trivy catches container/IaC issues neither covers).
@@ -98,3 +117,25 @@ After the workflow runs, filter Code Scanning to just the Bandit findings:
 1. **When would you choose Bandit over CodeQL** (or vice versa) for a given repo or rule family?
 2. **How do you de-duplicate findings across tools** when Bandit and CodeQL both flag the same line?
 3. **Should every team adopt every SAST tool**, or is it better to pick one strong scanner per language and invest in custom rules?
+
+## Exit criteria
+
+The demo has landed when:
+
+- **Security → Code scanning** shows alerts when filtered to **Tool: Bandit**.
+- Attendees can locate one Bandit finding in `sample.sarif` and trace its `ruleId` + `physicalLocation`.
+- Attendees know the upload pattern is identical for any SARIF-emitting tool (Semgrep, Trivy, Checkov, …).
+
+## Key takeaways
+
+- GitHub Code Scanning is a **SARIF receiver** — CodeQL is just one producer among many.
+- `category:` is the namespace that keeps multiple scanners from overwriting each other's results.
+- Multi-tool layering buys **breadth** (different rule families) at the cost of **noise** (overlapping findings) — `paths-ignore:` per tool is the lever for managing the overlap.
+
+## Reset state
+
+```bash
+git checkout main && git pull
+```
+
+This lesson doesn't mutate the repo. The Bandit workflow runs on every push and the alerts auto-update.

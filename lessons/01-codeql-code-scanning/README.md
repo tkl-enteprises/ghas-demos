@@ -11,6 +11,25 @@ By the end of this lesson you will be able to:
 - Read a CodeQL alert: rule id, severity, source → sink data-flow path.
 - Map an alert back to the line of code that introduced it.
 
+## Learning objectives
+
+After this lesson you can:
+
+- Trigger CodeQL by pushing to a branch or opening a PR.
+- Filter alerts by **Tool**, **rule id**, and **severity** in the Security tab.
+- Walk through a source → sink data-flow path inside an alert.
+- Compare a default-suite alert against a custom-query alert (lesson 05).
+
+## Estimated time
+
+**~15 min demo + 5 min discussion**
+
+## Prerequisites
+
+- GHAS enabled on the repo with the `CodeQL` workflow configured (default or workflow-based setup).
+- The CodeQL workflow has run at least once on `main` — check the **Actions** tab.
+- `scripts/preflight.sh` passed for the workshop run.
+
 ## What you'll see in GitHub
 
 After CodeQL runs against this lesson, expect alerts similar to the table below in [Security → Code scanning](https://github.com/tkl-enteprises/ghas-demos/security/code-scanning). Exact line numbers shift as the files evolve — match by **rule id**, not line number.
@@ -62,3 +81,27 @@ Use these to drive the workshop conversation after attendees have explored the a
 1. **Severity vs exploitability.** Two alerts share the same `security-severity` score but very different real-world impact (e.g. `py/sql-injection` in `lookup_user` vs `py/weak-cryptographic-algorithm`). How would you decide which to fix first in your own backlog?
 2. **Source vs sink.** CodeQL's path view shows where untrusted input enters the program and where it reaches a dangerous API. Which side is usually easier to harden, and why? When does *sanitisation at the boundary* fall short?
 3. **Default suite vs security-extended.** This repo runs the **default** Python query suite. Browse [the security-extended pack](https://codeql.github.com/codeql-query-help/python/) — pick one query that is *not* in the default suite and discuss whether your team would accept its noise budget.
+
+## Exit criteria
+
+The demo has landed when:
+
+- Attendees can find the SQL-injection alert in the Security tab without prompting.
+- Attendees articulate, in their own words, what the source → sink path means.
+- Attendees can name at least one rule id from the table above.
+
+## Key takeaways
+
+- CodeQL is **dataflow-aware** — it traces user input from source to sink, not just regex matches on dangerous APIs.
+- **Default setup** is one-click but the **advanced (workflow-based) setup** is required for custom queries (see lesson 05).
+- The same alert UI hosts CodeQL, third-party SARIF (lesson 07), and Copilot Autofix (lesson 04) — one triage surface.
+
+## Reset state
+
+This lesson does not mutate the repo. To reset for the next cohort:
+
+```bash
+git checkout main && git pull
+```
+
+CodeQL alerts auto-update on the next scheduled scan; no manual cleanup required.

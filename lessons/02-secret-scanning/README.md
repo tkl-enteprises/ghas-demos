@@ -6,6 +6,25 @@ See GitHub Advanced Security detect hard-coded credentials in source, block new 
 
 Experience secret scanning and push protection end-to-end. The **live demo** is push protection — push a fresh canary in a workshop branch and watch GitHub stop the push before it ever lands on the remote. The static files below document the credential **formats** GHAS recognizes.
 
+## Learning objectives
+
+After this lesson you can:
+
+- Distinguish secret scanning (detection) from push protection (prevention).
+- Trigger push protection by pushing a partner-pattern shaped value (e.g. `AKIA…`).
+- Read a partner-pattern alert and check its **validity** badge.
+- Bypass push protection with `secret-scanning.skip-push-protection=true` and explain when that's appropriate.
+
+## Estimated time
+
+**~10 min demo + 5 min discussion**
+
+## Prerequisites
+
+- GHAS + secret scanning + push protection enabled on the repo.
+- Local clone with push access (the live demo writes a commit and tries `git push`).
+- Preflight has confirmed push protection is currently enforcing — see the live capture note below before relying on the block.
+
 ## What's in this lesson
 
 Four Python files plus a `.env.example`. Each Python file hard-codes a *fake* credential that matches a partner pattern — `AKIA…`, `sk_test_…`, `ghp_…` — but every value is either documented as fake by its issuer or clearly marked `FAKE` / `EXAMPLE` / `DEMO`.
@@ -133,3 +152,27 @@ With AI-powered detection enabled at the org level, GHAS will also surface gener
 | `github_client.py` | Fake GitHub `ghp_FAKE…` PAT |
 | `.env.example` | The right way to share config — placeholders only, no values |
 | `solution.md` | Remediation runbook |
+
+## Exit criteria
+
+The demo has landed when:
+
+- The push of a fresh canary is blocked (or, if a regression, attendees can articulate why and pivot to the partner-pattern alert).
+- Attendees locate the AWS / Stripe / GitHub PAT alerts on the **Default** or **Generic** tab.
+- Attendees know the bypass syntax (`-o secret-scanning.skip-push-protection=true`) and when it's appropriate.
+
+## Key takeaways
+
+- **Push protection blocks at git-push time** — before the secret ever lands in remote storage. Detection-after-the-fact is too late for live credentials.
+- **AI suppression** of FAKE / DEMO / EXAMPLE markers is a feature for production but means workshops need *non-obvious* test values to make the live demo fire.
+- Every bypass is **logged and audited** — it leaves a trail in the org audit log.
+
+## Reset state
+
+```bash
+git checkout main
+git branch -D test-push-protection-ephemeral 2>/dev/null || true
+git pull --rebase origin main
+```
+
+If a real bypass landed a commit during the demo, revert it via PR. If push-protection-skip branches got pushed, delete them with `git push origin --delete <branch>`.

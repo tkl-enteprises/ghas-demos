@@ -6,6 +6,19 @@ Use Copilot Autofix to convert a real CodeQL alert into a one-click pull request
 
 Experience the **Copilot Autofix** flow end-to-end on a real CodeQL alert: read the AI-suggested patch, evaluate it, then commit it (or open it as a PR) without leaving the GitHub UI.
 
+## Learning objectives
+
+After this lesson you can:
+
+- Generate a Copilot Autofix suggestion from a CodeQL alert.
+- Compare the AI patch against the manual fix in `solution.md`.
+- Apply the fix via the three available paths (commit, PR, edit-and-commit).
+- Recognize when Autofix is a good first draft vs when to fix manually.
+
+## Estimated time
+
+**~10 min demo + 5 min discussion**
+
 ## Prerequisites
 
 - This repository is in an enterprise org with **GitHub Advanced Security** enabled.
@@ -39,3 +52,30 @@ Autofix is purpose-built for *localised* security fixes — single-file, single-
 | `insecure_login.py` | Single-vulnerability demo file — exactly one `py/sql-injection` alert. |
 | `solution.md` | Reference manual fix to compare against the Autofix suggestion. |
 | `README.md` | This file. |
+
+## Exit criteria
+
+The demo has landed when:
+
+- Attendees see an Autofix-generated diff on the `py/sql-injection` alert.
+- Attendees articulate why the patch is functionally equivalent to the manual fix in `solution.md`.
+- The CodeQL alert auto-closes on the next scan after the fix is applied (verify in the Security tab).
+
+## Key takeaways
+
+- Autofix is a **first-draft generator** — it reads the same data-flow path CodeQL produced and proposes a localized patch. Always read it before committing.
+- **Cross-file refactors and business-logic-aware fixes are out of scope** — Autofix is purpose-built for single-file, single-function security patches.
+- The Autofix UI lives **inside the alert page** — no separate tab to learn, which is what makes it stickier than a generic AI-coding assistant.
+
+## Discussion questions
+
+1. Where would you put Autofix in your team's existing PR workflow — auto-commit on `dependabot/*` branches? PR-only? Manual review every time?
+2. If Autofix gets the fix right 90% of the time and silently wrong the other 10%, would you turn it on for production code? What guardrails would you want?
+
+## Reset state
+
+```bash
+git checkout main && git pull
+```
+
+If the Autofix-generated PR landed during the demo, revert it (or just leave it merged — the file is reset to vulnerable on `main` for the next cohort).
