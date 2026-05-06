@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # Dependency Review
 #
-# Powers lesson 03. Blocks PRs that introduce known-vulnerable deps.
+# Powers lesson 06. Blocks PRs that introduce known-vulnerable deps.
 # ---------------------------------------------------------------------------
 
 name: "Dependency Review"
