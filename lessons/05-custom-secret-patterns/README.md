@@ -52,7 +52,7 @@ Each Python file in this lesson hard-codes one fake match. Once the patterns are
 
 Once both patterns are published, GHAS rescans automatically and the two demo files in this lesson will show up under **Security → Secret scanning**.
 
-![Generic AI tab of Security → Secret scanning showing alerts firing on `hunter2_FAKE_*`-style password assignments — the same generic classifier that surfaces custom-token-shaped strings before a partner pattern exists.](../../docs/screenshots/06-secret-scanning-generic-ai.png)
+![Generic AI tab of Security → Secret scanning showing alerts firing on `hunter2_FAKE_*`-style password assignments — the same generic classifier that surfaces custom-token-shaped strings before a partner pattern exists.](../../docs/screenshots/05-secret-scanning-generic-ai.png)
 
 *The **Generic** AI tab of the secret-scanning UI. Custom partner patterns land in their own filterable rows on the **Default** tab once published; until then, the generic AI classifier is what catches the demo strings._
 
