@@ -30,9 +30,9 @@ If your token-issuing service emits base32, the body is `[A-Z2-7]` — not `[A-Z
 
 A bound (`{32}`, `{12,16}`, …) prevents the regex from matching short prefixes-as-strings ("TKL-INTERNAL-USER" in a comment) and from catastrophic-backtracking on huge log lines.
 
-### 4. Test the pattern with `regex_pattern_test_string`
+### 4. Always supply a test string in the UI
 
-GHAS will reject a custom pattern that doesn't match its own test string — treat that as a unit test for your regex. Ideally, also have a counter-example pattern (like `_after_secret` doesn't match) so you know the regex *doesn't* match things it shouldn't.
+GHAS's "New pattern" dialog has a *Test string* field — paste an example match before publishing and watch the dry-run highlight light up green. Treat that as a unit test for your regex. Ideally, also paste a counter-example into the *More options → Additional secret format* fields so you know the regex *doesn't* match things it shouldn't.
 
 ### 5. Use before/after anchors when context is reliable
 
@@ -44,7 +44,7 @@ Roll a new pattern out at the **repo level** first (like this lesson does). Watc
 
 ### 7. Pair custom patterns with push protection
 
-In `.github/secret_scanning.yml`, set `push_protection: true` on patterns that should never appear in source. That way the *next* leak gets blocked at push time, not after it lands in `main`.
+In the *New pattern* dialog (or *Edit pattern* on an existing one), tick **Push protection** for patterns that should never appear in source. That way the *next* leak gets blocked at push time, not after it lands in `main`.
 
 ## Reference
 

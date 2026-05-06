@@ -6,8 +6,10 @@ Do not reuse in production.
 """
 
 # Fake match for the custom pattern "TKL Internal Token".
-# Format: TKL-INTERNAL-[A-Z0-9]{12,16}  — see .github/secret_scanning.yml.
-# This value is workshop-only and matches no real service.
+# Format: TKL-INTERNAL-[A-Z0-9]{12,16}
+# The pattern is published in repo Settings → Code security → Secret scanning →
+# Custom patterns. See lesson README for the facilitator preflight that
+# configures it. This value is workshop-only and matches no real service.
 INTERNAL_API_TOKEN = "TKL-INTERNAL-DEMO123ABC456"
 
 

@@ -6,8 +6,10 @@ Do not reuse in production.
 """
 
 # Fake match for the custom pattern "TKL Workshop Demo Key".
-# Format: tkl_demo_[a-z0-9]{32}  — see .github/secret_scanning.yml.
-# This value is workshop-only and matches no real service.
+# Format: tkl_demo_[a-z0-9]{32}
+# The pattern is published in repo Settings → Code security → Secret scanning →
+# Custom patterns. See lesson README for the facilitator preflight that
+# configures it. This value is workshop-only and matches no real service.
 WORKSHOP_KEY = "tkl_demo_abcdef0123456789abcdef0123456789"
 
 
@@ -15,8 +17,9 @@ def use_workshop_key() -> dict:
     """Pretend to use the workshop key.
 
     ⚠️ Custom patterns let GHAS detect *your* org's token formats. Even though
-    no partner knows about `tkl_demo_…`, GHAS will flag it because we taught
-    it the format in `.github/secret_scanning.yml`.
+    no partner knows about `tkl_demo_…`, GHAS will flag it once the pattern
+    is published in repo Settings → Code security → Secret scanning → Custom
+    patterns. See the lesson README for the facilitator preflight.
     """
     return {
         "ok": False,

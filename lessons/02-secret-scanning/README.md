@@ -4,20 +4,26 @@ See GitHub Advanced Security detect hard-coded credentials in source, block new 
 
 ## Goal
 
-Experience secret scanning and push protection end-to-end: spot existing alerts in the security tab, then try to push a new "secret" and watch GitHub stop you before it ever lands on the remote.
+Experience secret scanning and push protection end-to-end. The **live demo** is push protection — push a fresh canary in a workshop branch and watch GitHub stop the push before it ever lands on the remote. The static files below document the credential **formats** GHAS recognizes.
 
 ## What's in this lesson
 
-Four Python files plus a `.env.example`. Each Python file deliberately hard-codes a different *fake* / canary credential so that GHAS has something to flag — but every value is documented as fake by its issuer (AWS, Stripe, GitHub) or clearly marked `FAKE` / `EXAMPLE` / `DEMO`.
+Four Python files plus a `.env.example`. Each Python file hard-codes a *fake* credential that matches a partner pattern — `AKIA…`, `sk_test_…`, `ghp_…` — but every value is either documented as fake by its issuer or clearly marked `FAKE` / `EXAMPLE` / `DEMO`.
 
-| File | Pattern triggered |
+| File | Format demonstrated |
 | --- | --- |
 | `config.py` | `AWS Access Key ID` + `AWS Secret Access Key` (AWS-documented canaries) |
-| `payment.py` | `Stripe API Key` (test key, marked `FAKE`) |
-| `github_client.py` | `GitHub Personal Access Token` (`ghp_` prefix, FAKE body) |
-| `.env.example` | **Nothing** — placeholders, no values. This teaches the right pattern. |
+| `payment.py` | `Stripe API Key` (test key with `sk_test_` prefix) |
+| `github_client.py` | `GitHub Personal Access Token` (`ghp_` prefix) |
+| `.env.example` | **Nothing** — placeholders only. This teaches the right pattern. |
 
 > ⚠️ Every file (except `.env.example`) starts with a "this is intentionally vulnerable" header. Do not copy these patterns into real code.
+
+## Why the alert tab might look empty before you start
+
+Modern secret scanning combines regex match with **AI-powered suppression** of obvious test/example values, **provider denylists** (AWS publishes its own list of well-known canary keys like `AKIAIOSFODNN7EXAMPLE`), and **validity probing**. When the static files in this lesson contain words like `FAKE`, `DEMO`, or AWS's canary value, GHAS may correctly suppress them as "obviously not a real leak" — that's the feature working as designed for the production case, not a bug.
+
+This is exactly why the **live push-protection moment** is the heart of this lesson. When an attendee pushes a *new* line that looks like a credential, GHAS evaluates it without the benefit of seeing it's already-known-fake — and push protection fires.
 
 ## Push protection demo
 

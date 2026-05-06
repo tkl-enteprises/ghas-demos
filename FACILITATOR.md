@@ -15,7 +15,11 @@ Run through this before attendees join. None of these are reversible mid-session
 3. **Enable secret scanning + push protection.** Repo → `Settings → Code security → Secret scanning`. Turn on *Secret scanning*, *Push protection*, and *Push protection for contributors* if your org policy allows. Push protection is what makes lesson 2 land — without it, secrets only get flagged after the fact.
 4. **Verify the CodeQL workflow ran at least once.** `Actions → CodeQL`. If you see a green checkmark, code scanning has a baseline. If you see nothing, push any commit (or click *Run workflow*) and wait — without that baseline, lesson 1 has nothing to show.
 5. **Verify Copilot Autofix is enabled.** Repo → `Settings → Code security → Code scanning → Copilot Autofix`. This is what makes lesson 4 work; if it's off, attendees won't see the *Generate fix* button.
-6. **Have the org Security Overview tab open on a second tab.** [https://github.com/orgs/tkl-enteprises/security/overview](https://github.com/orgs/tkl-enteprises/security/overview) — lesson 8 is entirely UI-driven and the page can take a few seconds to load on first visit.
+6. **Publish the two custom secret patterns for lesson 6.** Repo → `Settings → Code security → Secret scanning → Custom patterns → New pattern`. Lesson 6's `.github/secret_scanning.yml` was deliberately removed because that file only supports path exclusions — *not* custom-pattern definitions. Add these two by hand:
+   - `TKL Internal Token` → format `TKL-INTERNAL-[A-Z0-9]{12,16}`, test string `TKL-INTERNAL-DEMO123ABC456`
+   - `TKL Workshop Demo Key` → format `tkl_demo_[a-z0-9]{32}`, test string `tkl_demo_abcdef0123456789abcdef0123456789`
+   Tick *Push protection* on each if you want lesson 6's optional push-block step to work. See [lesson 6 README](lessons/06-custom-secret-patterns/README.md) for screenshots of the preflight.
+7. **Have the org Security Overview tab open on a second tab.** [https://github.com/orgs/tkl-enteprises/security/overview](https://github.com/orgs/tkl-enteprises/security/overview) — lesson 8 is entirely UI-driven and the page can take a few seconds to load on first visit.
 
 ## Per-lesson timing guidance
 
@@ -35,8 +39,11 @@ No clock times — pace varies wildly by audience. Use these qualitative buckets
 ## Common attendee gotchas
 
 - ❌ **"My CodeQL workflow didn't run on my fork."** Workflows on forks need explicit consent — the first push from a fork triggers a *Workflow awaiting approval* state. Have attendees push to a branch on the upstream repo instead, or be ready to approve workflows from the *Actions* tab.
-- ❌ **"Secret scanning isn't showing my fake key."** On the free tier, secret scanning only runs on public repos. This repo is public, so it works — but attendees re-running on a private fork without GHAS will see nothing. Set expectations.
+- ❌ **"Secret scanning isn't showing my fake key."** Two distinct causes:
+  1. On the free tier, secret scanning only runs on public repos. This repo is public, so it works — but attendees re-running on a private fork without GHAS will see nothing.
+  2. **AI-powered detection and provider denylists deliberately suppress obvious fakes** in committed history (e.g. AWS's documented canary `AKIAIOSFODNN7EXAMPLE`, or any string with `FAKE`/`DEMO`/`EXAMPLE` markers). That's the feature working correctly. The reliable workshop demo is the **push protection moment** — push a *fresh* canary line in a workshop branch and watch the push get blocked. Lesson 2's README sets this expectation explicitly.
 - ❌ **"Push protection let me push my secret."** Push protection only blocks **patterns GitHub recognizes** by default. The fake AWS key in lesson 2 matches a partner pattern; randomly chosen strings will not. If a demo "fails," check the pattern, not the feature.
+- ❌ **"Lesson 6 alerts aren't appearing."** Custom patterns are not version-controlled — they live in repo *Settings*. If you skipped step 6 of the preflight, the two custom patterns aren't published, and the demo files in lesson 6 will sit silent regardless of how long you wait.
 - ❌ **"Dependabot didn't open a PR."** Dependabot security updates require the manifest file (e.g. `requirements.txt`) to be at a path Dependabot knows about. The `dependabot.yml` in `.github/` is what tells it where to look — if attendees move files around in their fork, the PRs stop.
 - ❌ **"Autofix button is missing."** Either Autofix is off in repo settings, or the alert is in a language Autofix doesn't yet support. Lesson 4 picks alerts that are known-supported.
 - ❌ **"Code scanning shows zero alerts."** The CodeQL workflow either hasn't finished its first run, or it ran on a branch with no vulnerable code. Check `Actions → CodeQL` first.

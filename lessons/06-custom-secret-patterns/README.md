@@ -1,6 +1,6 @@
 # Lesson 06 — Custom Secret Scanning Patterns
 
-Detect *org-specific* secret formats that no partner pattern covers, by defining your own regex in `.github/secret_scanning.yml`.
+Detect *org-specific* secret formats that no partner pattern covers, by defining your own regex.
 
 ## Goal
 
@@ -8,35 +8,51 @@ Most teams have at least one home-grown credential format — an internal servic
 
 ## Where the patterns live
 
-This lesson uses two custom patterns defined at the repo level in [`.github/secret_scanning.yml`](../../.github/secret_scanning.yml):
+> 🛠️ **Custom patterns are configured in the GitHub UI, not in source control.** A common misconception is that `.github/secret_scanning.yml` defines custom patterns — it does not. That file only supports `paths:` exclusions for the scanner. Custom patterns must be added through repo / org / enterprise *Settings* and are not yet exposed via a public REST API at the repo level.
 
-| Pattern name | Regex | Example match |
+This lesson exercises two custom patterns. The facilitator (or a workshop preflight script) configures them once via the UI:
+
+| Pattern name | Regex | Test string |
 | --- | --- | --- |
 | TKL Internal Token | `TKL-INTERNAL-[A-Z0-9]{12,16}` | `TKL-INTERNAL-DEMO123ABC456` |
 | TKL Workshop Demo Key | `tkl_demo_[a-z0-9]{32}` | `tkl_demo_abcdef0123456789abcdef0123456789` |
 
-Each Python file in this lesson hard-codes a fake match for one of those patterns so GHAS has something to detect.
+Each Python file in this lesson hard-codes one fake match. Once the patterns are saved in repo settings, GHAS scans the repo and surfaces both as alerts.
+
+### Configure the patterns (facilitator preflight)
+
+1. Open `https://github.com/tkl-enteprises/ghas-demos/settings/security_analysis` (or *Settings → Code security*).
+2. Scroll to *Secret scanning → Custom patterns* and click **New pattern**.
+3. For pattern #1, paste:
+   - **Pattern name:** `TKL Internal Token`
+   - **Secret format:** `TKL-INTERNAL-[A-Z0-9]{12,16}`
+   - **Test string:** `TKL-INTERNAL-DEMO123ABC456` (verify the dry-run preview turns green).
+4. Click *Publish pattern* → confirm it scans across the repo.
+5. Repeat for pattern #2 with name `TKL Workshop Demo Key`, format `tkl_demo_[a-z0-9]{32}`, test string `tkl_demo_abcdef0123456789abcdef0123456789`.
+6. Optional: tick *Push protection* on each pattern so workshop attendees can demo push-protection on custom patterns too.
+
+Once both patterns are published, GHAS rescans automatically and the two demo files in this lesson will show up under **Security → Secret scanning**.
 
 ## Org-level vs repo-level
 
 Custom patterns can be defined at three scopes — pick the one that matches who needs to maintain the pattern:
 
-- **Repo level** (this lesson): `.github/secret_scanning.yml`. Quick to iterate, version-controlled with the code, but only protects the one repo. Useful when prototyping a pattern.
-- **Org level**: Org → Settings → Code security → Secret scanning → Custom patterns. Apply to all repos in the org with one click. Recommended for any pattern that's broadly useful.
-- **Enterprise level**: Enterprise admin console → Code security → Secret scanning → Custom patterns. Apply across every org in the enterprise. Use for company-wide token formats.
+- **Repo level** (this lesson): repo *Settings → Code security → Secret scanning → Custom patterns*. Quick to iterate, but only protects the one repo. Useful when prototyping a pattern.
+- **Org level**: org *Settings → Code security → Secret scanning → Custom patterns*. Apply to all repos in the org with one click. Recommended for any pattern that's broadly useful.
+- **Enterprise level**: enterprise admin console → *Code security → Secret scanning → Custom patterns*. Apply across every org in the enterprise. Use for company-wide token formats.
 
 Reference: <https://docs.github.com/en/code-security/secret-scanning/defining-custom-patterns-for-secret-scanning>
 
-In a real workshop, you'd typically promote a working repo-level pattern to org-level once it's proven not to false-positive. The repo-level YAML in this lesson is also a great pattern-as-code artefact that you can review in PR.
+In a real workshop, you'd typically promote a working repo-level pattern to org-level once it's proven not to false-positive. None of these scopes are version-controlled in source — pattern lifecycle (draft → review → publish → tune) lives entirely in the GitHub UI.
 
 ## Hands-on steps
 
-1. Open [`.github/secret_scanning.yml`](../../.github/secret_scanning.yml) and read the two pattern definitions.
+1. Confirm the facilitator preflight above is done — both custom patterns are *Published* in repo settings.
 2. Open `internal.py` and `demo_key.py` in this lesson — both contain a fake string that matches one of the custom patterns.
 3. Visit **Security → Secret scanning** for the repo: <https://github.com/tkl-enteprises/ghas-demos/security/secret-scanning>
 4. Filter by *Secret type* → look for "TKL Internal Token" and "TKL Workshop Demo Key".
 5. Confirm both alerts are open, with the file path and line number pointing at this lesson.
-6. Optionally: clone the repo, edit `internal.py` to add another `TKL-INTERNAL-…` value, and watch push protection block your push (custom patterns are pushable too if marked `push_protection: true` in the YAML).
+6. Optionally: clone the repo, edit `internal.py` to add another `TKL-INTERNAL-…` value, and watch push protection block your push (works only if you ticked *Push protection* on the pattern in step 6 of the preflight).
 
 ## Designing custom patterns — checklist
 
