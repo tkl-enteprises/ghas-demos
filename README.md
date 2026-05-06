@@ -1,5 +1,9 @@
 # ghas-demos
 
+![CodeQL](https://github.com/tkl-enteprises/ghas-demos/actions/workflows/codeql.yml/badge.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+![Lessons: 8](https://img.shields.io/badge/Lessons-8-brightgreen)
+
 > ⚠️ **WARNING — INTENTIONALLY VULNERABLE REPOSITORY** ⚠️
 >
 > This repository contains **intentionally vulnerable code**, **fake/canary credentials**, and **known-vulnerable dependencies** for educational purposes.
@@ -12,11 +16,33 @@
 
 ---
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/tkl-enteprises/ghas-demos?quickstart=1)
+
 ![Repository Security tab showing alert counts across Code scanning, Secret scanning, and Dependabot — the hero view this workshop builds toward.](docs/screenshots/00-security-overview.png)
 
 *The repo's `Security` tab — every lesson below ladders up to a number on this page._
 
 ---
+
+## Table of contents
+
+- [What is GHAS?](#what-is-ghas)
+- [Workshop format](#workshop-format)
+- [GHAS pillars at a glance](#ghas-pillars-at-a-glance)
+- [Lessons](#lessons)
+- [Prerequisites](#prerequisites)
+- [Quick start](#quick-start)
+- [Where to look in GitHub UI](#where-to-look-in-github-ui)
+- [License](#license)
+- [Disclaimer](#disclaimer)
+
+## Quick start
+
+**Option A — Codespaces (recommended for workshop attendees):**
+[Open this repo in a Codespace](https://codespaces.new/tkl-enteprises/ghas-demos?quickstart=1) — the dev container pre-installs Python, the `gh` CLI, and the lesson dependencies. You can be running lesson 01 in under 60 seconds.
+
+**Option B — Local clone:**
+`git clone https://github.com/tkl-enteprises/ghas-demos.git && cd ghas-demos && pip install -r lessons/01-codeql-code-scanning/requirements.txt` (some intentionally-vulnerable deps in lesson 03 will not install — that's expected).
 
 ## What is GHAS?
 
@@ -28,6 +54,22 @@
 - **Self-contained** — every lesson has its own `README.md` with goal, steps, and where to look in the GitHub UI.
 - **Runnable in any order** — there are no cross-lesson dependencies. Pick the pillar your audience cares about and start there.
 - **Python-only** — every code sample is plain Python 3. No build tools, no Docker, no cloud accounts required.
+
+## GHAS pillars at a glance
+
+The five pillars below are the mental model attendees should leave with — every lesson in the next section maps to one (or more) of them.
+
+```mermaid
+flowchart LR
+  P1[Code Scanning]      --> L1[Lesson 1: CodeQL]
+  P1                     --> L4[Lesson 4: Copilot Autofix]
+  P1                     --> L5[Lesson 5: Custom queries]
+  P2[Secret Scanning]    --> L2[Lesson 2: Detection + push protection]
+  P2                     --> L6[Lesson 6: Custom patterns]
+  P3[Supply Chain]       --> L3[Lesson 3: Dependabot]
+  P4[3rd-party / SARIF]  --> L7[Lesson 7: Bandit + SARIF upload]
+  P5[Governance]         --> L8[Lesson 8: Org Security Overview]
+```
 
 ## Lessons
 
@@ -48,14 +90,6 @@
 - **Python 3.11+** on the workstation following along.
 - Optional: the [**CodeQL CLI**](https://docs.github.com/en/code-security/codeql-cli) for lesson 5 (custom queries) if you want to iterate locally.
 - Optional: the [**`gh` CLI**](https://cli.github.com/) for cloning and triggering workflows from the terminal.
-
-## Quick start
-
-```bash
-gh repo clone tkl-enteprises/ghas-demos && cd ghas-demos && cat lessons/01-codeql-code-scanning/README.md
-```
-
-Then open the repo in your browser and keep the **Security** tab visible on a second monitor — most of the lesson payoff happens there, not in the code.
 
 ## Where to look in GitHub UI
 
