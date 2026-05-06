@@ -72,7 +72,10 @@ flowchart LR
   P3["Supply Chain"]       --> L3["Lesson 3: Dependabot"]
   P4["3rd-party / SARIF"]  --> L7["Lesson 7: Bandit + SARIF upload"]
   P5["Governance"]         --> L8["Lesson 8: Org Security Overview"]
+  P6["Code Quality (preview)"] -.-> B["Bonus: same CodeQL engine, maintainability findings"]
 ```
+
+> The dashed arrow is **Code Quality** — a sibling product to GHAS that runs on the same CodeQL infrastructure, but with a maintainability/code-smell query pack instead of security queries. It's a *Preview* feature, billed separately as Action minutes. We've enabled it on this repo so attendees can see "the same engine finds different things" — see the [Bonus: Code Quality](FACILITATOR.md#bonus-code-quality-preview) section in FACILITATOR.md.
 
 ## Lessons
 

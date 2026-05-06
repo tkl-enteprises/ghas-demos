@@ -182,6 +182,26 @@ Gaps still worth capturing live in your tenant for a follow-up deck:
 - 📸 Lesson 8 — the **Configurations** page showing the `GitHub recommended` security configuration's feature toggles.
 - 📸 Lesson 8 — a **Security campaigns** detail page (paid feature) with assigned repos and progress bars.
 
+## Bonus: Code Quality (preview)
+
+[Code Quality](https://github.com/tkl-enteprises/ghas-demos/security/quality) is a *separate* GitHub product from GHAS, but it runs on the same CodeQL engine. Instead of security queries (taint, SQLi, SSRF, etc.) it runs a **maintainability** query pack (cyclomatic complexity, dead code, unreachable branches, code smells). It's enabled on this repo so attendees can see the boundary clearly.
+
+**Why mention it in a GHAS workshop?**
+- Reinforces the "CodeQL is just an engine — the queries are the product" mental model from lesson 5.
+- Lets the room ask "wait, can I write quality queries with the same syntax?" — yes (the answer is: it's the same QL language, just different query suite).
+- Useful counter-example to "every CodeQL alert is a security risk" — quality alerts are advisory, not blocking.
+
+**How to demo (≤ 3 minutes, slot anywhere after lesson 5):**
+1. Settings → Security and quality → **Code quality** is *Enabled* (Preview tag visible).
+2. `Security and quality → Code quality` (left nav). Show the alerts list. Pick a representative alert (e.g. cyclomatic complexity in `lessons/01-codeql-code-scanning/vulnerable_app.py`).
+3. Compare side-by-side with a Code Scanning alert from lesson 1 — same UI, same alert shape, but the **Tool** filter says `CodeQL Quality` instead of `CodeQL`.
+4. Talking points:
+   - **Billing**: charged as Action minutes (NOT GHAS seats) — important for buyers.
+   - **Status**: Preview — UI may change before GA.
+   - **Push protection / branch ruleset**: NOT applied to quality findings (advisory only).
+
+**When to skip:** if your audience cares only about security (e.g. CISO briefing), drop this — it muddies the GHAS-vs-not-GHAS line. The 60-min agenda below skips it; the half-day agenda includes it as a 5-min interlude after lesson 5.
+
 ## Sample agendas
 
 Three pre-built agendas. Pick one based on audience size, audience role, and the room you've been given. Total times below assume the [Pre-flight checklist](#pre-flight-checklist) has already been run and the repo is in a known-good state — they do **not** include setup time on the day.
