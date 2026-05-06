@@ -12,11 +12,11 @@
 
 import python
 
-from Assign a, Name n, NameConstant v
+from Assign a, Name n, Expr v
 where
   a.getATarget() = n and
   n.getId() = "DEBUG" and
   a.getValue() = v and
-  v.getValue() = true and
+  v.toString() = "True" and
   n.getScope() instanceof Module
 select a, "Hard-coded `DEBUG = True` at module level."
