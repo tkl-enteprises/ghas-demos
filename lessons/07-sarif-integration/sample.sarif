@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Bandit",
+          "version": "1.7.9",
+          "informationUri": "https://bandit.readthedocs.io/",
+          "rules": [
+            {
+              "id": "B303",
+              "name": "blacklist",
+              "shortDescription": {
+                "text": "Use of insecure MD2, MD4, MD5, or SHA1 hash function."
+              },
+              "helpUri": "https://bandit.readthedocs.io/en/latest/blacklists/blacklist_calls.html#b303-md5"
+            },
+            {
+              "id": "B602",
+              "name": "subprocess_popen_with_shell_equals_true",
+              "shortDescription": {
+                "text": "subprocess call with shell=True identified, security issue."
+              },
+              "helpUri": "https://bandit.readthedocs.io/en/latest/plugins/b602_subprocess_popen_with_shell_equals_true.html"
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "B303",
+          "level": "warning",
+          "message": {
+            "text": "Use of insecure MD5 hash function."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lessons/07-sarif-integration/weak_crypto.py"
+                },
+                "region": {
+                  "startLine": 11,
+                  "startColumn": 12,
+                  "endLine": 11,
+                  "endColumn": 50
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "demo123"
+          }
+        },
+        {
+          "ruleId": "B602",
+          "level": "error",
+          "message": {
+            "text": "subprocess call with shell=True identified, security issue."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lessons/07-sarif-integration/subprocess_use.py"
+                },
+                "region": {
+                  "startLine": 11,
+                  "startColumn": 12,
+                  "endLine": 11,
+                  "endColumn": 70
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "demo456"
+          }
+        }
+      ]
+    }
+  ]
+}

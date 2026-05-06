@@ -1,0 +1,9 @@
+# ⚠️ INTENTIONALLY VULNERABLE — pinned to known-vulnerable versions for demo.
+# Dependabot should open security update PRs against this file.
+Flask==0.12.0
+Jinja2==2.10
+Werkzeug==0.14
+urllib3==1.24.1
+requests==2.19.1
+PyYAML==5.1
+cryptography==2.3

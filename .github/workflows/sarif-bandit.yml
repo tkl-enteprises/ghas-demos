@@ -1,0 +1,46 @@
+# ---------------------------------------------------------------------------
+# Bandit -> SARIF -> Code Scanning
+#
+# Powers lesson 07. Demonstrates ingesting 3rd-party SAST output (Bandit)
+# into Code Scanning via SARIF.
+# ---------------------------------------------------------------------------
+
+name: "Bandit SARIF"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Every Monday at 06:30 UTC
+    - cron: "30 6 * * 1"
+
+permissions:
+  security-events: write
+  contents: read
+
+jobs:
+  bandit:
+    name: Bandit scan + SARIF upload
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5 # v5.3.0
+        with:
+          python-version: "3.11"
+
+      - name: Install Bandit
+        run: pip install "bandit[sarif]==1.7.9"
+
+      - name: Run Bandit (SARIF output)
+        run: bandit -r lessons/07-sarif-integration -f sarif -o bandit.sarif --exit-zero
+
+      - name: Upload SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3 # v3.27.5
+        with:
+          sarif_file: bandit.sarif
+          category: bandit
