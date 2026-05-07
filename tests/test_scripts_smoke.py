@@ -15,8 +15,6 @@ import py_compile
 import subprocess
 from pathlib import Path
 
-import pytest
-
 
 def test_preflight_is_executable(repo_root: Path):
     p = repo_root / "scripts" / "preflight.sh"
