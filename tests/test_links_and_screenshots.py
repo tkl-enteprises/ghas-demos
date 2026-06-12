@@ -16,8 +16,6 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-import pytest
-
 
 # Files where the numbered-prefix-must-equal-lesson-prefix convention is
 # intentionally relaxed (pre-existing screenshot/lesson naming drift, NOT a
