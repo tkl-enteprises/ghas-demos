@@ -28,7 +28,18 @@ def load():
 
 @app.route("/fetch")
 def fetch():
-    url = request.args.get("url", "https://example.com")
+    target = request.args.get("target", "example")
+
+    # Only allow server-controlled destinations to prevent SSRF.
+    allowed_urls = {
+        "example": "https://example.com",
+        "status": "https://httpbin.org/status/200",
+    }
+
+    url = allowed_urls.get(target)
+    if url is None:
+        return "Invalid target", 400
+
     # ⚠️ requests<2.20 leaks Authorization header on cross-origin redirects (GHSA-x84v-xcm2-53pg).
     return requests.get(url).text
 
