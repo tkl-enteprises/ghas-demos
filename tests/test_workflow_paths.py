@@ -66,11 +66,11 @@ def test_codeql_config_paths_ignore_resolve(repo_root):
         (repo_root / ".github" / "codeql" / "codeql-config.yml").read_text(encoding="utf-8")
     )
     for glob_pat in cfg.get("paths-ignore") or []:
-        base = glob_pat.rstrip("/*")
-        target = repo_root / base
-        assert target.exists(), (
+        rel_pat = glob_pat.lstrip("/")
+        matches = list(repo_root.glob(rel_pat))
+        assert matches, (
             f"codeql-config.yml paths-ignore `{glob_pat}` does not match anything "
-            f"(looked for {target})"
+            f"(looked for glob `{rel_pat}` under {repo_root})"
         )
 
 
