@@ -4,7 +4,7 @@ Repo-level metadata + invariants the workshop relies on.
   - README.md, LICENSE, SECURITY.md, CONTRIBUTING.md, FACILITATOR.md exist.
   - Root README has the pillar mermaid block (one ```mermaid fenced block,
     contains the `flowchart` keyword, has a matching closing fence).
-  - Root README's lessons table has 9 lesson rows (one per lesson 01..09).
+  - Root README's lessons table has 11 lesson rows (one per lesson 01..11).
   - FACILITATOR's 60-minute agenda heading references lessons 1, 4, 6, 8
     (not the stale 1, 2, 3, 8 from the pre-rename layout).
   - FACILITATOR's 2-hour agenda heading references the post-rename lesson
@@ -37,11 +37,11 @@ def test_root_readme_fences_balanced(repo_root: Path):
     assert fence_count % 2 == 0, f"README.md has unbalanced ``` fences ({fence_count})"
 
 
-def test_root_readme_lessons_table_has_nine_rows(repo_root: Path):
+def test_root_readme_lessons_table_has_eleven_rows(repo_root: Path):
     text = (repo_root / "README.md").read_text(encoding="utf-8")
     refs = sorted(set(re.findall(r"`lessons/(\d{2})-[a-z0-9-]+/`", text)))
-    assert refs == [f"{n:02d}" for n in range(1, 10)], (
-        f"Root README lessons table should have rows for lessons 01..09; got {refs}"
+    assert refs == [f"{n:02d}" for n in range(1, 12)], (
+        f"Root README lessons table should have rows for lessons 01..11; got {refs}"
     )
 
 
@@ -73,16 +73,13 @@ def test_facilitator_2hr_agenda_lessons(repo_root: Path):
     )
 
 
-def test_facilitator_halfday_agenda_includes_all_eight_plus_bonus(repo_root: Path):
+def test_facilitator_halfday_agenda_includes_all_eleven(repo_root: Path):
     text = (repo_root / "FACILITATOR.md").read_text(encoding="utf-8")
     m = re.search(r"###\s+Half-day\s+deep\s+dive\s+\(([^)]+)\)", text, flags=re.IGNORECASE)
     assert m, "FACILITATOR.md missing 'Half-day deep dive (...)' heading"
     label = m.group(1).lower()
-    assert "all 8 lessons" in label or "all eight" in label, (
-        f"Half-day agenda label should advertise all 8 lessons; got: {label!r}"
-    )
-    assert "9" in label or "bonus" in label, (
-        f"Half-day agenda label should mention lesson 9 / bonus; got: {label!r}"
+    assert "all 11 lessons" in label or "all eleven" in label, (
+        f"Half-day agenda label should advertise all 11 lessons; got: {label!r}"
     )
 
 

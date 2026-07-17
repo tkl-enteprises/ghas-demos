@@ -1,0 +1,33 @@
+# NON-EXECUTABLE LESSON FIXTURE.
+# Keep the .txt suffix and keep this file outside .github/workflows/.
+name: Vulnerable pull request review
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      # Mutable action tag.
+      - uses: actions/checkout@v4
+        with:
+          # Attacker-controlled code in a privileged workflow.
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # Another mutable action tag.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Executes files supplied by the pull request.
+      - run: python -m pytest
+
+      # Inserts an attacker-controlled title into generated shell source.
+      - name: Show pull request title
+        run: echo "Reviewing ${{ github.event.pull_request.title }}"

@@ -1,6 +1,6 @@
 # Lesson 04 — Secret Scanning + Push Protection
 
-See GitHub Advanced Security detect hard-coded credentials in source, block new ones at `git push`, and validate live tokens with partner providers.
+See GitHub Secret Protection detect hard-coded credentials in source, block new ones before they reach GitHub, and validate supported partner tokens.
 
 ## Goal
 
@@ -13,7 +13,9 @@ After this lesson you can:
 - Distinguish secret scanning (detection) from push protection (prevention).
 - Trigger push protection by pushing a partner-pattern shaped value (e.g. an Azure storage connection string with a fresh `AccountKey=…`).
 - Read a partner-pattern alert and check its **validity** badge.
-- Bypass push protection with `secret-scanning.skip-push-protection=true` and explain when that's appropriate.
+- Explain AI-detected generic secrets and how they differ from regex-based generic and partner patterns.
+- Route a push-protection exception through delegated bypass instead of letting every contributor self-approve.
+- Describe public monitoring and push protection for GitHub MCP server writes without overstating their coverage.
 
 ## Estimated time
 
@@ -21,13 +23,25 @@ After this lesson you can:
 
 ## Prerequisites
 
-- GHAS + secret scanning + push protection enabled on the repo.
+- An organization-owned repository on **GitHub Team or GitHub Enterprise Cloud** with **GitHub Secret Protection** (or a legacy GitHub Advanced Security entitlement), with secret scanning and repository push protection enabled. Secret scanning and user push protection also have free coverage for public repositories on GitHub.com, but the governance exercises below require Secret Protection.
 - Local clone with push access (the live demo writes a commit and tries `git push`).
 - Preflight has confirmed push protection is currently enforcing — see the live capture note below before relying on the block.
+- For the AI exercise, an enterprise owner must allow generic secret detection (allowed by default), and the repository or applied security configuration must enable **Scan for AI-detected secrets**.
+
+## Feature status and licensing
+
+| Capability | Current status | Requirement / important limit |
+| --- | --- | --- |
+| AI-detected generic secrets | **Generally available** | Organization- or enterprise-owned repository with GitHub Secret Protection. **No GitHub Copilot subscription is required.** The current AI detector covers passwords, reports them in a separate AI-detected list, and does not provide push protection or validity checks for those password findings. |
+| Delegated bypass for push protection | **Generally available** | Organization-owned repository on GitHub Team or GitHub Enterprise Cloud with GitHub Secret Protection and repository push protection enabled. |
+| Public monitoring | **Public preview**; subject to change | GitHub Enterprise Cloud with GitHub Advanced Security or GitHub Secret Protection. **Unavailable on GitHub Enterprise Cloud with data residency (`GHE.com`).** |
+| Push protection for GitHub MCP server interactions | **Generally available** | Documented for writes to **public repositories only**. Do not claim private/internal MCP coverage; normal repository and REST/CLI coverage has different requirements. |
+
+Product names and availability change over time. Recheck the linked GitHub documentation before a customer delivery.
 
 ## What's in this lesson
 
-Four Python files plus a `.env.example`. Each Python file hard-codes a *fake* credential that matches a partner pattern — an Azure storage `AccountKey=…`, `sk_test_…`, `ghp_…` — but every value is clearly marked `FAKE` / `DEMO` so a human reader can tell at a glance there's no real credential committed.
+Three Python files plus a `.env.example`. Each Python file hard-codes a *fake* credential that resembles a partner pattern — an Azure storage `AccountKey=…`, `sk_test_…`, `ghp_…` — but every value is clearly marked `FAKE` / `DEMO` so a human reader can tell at a glance there's no real credential committed.
 
 | File | Format demonstrated |
 | --- | --- |
@@ -42,21 +56,21 @@ Four Python files plus a `.env.example`. Each Python file hard-codes a *fake* cr
 
 ## Why the alert tab might look empty before you start
 
-Modern secret scanning combines regex match with **AI-powered suppression** of obvious test/example values, **provider denylists** (each provider publishes its own list of well-known canary keys), and **validity probing**. When the static files in this lesson contain words like `FAKE` or `DEMO`, GHAS may correctly suppress them as "obviously not a real leak" — that's the feature working as designed for the production case, not a bug.
+Secret scanning patterns and provider-specific logic evolve. Obviously nonfunctional fixtures containing words like `FAKE` or `DEMO` may not produce partner alerts, and validity checks should report supported fixtures as inactive or unknown. That is safer than committing a live credential merely to force a screenshot.
 
-This is exactly why the **live push-protection moment** is the heart of this lesson. When an attendee pushes a *new* line that looks like a credential, GHAS evaluates it without the benefit of seeing it's already-known-fake — and push protection fires.
+This is why the **live push-protection moment** is the heart of this lesson. Use only the nonfunctional canary below, and run preflight first because a known test value may be excluded or deprioritized.
 
-![Default tab of Security → Secret scanning showing "No secrets found" — partner-pattern detections suppressed by AI heuristics on the committed FAKE / DEMO / EXAMPLE-marked canaries.](../../docs/screenshots/05-secret-scanning-default-empty.png)
+![Captured Default tab of Security → Secret scanning showing no alerts for the nonfunctional workshop fixtures.](../../docs/screenshots/05-secret-scanning-default-empty.png)
 
-*The **Default** tab is empty by design — the committed canaries are flagged-and-suppressed by AI heuristics. This is the suppression behaviour described above; it is not a misconfiguration._
+*This captured **Default** view is useful when explaining that a safe fixture is not guaranteed to produce a current partner alert. Do not infer the exact suppression reason from an empty list._
 
-![Generic AI tab of Security → Secret scanning showing alerts firing on `hunter2_FAKE_*`-style password assignments — caught by the AI-powered generic-secret classifier rather than a partner pattern.](../../docs/screenshots/05-secret-scanning-generic-ai.png)
+![Historical Generic tab of Security → Secret scanning showing AI-detected password alerts.](../../docs/screenshots/05-secret-scanning-generic-ai.png)
 
-*The **Generic** tab (AI-powered detection) is where committed-but-unrecognized credential shapes do surface. Useful to show alongside the Default tab to explain why one looks empty and the other doesn't._
+*This screenshot preserves an earlier **Generic** label. The current documentation calls these **AI-detected secrets** and displays them separately from regular secret-scanning alerts. The current AI-detected type is `password`; deterministic connection-string/private-key detectors are instead called generic patterns._
 
 ## Push protection demo
 
-Push protection runs **client-side at `git push` time** — GitHub refuses the push before the secret is written to the remote. Try it:
+For a command-line push, GitHub evaluates the update server-side and rejects it before the secret is accepted into the repository. Try it:
 
 ![Repo Settings → Code security → Secret scanning showing Push protection toggled on, with the bypass-prompt copy displayed for contributors.](../../docs/screenshots/04-push-protection-settings.png)
 
@@ -112,19 +126,54 @@ Push protection runs **client-side at `git push` time** — GitHub refuses the p
    EXIT_CODE: 0
    ```
 
-5. **Bypass workflow** (only if you genuinely need to land a documented test value, e.g. a test fixture):
-   ```bash
-   git push -o secret-scanning.skip-push-protection=true
-   ```
-   Each bypass requires a reason and is audited. In a real workflow, prefer "this is a false positive" via the UI so security can refine the pattern, or "used in tests" with a proper test fixture marker — and **never** "I'll rotate it later".
+5. **Delegated bypass workflow** (only for a genuine false positive or an approved test fixture):
+   - Configure *Settings → Advanced Security → Secret Protection → Push protection → Who can bypass* as **Specific roles or teams**. At organization/enterprise scope, configure **Bypass privileges → Specific actors** in a custom security configuration.
+   - As a contributor who is not on that list, follow the URL in the rejection, add a justification, and submit a bypass request. Do not push a different encoding to evade the control.
+   - As a designated reviewer, open *Security and quality → Requests → Push protection bypass*, inspect the exact secret and commits, then approve or deny. Requests expire after **7 days**.
+   - Retry the same push only after approval. The request, review, and resulting alert remain auditable.
+
+   **Bypass privilege is not exemption.** A privileged actor can bypass and review requests; an exempt actor skips push protection entirely. Reserve exemptions for narrowly scoped, trusted automation such as a migration bot, because an exemption can leak real credentials without a block. Organization owners and security managers can always bypass.
 
 ## Validity checks
 
 For partners that support it (Azure, GitHub, Stripe, Slack, OpenAI, Snowflake, and many others) GHAS pings the issuer's API to check whether the leaked token is currently valid. The alerts in the security tab will be tagged `Active` or `Inactive`. The canary credentials in this lesson should all show as **inactive / unknown** — they were never live, by design. In a real leak, an `Active` tag means "rotate, *now*".
 
-## AI detection
+## AI-detected generic secrets
 
-With AI-powered detection enabled at the org level, GHAS will also surface generic-looking secrets (passwords, tokens) that don't match any partner pattern. It uses an LLM to classify suspicious string assignments. In this lesson, the `password = "hunter2_FAKE_DEMO_PASSWORD"` pattern in `payment.py`'s comments is the kind of thing AI detection would flag (we don't actually hard-code that variable to keep partner detections clean).
+Enable *Settings → Advanced Security → Secret Protection → Scan for AI-detected secrets* (or apply a custom security configuration with that option enabled). This **GA** detector finds unstructured passwords that do not have a stable regex or partner format. It requires GitHub Secret Protection for an organization/enterprise-owned repository, but it does **not** require any GitHub Copilot license.
+
+Use the existing screenshot as the demo artifact rather than trying to manufacture a stronger-looking password. The comment in `payment.py` is intentionally fake and may not alert. In the alerts UI, open the separate AI-detected list and discuss:
+
+- AI-detected `password` findings are detection-after-commit only: they do **not** participate in push protection.
+- They do **not** support provider validity checks.
+- They are different from deterministic **generic patterns** such as private keys and connection strings, and from named partner patterns.
+- Keep human triage in the loop and submit false-positive feedback; never replace this demo with a working password.
+
+Reference: <https://docs.github.com/en/enterprise-cloud@latest/code-security/how-tos/secure-your-secrets/detect-secret-leaks/enabling-secret-scanning-for-ai-detected-secrets>
+
+## Public monitoring beyond enterprise-owned repositories
+
+**Public monitoring is a public preview**, not GA. For an enterprise on GitHub Enterprise Cloud with GitHub Advanced Security or GitHub Secret Protection, it monitors public GitHub.com repositories—including issue and pull-request comments—for secrets associated with the enterprise. Association uses both enterprise membership and verified-domain matching, and findings appear in enterprise security overview.
+
+This is a discussion demo only; do **not** publish even a real-but-revoked credential to trigger it. Show the enterprise setting/overview if the preview is enabled, then use a hypothetical: “A member accidentally pasted a company credential into somebody else's public issue.” Public monitoring extends visibility outside repositories the enterprise owns; it does not make that public content safe.
+
+**Data residency limitation:** public monitoring is not available for GitHub Enterprise Cloud with data residency (`GHE.com`).
+
+Reference: <https://docs.github.com/en/enterprise-cloud@latest/code-security/concepts/secret-security/public-monitoring>
+
+## GitHub MCP server write coverage
+
+Current GitHub documentation lists **GitHub MCP server interactions with public repositories** as a push-protection surface. This GA coverage is valuable when an AI tool writes through MCP instead of running `git push`, including reducing the chance that a prompt-injected value reaches a public repository.
+
+Safe facilitator check:
+
+1. Use a disposable branch in a **public** demo repository and ask an MCP client to create/update a file containing the same nonfunctional canary from the push demo.
+2. Expect the write to be blocked and inspect the tool error; do not bypass it and do not substitute an active credential.
+3. Remove the canary from the proposed write and retry with a harmless placeholder.
+
+Keep the boundary explicit: the documentation qualifies MCP coverage as **public repositories only**. Do not present this as proof that every MCP tool, transport, or private/internal repository write is covered. Repository push protection still covers documented CLI, web UI, file upload, and REST API paths according to their own settings.
+
+Reference: <https://docs.github.com/en/enterprise-cloud@latest/code-security/concepts/secret-security/about-push-protection>
 
 ## Where to look in GitHub
 
@@ -134,11 +183,12 @@ With AI-powered detection enabled at the org level, GHAS will also surface gener
 ## Hands-on steps
 
 1. Open the repo's **Security → Secret scanning alerts** tab.
-2. Confirm at least three alerts are present: Azure Storage connection string, Stripe test key (or generic API key), GitHub PAT.
-3. Click into the Azure alert. Note: the file path, the line number, the validity badge, and the recommended remediation.
+2. Inspect any current Azure Storage, Stripe, or GitHub PAT alerts. If the safe fixtures are suppressed, use the preserved screenshots instead of replacing them with active credentials.
+3. If an Azure alert is present, note the file path, line number, validity badge, and recommended remediation.
 4. Clone the repo, follow the *Push protection demo* steps above to get a hard rejection.
-5. Bypass the rejection with `-o secret-scanning.skip-push-protection=true`, then immediately revert/force-push to clean up your branch (so we don't leave canaries scattered around).
-6. Open `solution.md` and walk through the remediation runbook.
+5. Submit (but do not approve during a shared workshop unless policy allows) a delegated bypass request and inspect the reviewer queue.
+6. Review the AI-detected list, public-monitoring boundary, and public-repository-only MCP coverage.
+7. Open `solution.md` and walk through the remediation runbook.
 
 ## Discussion prompts
 
@@ -146,6 +196,8 @@ With AI-powered detection enabled at the org level, GHAS will also surface gener
 2. When is bypassing push protection the right call, and when is it a smell? How do you tell the two apart in PR review?
 3. What's the conceptual difference between secret scanning (detection on existing code) and push protection (prevention at push time)? Why do you need both?
 4. Your customer is multi-cloud (Azure + a non-Microsoft provider) — would you re-record this lesson with that provider's key shape, or argue that the Azure-shaped demo translates 1:1 to the partner program's other 200+ patterns? What evidence would you bring to the conversation?
+5. Which leaks are visible to public monitoring but not ordinary scanning of enterprise-owned repositories, and why is `GHE.com` excluded?
+6. What control would you add around an AI agent even when its public-repository MCP writes are push-protected?
 
 ## Files
 
@@ -163,14 +215,16 @@ With AI-powered detection enabled at the org level, GHAS will also surface gener
 The demo has landed when:
 
 - The push of a fresh canary is blocked (or, if a regression, attendees can articulate why and pivot to the partner-pattern alert).
-- Attendees locate the Azure / Stripe / GitHub PAT alerts on the **Default** or **Generic** tab.
-- Attendees know the bypass syntax (`-o secret-scanning.skip-push-protection=true`) and when it's appropriate.
+- Attendees distinguish partner alerts from the separate AI-detected password list and know that AI-detected passwords are not push-protected.
+- Attendees can submit a delegated bypass request and explain bypass privilege versus exemption.
+- Attendees can state that public monitoring is a preview unavailable with data residency, and that documented MCP push protection is limited to public repositories.
 
 ## Key takeaways
 
-- **Push protection blocks at git-push time** — before the secret ever lands in remote storage. Detection-after-the-fact is too late for live credentials.
-- **AI suppression** of FAKE / DEMO / EXAMPLE markers is a feature for production but means workshops need *non-obvious* test values to make the live demo fire.
-- Every bypass is **logged and audited** — it leaves a trail in the org audit log.
+- **Push protection prevents covered writes** before the secret lands; detection-after-the-fact is too late for live credentials.
+- **AI-detected passwords are GA without a Copilot license**, but are alerts rather than push-protection blocks.
+- Delegated bypass creates a reviewable exception path; exemptions are a much broader control and should be rare.
+- Public monitoring is **public preview** and unavailable on `GHE.com`; MCP write protection is documented for **public repositories only**.
 
 ## Reset state
 

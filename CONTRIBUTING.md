@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve the GHAS workshop. This repo is a teaching tool — every change should make a lesson clearer, more reliable, or more fun to deliver.
+Thanks for helping improve the GitHub security workshop. This repo is a teaching tool — every change should make a lesson clearer, more reliable, or more fun to deliver.
 
 ## How to add a new lesson
 
@@ -14,11 +14,11 @@ lessons/NN-short-name/
 
 Each lesson `README.md` MUST include these sections, in this order:
 
-1. **Goal** — one sentence: which GHAS feature does this lesson demonstrate?
+1. **Goal** — one sentence: which GitHub security or quality capability does this lesson demonstrate?
 2. **Learning objectives** — bullet list of what the attendee can do afterwards.
 3. **Estimated time** — minutes, including discussion.
 4. **Walkthrough** — numbered steps the facilitator runs live, with explicit "click here in the UI" callouts.
-5. **Exit criteria** — observable signals that the lesson worked (e.g. "alert appears on the Security tab within 90 seconds").
+5. **Exit criteria** — observable signals that the lesson worked (e.g. "alert appears on the Security and quality tab within 90 seconds").
 6. **Key takeaways** — 2–4 bullets the audience should leave with.
 7. **Discussion questions** — open-ended prompts for the room.
 8. **Reset state** — exact steps to put the lesson back so the next group sees a clean slate.
@@ -26,13 +26,13 @@ Each lesson `README.md` MUST include these sections, in this order:
 ## How to test a lesson change
 
 1. **Fork** this repo (don't push directly to `main`).
-2. On your fork, **enable GHAS** (Settings → Code security and analysis).
-3. Push your branch and watch the **Security** tab on your fork — every alert the lesson promises should appear within a couple of minutes.
+2. On your fork, enable the required **GitHub Code Security** and **GitHub Secret Protection** capabilities (Settings → Code security).
+3. Push your branch and watch the **Security and quality** tab on your fork — every alert the lesson promises should appear within a couple of minutes.
 4. Run through the lesson's `Walkthrough` end-to-end with the fork's UI open. If a step references a URL or screenshot, update both.
 
 ## Style
 
-- Hands-on, second-person voice ("Open the Security tab", not "The Security tab can be opened").
+- Hands-on, second-person voice ("Open the Security and quality tab", not "The Security and quality tab can be opened").
 - Short paragraphs, lots of bullets, screenshots over prose where it helps.
 - Match the tone of existing lessons — direct, concrete, no marketing language.
 
@@ -44,7 +44,7 @@ Each lesson `README.md` MUST include these sections, in this order:
 
 ## Running tests locally
 
-The repo ships a workshop-infrastructure pytest suite under [`tests/`](tests/) that validates static repo invariants (lesson layout, link integrity, workflow paths, script smoke, manifest shape). It does **not** assert security properties of the intentionally-vulnerable demo code — those are the GHAS scanners' job.
+The repo ships a workshop-infrastructure pytest suite under [`tests/`](tests/) that validates static repo invariants (lesson layout, link integrity, workflow paths, script smoke, manifest shape). It does **not** assert security properties of the intentionally-vulnerable demo code — those are the GitHub security scanners' job.
 
 ```bash
 pip install -r tests/requirements.txt
