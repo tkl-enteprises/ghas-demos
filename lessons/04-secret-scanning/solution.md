@@ -57,6 +57,8 @@ Git is content-addressable: every commit object references the previous tree, an
 
 ## Quick reference
 
-- Working with push protection: <https://docs.github.com/en/code-security/secret-scanning/working-with-push-protection>
-- Secret scanning patterns: <https://docs.github.com/en/code-security/secret-scanning/secret-scanning-patterns>
-- About GitHub Advanced Security: <https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security>
+- AI-detected generic secrets: <https://docs.github.com/en/enterprise-cloud@latest/code-security/how-tos/secure-your-secrets/detect-secret-leaks/enabling-secret-scanning-for-ai-detected-secrets>
+- About push protection (including GitHub MCP server coverage): <https://docs.github.com/en/enterprise-cloud@latest/code-security/concepts/secret-security/about-push-protection>
+- Delegated bypass: <https://docs.github.com/en/enterprise-cloud@latest/code-security/secret-scanning/using-advanced-secret-scanning-and-push-protection-features/delegated-bypass-for-push-protection/about-delegated-bypass-for-push-protection>
+- Public monitoring: <https://docs.github.com/en/enterprise-cloud@latest/code-security/concepts/secret-security/public-monitoring>
+- GitHub Secret Protection plans and features: <https://docs.github.com/en/enterprise-cloud@latest/get-started/learning-about-github/about-github-advanced-security>

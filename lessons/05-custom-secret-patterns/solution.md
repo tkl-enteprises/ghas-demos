@@ -32,22 +32,26 @@ A bound (`{32}`, `{16,}`, `{12,16}`, …) prevents the regex from matching short
 
 ### 4. Always supply a test string in the UI
 
-GHAS's "New pattern" dialog has a *Test string* field — paste an example match before publishing and watch the dry-run highlight light up green. Treat that as a unit test for your regex. Ideally, also paste a counter-example into the *More options → Additional secret format* fields so you know the regex *doesn't* match things it shouldn't.
+GitHub's "New pattern" dialog has a *Test string* field. Paste a fake example match, then **Save and dry run** before publishing. The dry run samples up to 1,000 matches without creating alerts; inspect those results for false positives, edit, and rerun. A green test-string match proves only recall for that example, not precision across the repository.
 
-### 5. Use before/after anchors when context is reliable
+### 5. Treat AI output as candidates, not policy
+
+**Generate with AI** can turn an English description and fake examples into up to three regex suggestions. It is GA for organization/enterprise repositories with GitHub Secret Protection and does not require a GitHub Copilot subscription. Compare candidate character classes, lengths, grouping, and anchors; select one with **Use results**, then validate it with the same dry-run gate as a hand-written regex. Never paste real tokens into the examples.
+
+### 6. Use before/after anchors when context is reliable
 
 If the token always appears in `Authorization: Bearer <token>`, anchor `before_secret: "Bearer "` so a stray `Bearer ` in unrelated code doesn't trip you up. If it always appears in JSON as `"api_key": "<token>"`, anchor accordingly.
 
-### 6. Pilot before going wide
+### 7. Pilot before going wide
 
 Roll a new pattern out at the **repo level** first (like this lesson does). Watch the alert volume for a week. Tune. Then promote to org level. A noisy pattern that fires 100 times a day on test fixtures will get muted by your team and stop catching real leaks.
 
-### 7. Pair custom patterns with push protection
+### 8. Pair custom patterns with push protection
 
-In the *New pattern* dialog (or *Edit pattern* on an existing one), tick **Push protection** for patterns that should never appear in source. That way the *next* leak gets blocked at push time, not after it lands in `main`.
+After a dry run succeeds and the pattern is published, click **Enable** for push protection on patterns that should never appear in source. Repository push protection must also be enabled. That way the *next* leak gets blocked at push time, not after it lands in `main`.
 
 ## Reference
 
-- Custom patterns docs: <https://docs.github.com/en/code-security/secret-scanning/defining-custom-patterns-for-secret-scanning>
-- Push protection for custom patterns: <https://docs.github.com/en/code-security/secret-scanning/push-protection-for-repositories-and-organizations>
-- General secret-scanning patterns: <https://docs.github.com/en/code-security/secret-scanning/secret-scanning-patterns>
+- Define and dry-run custom patterns: <https://docs.github.com/en/enterprise-cloud@latest/code-security/how-tos/secure-your-secrets/customize-leak-detection/define-custom-patterns>
+- Generate custom-pattern regexes with AI: <https://docs.github.com/en/enterprise-cloud@latest/code-security/how-tos/secure-your-secrets/customize-leak-detection/generating-regular-expressions-for-custom-patterns-with-ai>
+- GitHub Secret Protection plans and features: <https://docs.github.com/en/enterprise-cloud@latest/get-started/learning-about-github/about-github-advanced-security>

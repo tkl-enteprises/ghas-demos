@@ -1,15 +1,16 @@
 """
 Per-lesson README sanity:
 
-  - 9 lessons exist (01..09), no gaps.
+  - 11 lessons exist (01..11), no gaps.
   - Each lesson dir name matches `NN-slug` and has a README.md.
   - README starts with `# Lesson NN` (number matches dir prefix).
   - Each README contains the standardized H2 sections.
-  - Older lessons use `## Hands-on steps`; lesson 09 uses `## Walkthrough` —
+  - Most lessons use `## Hands-on steps`; some use `## Walkthrough` or
+    `## Step-by-step navigation` —
     the test accepts either spelling for the "steps" heading.
   - Same for `## Discussion questions` vs `## Discussion prompts`.
   - README is non-empty (>500 chars) so we don't ship blank scaffolds.
-  - Root README's lessons table contains exactly 9 rows referring to all 9
+  - Root README's lessons table contains exactly 11 rows referring to all 11
     lesson folders.
 """
 
@@ -21,7 +22,7 @@ from pathlib import Path
 import pytest
 
 
-EXPECTED_LESSON_PREFIXES = [f"{n:02d}" for n in range(1, 10)]
+EXPECTED_LESSON_PREFIXES = [f"{n:02d}" for n in range(1, 12)]
 
 REQUIRED_SECTIONS: list[tuple[str, ...]] = [
     ("Goal",),
@@ -43,10 +44,10 @@ def _h2_headings(readme: Path) -> list[str]:
     ]
 
 
-def test_nine_lessons_exist(lesson_dirs):
+def test_eleven_lessons_exist(lesson_dirs):
     prefixes = [d.name[:2] for d in lesson_dirs]
     assert prefixes == EXPECTED_LESSON_PREFIXES, (
-        f"Expected lessons 01..09 with no gaps; got {prefixes}"
+        f"Expected lessons 01..11 with no gaps; got {prefixes}"
     )
 
 
@@ -88,10 +89,10 @@ def test_lesson_readme_non_empty(lessons_dir, prefix):
     assert len(text) > 500, f"{readme} suspiciously short ({len(text)} chars)"
 
 
-def test_root_readme_lessons_table_lists_all_nine(repo_root):
+def test_root_readme_lessons_table_lists_all_eleven(repo_root):
     readme = (repo_root / "README.md").read_text(encoding="utf-8")
     refs = re.findall(r"`lessons/(\d{2})-[a-z0-9-]+/`", readme)
     unique = sorted(set(refs))
     assert unique == EXPECTED_LESSON_PREFIXES, (
-        f"Root README lessons table should reference lessons 01..09 exactly once each; got {unique}"
+        f"Root README lessons table should reference lessons 01..11 exactly once each; got {unique}"
     )

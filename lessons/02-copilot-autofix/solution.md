@@ -37,13 +37,13 @@ When the workshop run produces a real Autofix patch, walk through this checklist
 - [ ] Did it touch only `authenticate`, or did it modify the `__main__` block too?
 - [ ] Does the rationale text mention CWE-89 / SQL injection / parameterised queries — i.e. is it reasoning about the *security* property, not just style?
 
-## Accept / edit / reject
+## Review the draft PR
 
 | Situation | Action |
 | --- | --- |
-| Patch matches the reference above (modulo whitespace). | **Commit suggestion**. |
-| Patch is correct but uses different identifiers / formatting than the rest of the file. | **Edit** in place, then commit. |
-| Patch does something surprising — e.g. introduces an ORM, changes the schema, or only fixes one of the two parameters. | **Reject** (close the suggestion), file an issue describing the gap, and apply the manual fix. |
+| Patch matches the reference above (modulo whitespace). | Run the checks, request review, and move the draft PR through the normal approval process. |
+| Patch is correct but uses different identifiers / formatting than the rest of the file. | Edit the draft PR, or ask Copilot to iterate if it came from an agentic session. |
+| Patch does something surprising — e.g. introduces an ORM, changes the schema, or only fixes one of the two parameters. | Close or replace the draft PR and apply the manual fix. Do not dismiss the valid alert. |
 
 ## What to *not* do
 

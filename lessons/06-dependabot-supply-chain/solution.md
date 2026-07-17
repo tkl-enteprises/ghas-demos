@@ -29,14 +29,16 @@ Document the decision on the alert itself with **Dismiss → Reason** so the nex
 
 The platform agent has dropped `.github/dependabot.yml` at the repo root. A few knobs worth knowing for follow-up work:
 
-- **Grouping** — `groups:` collapses multiple version bumps into a single PR (e.g. all `pytest-*` plugins together). Cuts PR noise dramatically.
-- **Schedule** — `schedule.interval` accepts `daily`, `weekly`, or `monthly`. For supply-chain-sensitive repos, `daily` on the security feed is reasonable; pair it with grouping so the inbox stays sane.
-- **Target branch** — `target-branch:` lets you point Dependabot at a long-lived integration branch instead of `main`, which is useful when you cut releases from a hotfix line.
+- **Security grouping** — under the ecosystem entry, use `groups.<identifier>.applies-to: security-updates` plus `patterns`/`exclude-patterns`. Without `applies-to`, a group applies to version updates. This lesson uses `"*"` to group all eligible pip security fixes in its directory.
+- **Schedule** — `schedule.interval` controls checks for version updates. Security updates react to Dependabot alerts and available fixes; the weekly schedule does not delay an alert until the next weekly run.
+- **Version-update target branch** — `target-branch:` can point version updates at a long-lived integration branch. Do not set it on this security-update demo: security updates target the default branch.
 - **Allow / ignore lists** — `allow:` restricts to specific dep types (e.g. only `direct`); `ignore:` lets you skip a known-noisy package or a major version you've consciously deferred. Always document *why* in a comment next to the entry.
 - **Open PR limit** — `open-pull-requests-limit:` keeps the queue bounded. Pair with auto-merge for patch bumps.
 - **Reviewers / labels / commit-message** — small ergonomics knobs that make Dependabot PRs blend into your normal review flow.
 
 For Python specifically, prefer `package-ecosystem: pip` and let Dependabot infer the manifest. If you use Poetry exclusively, switch to `package-ecosystem: pip` with `directory:` pointing at the `pyproject.toml`'s folder — Dependabot understands both.
+
+Grouped security updates require the dependency graph, Dependabot alerts, and Dependabot security updates to be enabled. The configuration must target the manifest directory on the default branch and must not set a non-default `target-branch`. Dependabot can leave an update outside a group when no fix exists or constraints cannot be resolved together; configuration changes can also close superseded individual PRs and open a grouped PR.
 
 ## Reachability
 
@@ -60,6 +62,10 @@ Best-practice flow: Dependabot tells you *what* is vulnerable, CodeQL/SCA tells 
 ## Further reading
 
 - GitHub docs — Dependabot: <https://docs.github.com/en/code-security/dependabot>
+- Dependabot options reference (`groups` and `applies-to`): <https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference>
+- Configuring grouped security updates: <https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configuring-dependabot-security-updates>
+- Dependabot malware alerts: <https://docs.github.com/en/code-security/concepts/supply-chain-security/malware-alerts>
+- Organization security overview: <https://docs.github.com/en/code-security/concepts/security-at-scale/security-overview>
 - GitHub Advisory Database: <https://github.com/advisories>
 - `actions/dependency-review-action`: <https://github.com/actions/dependency-review-action>
 - Automating Dependabot with Actions: <https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions>

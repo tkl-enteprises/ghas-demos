@@ -1,94 +1,202 @@
-# Lesson 09 — Code Quality (bonus, preview)
+# Lesson 09 — GitHub Code Quality
 
-> 🎁 **Bonus lesson, preview product.** Code Quality is a *separate* GitHub product that runs on the **same CodeQL engine** as code scanning, but with a **maintainability + reliability** query pack instead of security queries. As of late 2025 it's billed as **Action minutes (NOT GHAS seats)** and is in **Preview** — the UI may change before GA.
+> **Documentation snapshot: July 2026.** GitHub Code Quality is in public preview and is scheduled for general availability (GA) on **July 20, 2026**. GitHub's billing documentation says usage will incur charges from that date. Preview labels and UI details may change.
 
-The point of this lesson is contrast: same engine, same code, *very* different verdict. This repo has 132 security findings and 0 standard quality findings. "Secure" and "high-quality" are independent axes; you need both query packs to see both views.
+GitHub Code Quality is a **separate product from GitHub Code Security (formerly GitHub Advanced Security/GHAS)**. It does not require a GitHub Code Security or GitHub Copilot license. Although its rule-based analysis uses CodeQL and its pages live under **Security and quality**, do not present it as a Code Security feature or entitlement.
 
 ## Goal
 
-Show the room that the CodeQL engine they just learned to read is also what powers Code Quality — and that "secure" and "high-quality" are two independent verdicts on the same source code.
+Show how GitHub Code Quality combines CodeQL quality analysis, AI findings, pull-request feedback, coverage, dashboards, and rulesets—and clearly separate those capabilities from Code Security.
 
 ## Learning objectives
 
 After this lesson you can:
 
-- Explain how Code Quality and Code Scanning relate (same engine, different query suite).
-- Locate the **Code quality** tab under repo `Security and quality` and read both Standard and AI findings.
-- Articulate why quality findings are **advisory only** — not gated by push protection or branch rulesets.
-- Speak to the buying-conversation impact: Action minutes vs GHAS seats.
+- Distinguish GitHub Code Quality from GitHub Code Security.
+- Explain the difference between CodeQL-powered **Standard findings** and **AI findings**.
+- Interpret repository reliability and maintainability ratings.
+- Review PR comments, Autofix suggestions, and coverage summaries.
+- Explain how quality and coverage rulesets can block a merge.
+- Describe organization dashboards and the preview-to-GA billing transition.
 
 ## Estimated time
 
-**~5 min demo + 5 min discussion**
+**~10 min demo + 5 min discussion**
 
 ## Prerequisites
 
-- [Lesson 1 — CodeQL Code Scanning](../01-codeql-code-scanning/) — you need the "alerts → dataflow → severity" mental model from lesson 1 for the side-by-side comparison to land.
-- Ideally [Lesson 3 — Custom CodeQL Queries](../03-custom-codeql-queries/) too — once attendees understand that the engine runs whatever queries you point it at, the "same engine, different queries" pitch for Code Quality is one sentence.
-- Repo → `Settings → Code security` shows **Code quality** as *Enabled* (Preview tag visible).
+- [Lesson 1 — CodeQL Code Scanning](../01-codeql-code-scanning/) provides a useful comparison, but Code Security is **not** a prerequisite or license dependency.
+- GitHub's current docs list GitHub Code Quality for **organization-owned repositories** on **GitHub Team** and **GitHub Enterprise Cloud**. They do not list personal repositories, GitHub Free/Pro, or GitHub Enterprise Server as supported.
+- GitHub Actions must be enabled because CodeQL quality analysis runs in a dynamic **Code Quality** workflow. A GitHub-hosted or appropriately labeled self-hosted runner can be selected.
+- An enterprise owner must first allow Code Quality for an enterprise. Organization or repository settings may then control enablement, subject to higher-level enforcement.
+- Rule-based CodeQL quality analysis supports C#, Go, Java, JavaScript, Python, Ruby, and TypeScript.
 
-## What's in this lesson
+Nothing in this folder needs to be run. The core workshop is a guided tour of GitHub's UI, so no solution file is needed.
 
-Nothing under this folder needs to be *run* — every step happens in the GitHub UI. Attendees only browse the alerts page; they don't push code. There is no `solution.md` because there's no remediation flow to walk: quality findings are advisory.
+## Product and licensing snapshot
+
+| Area | July 2026 documentation |
+|---|---|
+| Product status | Public preview; GA scheduled for July 20, 2026 |
+| Plans | GitHub Team and GitHub Enterprise Cloud |
+| Repository scope | Organization-owned repositories |
+| Code Security/GHAS license | Not required; Code Quality is a separate product |
+| Copilot license | Not required for Code Quality or its Autofix suggestions; required to delegate work to Copilot cloud agent |
+| Preview billing | For private repositories, no AI-credit or active-committer charges; Actions minutes are still consumed |
+| Billing from GA | GitHub documents Actions minutes, AI credits for AI-powered capabilities, and active-committer licenses as separate cost components |
+
+The preview license estimate covers only per-committer licensing: it excludes Actions minutes, AI-credit usage, discounts, and the fact that the rolling 90-day active-committer count can change. Disable Code Quality before July 20 if the organization does not want GA charges.
+
+## How analysis and results differ
+
+### Standard findings: CodeQL rules
+
+- CodeQL performs rule-based quality analysis on the full default branch and on pull requests targeting the default branch.
+- Supported-language rules identify reliability and maintainability issues. These are quality rules, not the security query suite used by Code Security.
+- Default-branch results appear under **Security and quality → Code quality → Standard findings**. Results are grouped by rule and then ordered by file path.
+- Pull-request runs expose the **CodeQL - Code Quality / Analyze** check. Findings appear as comments from `github-code-quality[bot]`, labeled **Error**, **Warning**, or **Note**.
+- Copilot Autofix suggestions are included where possible. GitHub does not document that every finding or rule has an Autofix.
+
+### AI findings: recently changed default-branch files
+
+- A separate LLM-powered pass analyzes recently pushed or merged files on the default branch.
+- **AI findings** displays suggestions for up to five recently changed files. It may be empty for an inactive repository or when the analysis has no suggestions.
+- This analysis is not limited to the seven CodeQL-supported languages and can identify contextual concerns for which no CodeQL rule exists.
+- Users can review suggested fixes and open a PR for one file at a time without a Copilot license. Delegating one or several files to Copilot cloud agent requires a Copilot license.
+- AI output can be incomplete or incorrect. Review generated changes for logic, security, and style before merging.
+
+Do not describe AI findings as PR annotations: the documented AI pass runs after changes reach the default branch. PR quality comments come from the CodeQL rule-based scan.
+
+## Reliability and maintainability ratings
+
+Repository ratings summarize the **rule-based CodeQL results on the full default branch**, not AI findings or code coverage.
+
+| Rating | Worst finding present |
+|---|---|
+| **Excellent** | No quality findings |
+| **Good** | Note |
+| **Fair** | Warning |
+| **Poor** | Error |
+
+- **Reliability** covers whether code behaves correctly and predictably, including correctness, performance, concurrency, error handling, API design, accessibility, internationalization, and security-related quality issues.
+- **Maintainability** covers how easily code can be understood and changed, including best practices, dead code, duplication, complexity, logical redundancy, documentation, and dependency issues.
+
+Ratings need context. Small repositories may look excellent because little supported code was analyzed, while generated code or repository size can lower ratings without representing the health of the maintained source.
 
 ## Walkthrough
 
-1. **Show that Code Quality is enabled.** Repo → `Settings → Code security`. Scroll to the **Code quality** row — it's marked *Enabled (Preview)*. This is what makes the Security tab show the extra rows in step 5.
+1. **Confirm enablement.** Open repository **Settings → Code quality** and review enabled languages and the runner choice. Older preview captures may show the control under **Settings → Code security**.
 
-   ![Settings → Code security with the Code quality row toggled on, "Preview" tag visible](../../docs/screenshots/code-quality-enabled.png)
+   ![Preview-era settings page with the Code quality row enabled](../../docs/screenshots/code-quality-enabled.png)
 
-2. **Look at Standard findings.** `Security and quality → Code quality → Standard findings` (left nav). The repo scores **Excellent** on both Maintainability and Reliability, with **No open findings**. Same dataflow engine that just lit up 32 security alerts on this codebase says the *quality* of that code is fine — and that contrast is the headline.
+2. **Review Standard findings and ratings.** Open **Security and quality → Code quality → Standard findings**. Read the Maintainability and Reliability cards, then expand a rule if findings exist. This workshop repository's captured state showed **Excellent** ratings and no standard findings; current results may differ as rules and code evolve.
 
-   ![Code Quality Standard findings page: Excellent maintainability, Excellent reliability, 0 standard findings, 5 AI findings](../../docs/screenshots/code-quality-findings.png)
+   ![Code Quality Standard findings page with maintainability and reliability ratings](../../docs/screenshots/code-quality-findings.png)
 
-3. **Switch to AI findings.** Same left nav, *AI findings* tab. There are **5 findings on `FACILITATOR.md`** — the AI scan looks at recently-changed files (markdown counts), and FACILITATOR.md was just updated. Click into one finding to show the suggestion UI. **Do not** click *Assign to Copilot* during a workshop — it costs Copilot tokens and you don't get the suggestion in time to keep the audience engaged.
+3. **Review AI findings.** Select **AI findings** and open a file to inspect the explanation and proposed changes. The captured state showed five findings in `FACILITATOR.md`; AI results are based on recent default-branch changes, so the live list may differ.
 
-   ![Code Quality AI findings: 5 findings, all on FACILITATOR.md, with category labels (Documentation / Style / Clarity)](../../docs/screenshots/code-quality-ai-findings.png)
+   ![Code Quality AI findings grouped by recently changed file](../../docs/screenshots/code-quality-ai-findings.png)
 
-4. **Compare side-by-side with Code Scanning.** Click `Code scanning` in the same left nav. **Same UI shell.** Same Tool / Severity / Branch filters. Same alert detail layout. The only thing that changed is the *Tool* filter value: `CodeQL` (32 alerts, security queries) vs `CodeQL: Code Quality` (0 standard alerts, quality queries). Land the punchline: **same engine, different queries.**
+   During a workshop, prefer reviewing the suggestion without creating a PR or assigning work. Assignment uses Copilot cloud agent, requires a Copilot license, and may consume billable AI credits after GA.
 
-5. **Show the org-level Enabled list.** Org → `Settings → Code security → Configurations` (or the security overview Coverage view). Code Quality now shows up as a 6th row in the Enabled features list alongside CodeQL, Secret scanning, Push protection, Dependabot alerts, and Dependabot security updates.
+4. **Inspect a pull request.** On a PR targeting the default branch, find **CodeQL - Code Quality / Analyze** in the checks and any `github-code-quality[bot]` comments. Open an annotation, compare its severity with the configured threshold, and review—but do not blindly commit—an Autofix.
 
-   ![Org security overview with Code Quality listed as an Enabled feature row alongside the five GHAS features](../../docs/screenshots/security-overview-with-code-quality.png)
+5. **Contrast with Code Security.** Open **Code scanning** in the same navigation. Emphasize that both can use CodeQL and similar UI patterns, but Code Quality runs quality rules and is licensed and billed independently from GitHub Code Security.
 
-## Talking points
+6. **Open the organization dashboard.** Go to the organization's **Security and quality → Insights → Code quality** page. The bubble chart groups repositories by Maintainability and Reliability score; bubble position, appearance, and size show score combinations, lower-score severity, and repository count. Use the table to sort and drill into a repository. Viewers see only repositories whose quality findings they can access.
 
-While you're on each tab above, drop these into the room:
+   This older preview screenshot remains useful for recognizing Code Quality in organization-level security and quality navigation, but the current documented experience is the dedicated Code Quality insights dashboard.
 
-- **Same engine, different queries.** CodeQL Code Quality runs on identical infrastructure to security CodeQL — same compiler, same database, same dataflow engine. The maintainability + reliability query packs are just another `.qlpack` you point at the database. Authoring a custom *quality* query is the same QL syntax as authoring a custom *security* query (lesson 3).
-- **Billing.** Code Quality is metered as **Action minutes**, not GHAS seats. Important for the buying conversation: a customer who can't justify GHAS seats can still afford Code Quality if their existing Actions minute budget can absorb it.
-- **Status.** **Preview** as of late 2025 — the UI is still moving and there's no SLA. Set expectations with the room.
-- **No push protection / no ruleset gating.** Quality findings are **advisory only**. You cannot block a merge on a quality finding the way you can block on a CodeQL security finding via branch protection. If a team wants to gate on quality, they have to wire that themselves with a custom required-status check.
+   ![Preview-era organization view listing Code Quality among enabled features](../../docs/screenshots/security-overview-with-code-quality.png)
 
-## Exit criteria
+7. **Show enforcement without changing it.** Open **Settings → Rules → Rulesets** and inspect a branch ruleset:
+   - **Require code quality results** blocks unresolved findings at the selected threshold: Errors, Warnings and higher, Notes and higher, or All.
+   - Confirm the Code Quality check succeeds on PRs *before* activating the rule; otherwise every PR can be blocked.
+   - **Restrict code coverage** can enforce a minimum aggregate coverage percentage and/or maximum allowed drop from the default branch. A threshold value of `0` disables that threshold.
 
-The demo has landed when:
+Quality findings are therefore **not merely advisory** when a ruleset is active.
 
-- Attendees can describe Code Quality in one sentence: "same CodeQL engine, maintainability + reliability queries instead of security queries."
-- Attendees correctly identify that quality findings are advisory and **not** push-protection-blockable.
-- Attendees notice the difference between **Standard findings** (full CodeQL pack on the whole repo) and **AI findings** (LLM scan focused on recently-changed files) — and don't conflate the two.
+## Optional code coverage exercise
+
+Code coverage is an upload-and-compare capability; Code Quality does not run the test suite for you.
+
+1. Make the existing CI workflow run on pushes to the default branch (the baseline) and pull requests.
+2. Generate a **Cobertura XML** report with the repository's existing test tool.
+3. Grant the workflow only the needed permissions:
+
+   ```yaml
+   permissions:
+     contents: read
+     code-quality: write
+   ```
+
+4. After tests, upload the report:
+
+   ```yaml
+   - name: Upload coverage report
+     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+     uses: actions/upload-code-coverage@v1
+     with:
+       file: coverage.xml
+       language: Python
+       label: code-coverage/pytest
+   ```
+
+   The fork guard prevents an untrusted fork PR from attempting the privileged upload. Adapt the file, language, and label to the existing project; do not add a new test framework solely for this lesson.
+
+5. On a PR, review the bot's aggregate branch-versus-default coverage and per-file deltas. GitHub stores the latest upload per branch. The summary highlights the ten most impacted files, which can include files not changed by the PR.
+6. If appropriate, inspect the **Restrict code coverage** ruleset rule. This particular coverage restriction feature is itself documented as **public preview and subject to change**.
+
+## GA, preview, and governance caveats
+
+- The overall product is documented as public preview, with GA scheduled for July 20, 2026. “Scheduled” is deliberate: do not present a future launch as already completed.
+- Organization-level repository targeting is separately labeled public preview and subject to change. It can target all repositories, selected repositories, or repositories matching visibility, fork, and custom-property filters; enforcement can prevent repository overrides.
+- Coverage restriction is also separately labeled public preview and subject to change.
+- Rulesets can enforce CodeQL quality severity and coverage thresholds, but the two rules are distinct.
+- AI-powered capabilities can incur AI-credit charges after GA. GitHub documents purpose-built model selection and does not support customer model switching.
+- Active-committer licensing uses unique committers with qualifying organization or enterprise access who pushed a commit in the rolling prior 90 days. GitHub App bots are excluded.
+- Public documentation does not promise Autofix for every finding, disclose a fixed AI model, or establish support beyond the listed plans and repository scope.
 
 ## Key takeaways
 
-- **Same engine, different queries.** Code Quality and Code Scanning share the CodeQL infrastructure — only the query pack differs.
-- **Secure ≠ high-quality.** This repo's 132 security findings + 0 standard quality findings is the headline proof: you need both query packs to see both views.
-- **Advisory only.** Quality findings don't gate merges — push protection / branch rulesets don't apply.
-- **Action minutes, not GHAS seats.** Different billing surface than the rest of this workshop.
+- **Separate product, shared engine:** Code Quality uses CodeQL but is licensed and billed independently from Code Security.
+- **Different result types:** Standard findings are rule-based; AI findings review recently changed default-branch files.
+- **Enforcement is configurable:** rulesets can gate pull requests on quality severity and coverage thresholds.
+- **Preview details are time-sensitive:** verify availability, billing, and UI labels before each delivery.
+
+## Exit criteria
+
+The demo has landed when attendees can:
+
+- Say, “GitHub Code Quality is separate from GitHub Code Security; it uses CodeQL quality rules plus AI analysis.”
+- Distinguish Standard findings, AI findings, ratings, and coverage.
+- Find PR quality comments and explain when Autofix or Copilot cloud agent needs a Copilot license.
+- Explain how rulesets can block on quality severity or coverage.
+- State that the product is documented as preview, with GA and usage charges scheduled for July 20, 2026.
 
 ## Discussion questions
 
-1. "Same engine, different queries — how would you author a custom *quality* query for your team? (Same QL syntax as lesson 3 — only the metadata `@kind` and the query suite tag changes.)"
-2. "When would advisory-only quality findings become a blocker for a team? (When platform owns the rollout target and a 'no-new-quality-debt' policy is the cultural lever you have.)"
-3. "Should this repo gate merges on quality findings? Why or why not? (No — workshop repo, intentionally vulnerable, would conflate two failure modes for attendees. In a production repo: maybe, on a *delta* basis, never on absolute counts.)"
-4. "How does Code Quality billing (Action minutes) change the buying conversation versus GHAS seats? (Lower-friction path-to-value for teams with constrained licensing budgets but available Actions minutes; positions Code Quality as a developer-experience product, not a security-team product.)"
-5. "Why did the AI findings light up on `FACILITATOR.md` (a markdown file) but Standard found zero alerts on the Python source? (AI scan focuses on recently-changed files — FACILITATOR.md was just edited. Standard runs the full CodeQL maintainability pack against the whole repo, where the actual *code* is small, simple, and not maintainability-flawed.)"
+1. Which quality severity should block new PRs without making existing debt impossible to manage?
+2. What does an **Excellent** rating prove, and what does it not prove for a small or partially supported repository?
+3. Which repositories would you include in an organization pilot before enforcing access?
+4. How should reviewers validate an Autofix or AI-generated change?
+5. Would a minimum coverage percentage, a maximum coverage drop, or both best match this repository's policy?
 
 ## Reset state
 
-Trivial — nothing to reset. Attendees only browse the alerts UI; they don't push code, don't trigger workflows, don't change settings. The next cohort sees an identical Code Quality page on first visit.
+The main walkthrough is read-only. Do not enable features, change rulesets, commit suggestions, open remediation PRs, or assign Copilot during a shared workshop.
 
-```bash
-git checkout main && git pull
-```
+If a facilitator creates a temporary branch or PR for the optional coverage exercise, close the PR and delete only that workshop branch afterward. Do not reset shared Code Quality findings or organization policy.
 
-If a future facilitator runs `Assign to Copilot` on an AI finding during a session, the suggestion thread persists on the alert and is visible to the next cohort. That's not a problem — it actually strengthens the demo by giving the room a real Copilot diff to read instead of a blank slate.
+## Official references
+
+- [About GitHub Code Quality](https://docs.github.com/en/code-security/code-quality/concepts/about-code-quality)
+- [GitHub Code Quality billing](https://docs.github.com/en/billing/concepts/product-billing/github-code-quality)
+- [CodeQL-powered analysis for Code Quality](https://docs.github.com/en/code-security/code-quality/reference/codeql-detection)
+- [Metrics and ratings](https://docs.github.com/en/code-security/code-quality/reference/metrics-and-ratings)
+- [Fixing findings in pull requests](https://docs.github.com/en/code-security/code-quality/tutorials/fix-findings-in-prs)
+- [Improving recently merged code with AI](https://docs.github.com/en/code-security/code-quality/tutorials/improve-recent-merges)
+- [Setting up code coverage](https://docs.github.com/en/code-security/how-tos/maintain-quality-code/set-up-code-coverage)
+- [Restricting code coverage on pull requests](https://docs.github.com/en/code-security/how-tos/maintain-quality-code/restrict-code-coverage)
+- [Setting code quality thresholds](https://docs.github.com/en/code-security/code-quality/how-tos/set-pr-thresholds)
+- [Exploring organization Code Quality results](https://docs.github.com/en/code-security/how-tos/view-and-interpret-data/analyze-organization-data/explore-code-quality)

@@ -8,12 +8,18 @@
 version: 2
 updates:
   # Lesson 06: intentionally-vulnerable Python deps used to demo
-  # supply-chain alerts and security update PRs.
+  # supply-chain alerts and grouped security update PRs. The schedule controls
+  # version-update checks; security updates are created in response to alerts.
   - package-ecosystem: "pip"
     directory: "/lessons/06-dependabot-supply-chain"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    groups:
+      lesson-six-security-updates:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
     labels:
       - "dependencies"
       - "lesson-06"
