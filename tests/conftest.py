@@ -26,12 +26,8 @@ def lessons_dir(repo_root: Path) -> Path:
 
 @pytest.fixture(scope="session")
 def lesson_dirs(lessons_dir: Path) -> list[Path]:
-    """Sorted list of lesson directories matching the NN-slug pattern."""
-    return sorted(
-        d
-        for d in lessons_dir.iterdir()
-        if d.is_dir() and len(d.name) >= 3 and d.name[:2].isdigit() and d.name[2] == "-"
-    )
+    """All lesson directories in their numeric/lexical order."""
+    return sorted(d for d in lessons_dir.iterdir() if d.is_dir())
 
 
 @pytest.fixture(scope="session")

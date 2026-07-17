@@ -5,7 +5,8 @@
 #   TEST_AWS_KEY    = "AKIAQ7HYG3LZDFNV4P9X"   (20 chars, AKIA prefix)
 #   TEST_AWS_SECRET = "kMxR8JqLPmZbV5tNcW2yFhDgX7sQpA1RyZ4ePaT3"  (40 chars)
 #
-# These were placed adjacent in lessons/02-secret-scanning/canary-test.py
+# Historical path at capture time: lessons/02-secret-scanning/canary-test.py
+# (this is not the current lesson path).
 # on branch test-push-protection-ephemeral and pushed. The push SUCCEEDED
 # (exit 0) — no GH013 secret-scanning rule violation was emitted from the
 # remote. The remote branch (and its canary) were deleted immediately

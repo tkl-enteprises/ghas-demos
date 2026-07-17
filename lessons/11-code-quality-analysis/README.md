@@ -1,4 +1,4 @@
-# Lesson 09 — GitHub Code Quality
+# Lesson 11 — GitHub Code Quality
 
 > **Documentation snapshot: July 2026.** GitHub Code Quality is in public preview and is scheduled for general availability (GA) on **July 20, 2026**. GitHub's billing documentation says usage will incur charges from that date. Preview labels and UI details may change.
 
@@ -25,7 +25,7 @@ After this lesson you can:
 
 ## Prerequisites
 
-- [Lesson 1 — CodeQL Code Scanning](../01-codeql-code-scanning/) provides a useful comparison, but Code Security is **not** a prerequisite or license dependency.
+- [Lesson 01 — CodeQL Code Scanning](../01-code-security-codeql-scanning/) provides a useful comparison, but Code Security is **not** a prerequisite or license dependency.
 - GitHub's current docs list GitHub Code Quality for **organization-owned repositories** on **GitHub Team** and **GitHub Enterprise Cloud**. They do not list personal repositories, GitHub Free/Pro, or GitHub Enterprise Server as supported.
 - GitHub Actions must be enabled because CodeQL quality analysis runs in a dynamic **Code Quality** workflow. A GitHub-hosted or appropriately labeled self-hosted runner can be selected.
 - An enterprise owner must first allow Code Quality for an enterprise. Organization or repository settings may then control enablement, subject to higher-level enforcement.

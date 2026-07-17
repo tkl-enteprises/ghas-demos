@@ -55,7 +55,7 @@ If you fork this repo and add a new `.ql` file in that directory, it is picked u
 4. **Filter for the custom rule.** In **Security → Code scanning**, set the filters to:
    - **Tool:** `CodeQL`
    - **Rule:** `py/tkl/hardcoded-debug-true`
-   You should see exactly one alert, on `lessons/03-custom-codeql-queries/target.py` at the `DEBUG = True` line. `bypass.py` should not appear.
+   You should see exactly one alert, on `lessons/03-code-security-custom-codeql-queries/target.py` at the `DEBUG = True` line. `bypass.py` should not appear.
 
 ![Code scanning alerts list filtered to rule `py/tkl/hardcoded-debug-true` showing exactly one alert — pointing at `target.py` — with `bypass.py` correctly absent.](../../docs/screenshots/03-custom-codeql-rule-list.png)
 

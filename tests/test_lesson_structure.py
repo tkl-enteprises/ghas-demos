@@ -2,7 +2,8 @@
 Per-lesson README sanity:
 
   - 11 lessons exist (01..11), no gaps.
-  - Each lesson dir name matches `NN-slug` and has a README.md.
+  - Each lesson dir name matches the ordered `NN-pillar-lesson` map and has a
+    README.md.
   - README starts with `# Lesson NN` (number matches dir prefix).
   - Each README contains the standardized H2 sections.
   - Most lessons use `## Hands-on steps`; some use `## Walkthrough` or
@@ -22,7 +23,39 @@ from pathlib import Path
 import pytest
 
 
-EXPECTED_LESSON_PREFIXES = [f"{n:02d}" for n in range(1, 12)]
+EXPECTED_LESSON_NAMES = (
+    "01-code-security-codeql-scanning",
+    "02-code-security-copilot-autofix",
+    "03-code-security-custom-codeql-queries",
+    "04-code-security-sarif-integration",
+    "05-code-security-actions",
+    "06-code-security-ai-detections",
+    "07-secret-protection-secret-scanning",
+    "08-secret-protection-custom-patterns",
+    "09-supply-chain-dependabot",
+    "10-governance-security-overview",
+    "11-code-quality-analysis",
+)
+EXPECTED_LESSON_PREFIXES = tuple(f"{n:02d}" for n in range(1, 12))
+RECOGNIZED_PILLARS = (
+    "code-security",
+    "secret-protection",
+    "supply-chain",
+    "governance",
+    "code-quality",
+)
+EXPECTED_PILLAR_ORDER = (
+    *(["code-security"] * 6),
+    *(["secret-protection"] * 2),
+    "supply-chain",
+    "governance",
+    "code-quality",
+)
+LESSON_DIR_RE = re.compile(
+    rf"^(?P<number>\d{{2}})-"
+    rf"(?P<pillar>{'|'.join(map(re.escape, RECOGNIZED_PILLARS))})-"
+    r"(?P<lesson>[a-z0-9]+(?:-[a-z0-9]+)*)$"
+)
 
 REQUIRED_SECTIONS: list[tuple[str, ...]] = [
     ("Goal",),
@@ -44,24 +77,36 @@ def _h2_headings(readme: Path) -> list[str]:
     ]
 
 
-def test_eleven_lessons_exist(lesson_dirs):
-    prefixes = [d.name[:2] for d in lesson_dirs]
-    assert prefixes == EXPECTED_LESSON_PREFIXES, (
-        f"Expected lessons 01..11 with no gaps; got {prefixes}"
+def test_lesson_directories_match_ordered_pillar_map(lesson_dirs):
+    names = [directory.name for directory in lesson_dirs]
+    assert names == list(EXPECTED_LESSON_NAMES), (
+        "Lesson directories must exactly match the ordered NN-pillar-lesson map; "
+        f"got {names}"
     )
 
+    parsed = []
+    for expected_number, name in enumerate(names, start=1):
+        match = LESSON_DIR_RE.fullmatch(name)
+        assert match, f"{name!r} does not match NN-recognized-pillar-non-empty-lesson"
+        parsed.append(match.groupdict())
+        assert int(match["number"]) == expected_number, (
+            f"{name!r} has number {match['number']}, expected {expected_number:02d}"
+        )
 
-@pytest.mark.parametrize("prefix", EXPECTED_LESSON_PREFIXES)
-def test_lesson_has_readme(lessons_dir, prefix):
-    matches = list(lessons_dir.glob(f"{prefix}-*"))
-    assert len(matches) == 1, f"Expected exactly one lesson dir for prefix {prefix}"
-    readme = matches[0] / "README.md"
+    assert tuple(item["pillar"] for item in parsed) == EXPECTED_PILLAR_ORDER
+    assert all(item["lesson"] for item in parsed)
+
+
+@pytest.mark.parametrize("lesson_name", EXPECTED_LESSON_NAMES)
+def test_lesson_has_readme(lessons_dir, lesson_name):
+    readme = lessons_dir / lesson_name / "README.md"
     assert readme.is_file(), f"{readme} missing"
 
 
-@pytest.mark.parametrize("prefix", EXPECTED_LESSON_PREFIXES)
-def test_lesson_readme_title_matches_prefix(lessons_dir, prefix):
-    readme = next(lessons_dir.glob(f"{prefix}-*")) / "README.md"
+@pytest.mark.parametrize("lesson_name", EXPECTED_LESSON_NAMES)
+def test_lesson_readme_title_matches_prefix(lessons_dir, lesson_name):
+    prefix = lesson_name[:2]
+    readme = lessons_dir / lesson_name / "README.md"
     first_line = readme.read_text(encoding="utf-8").splitlines()[0].strip()
     m = re.match(r"^#\s+Lesson\s+(\d{1,2})\b", first_line)
     assert m, f"{readme}: first line should be '# Lesson NN ...', got: {first_line!r}"
@@ -70,9 +115,9 @@ def test_lesson_readme_title_matches_prefix(lessons_dir, prefix):
     )
 
 
-@pytest.mark.parametrize("prefix", EXPECTED_LESSON_PREFIXES)
-def test_lesson_readme_has_required_sections(lessons_dir, prefix):
-    readme = next(lessons_dir.glob(f"{prefix}-*")) / "README.md"
+@pytest.mark.parametrize("lesson_name", EXPECTED_LESSON_NAMES)
+def test_lesson_readme_has_required_sections(lessons_dir, lesson_name):
+    readme = lessons_dir / lesson_name / "README.md"
     headings = set(_h2_headings(readme))
     missing = [
         " or ".join(group)
@@ -82,17 +127,17 @@ def test_lesson_readme_has_required_sections(lessons_dir, prefix):
     assert not missing, f"{readme} missing required H2 section(s): {missing}"
 
 
-@pytest.mark.parametrize("prefix", EXPECTED_LESSON_PREFIXES)
-def test_lesson_readme_non_empty(lessons_dir, prefix):
-    readme = next(lessons_dir.glob(f"{prefix}-*")) / "README.md"
+@pytest.mark.parametrize("lesson_name", EXPECTED_LESSON_NAMES)
+def test_lesson_readme_non_empty(lessons_dir, lesson_name):
+    readme = lessons_dir / lesson_name / "README.md"
     text = readme.read_text(encoding="utf-8")
     assert len(text) > 500, f"{readme} suspiciously short ({len(text)} chars)"
 
 
 def test_root_readme_lessons_table_lists_all_eleven(repo_root):
     readme = (repo_root / "README.md").read_text(encoding="utf-8")
-    refs = re.findall(r"`lessons/(\d{2})-[a-z0-9-]+/`", readme)
-    unique = sorted(set(refs))
-    assert unique == EXPECTED_LESSON_PREFIXES, (
-        f"Root README lessons table should reference lessons 01..11 exactly once each; got {unique}"
+    refs = re.findall(r"`lessons/(\d{2}-[a-z0-9-]+)/`", readme)
+    assert refs == list(EXPECTED_LESSON_NAMES), (
+        "Root README lessons table should reference the exact ordered pillar map "
+        f"once each; got {refs}"
     )

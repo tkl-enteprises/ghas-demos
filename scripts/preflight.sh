@@ -176,7 +176,7 @@ case "$CQ_CONCLUSION" in
     ok "latest CodeQL run on main = success"
     ;;
   none)
-    fail "no CodeQL run found on main — workflow has never run, lesson 1 will be empty"
+    fail "no CodeQL run found on main — workflow has never run, lesson 01 will be empty"
     ;;
   "")
     if [ "$CQ_STATUS" = "in_progress" ] || [ "$CQ_STATUS" = "queued" ]; then

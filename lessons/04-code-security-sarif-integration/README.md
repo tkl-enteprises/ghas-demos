@@ -1,4 +1,4 @@
-# Lesson 07 — SARIF & 3rd-party Tool Integration
+# Lesson 04 — SARIF & 3rd-party Tool Integration
 
 Layer Bandit (and any other SARIF-emitting SAST tool) on top of CodeQL so every finding lands in one Code Scanning UI.
 
@@ -25,7 +25,7 @@ After this lesson you can:
 
 - GHAS + Code Scanning enabled on the repo.
 - `.github/workflows/sarif-bandit.yml` exists and has run at least once (check the Actions tab).
-- `.github/codeql/codeql-config.yml` excludes `lessons/07-sarif-integration/**` from CodeQL so Bandit owns this folder uncontested.
+- `.github/codeql/codeql-config.yml` excludes `lessons/04-code-security-sarif-integration/**` from CodeQL so Bandit owns this folder uncontested.
 
 ## Why use SARIF integration
 
@@ -37,7 +37,7 @@ GitHub Code Scanning is a **SARIF receiver**, not just a CodeQL frontend. Any to
 
 ```yaml
 - run: pip install bandit[sarif]
-- run: bandit -r lessons/07-sarif-integration -f sarif -o bandit.sarif || true
+- run: bandit -r lessons/04-code-security-sarif-integration -f sarif -o bandit.sarif || true
 - uses: github/codeql-action/upload-sarif@v3
   with:
     sarif_file: bandit.sarif
@@ -47,7 +47,7 @@ GitHub Code Scanning is a **SARIF receiver**, not just a CodeQL frontend. Any to
 Notes:
 - `|| true` keeps the job green even when Bandit finds issues — Code Scanning surfaces severity, the workflow shouldn't fail the PR.
 - `category: bandit` keeps these findings distinct from CodeQL's, so they don't overwrite each other.
-- The `.github/codeql/codeql-config.yml` is configured with `paths-ignore: lessons/07-sarif-integration/**`, so CodeQL skips this folder entirely. Bandit owns it. No duplicate alerts.
+- The `.github/codeql/codeql-config.yml` is configured with `paths-ignore: lessons/04-code-security-sarif-integration/**`, so CodeQL skips this folder entirely. Bandit owns it. No duplicate alerts.
 
 ## Hands-on steps
 
@@ -57,11 +57,11 @@ Notes:
 4. Compare a Bandit finding (e.g. MD5 use in `weak_crypto.py`) to a CodeQL finding from lesson 01. Notice both surface in the same UI, with the same dismiss / autofix UX.
 5. Open `sample.sarif` in this folder and locate the matching `results[0]` entry. Cross-reference its `ruleId`, `locations[0].physicalLocation`, and `message.text` to understand SARIF structure.
 
-![Actions tab of the repo showing the CodeQL, Bandit-SARIF, Dependency review, and Dependabot Updates workflows — most recent runs green.](../../docs/screenshots/07-actions-tab.png)
+![Actions tab of the repo showing the CodeQL, Bandit-SARIF, Dependency review, and Dependabot Updates workflows — most recent runs green.](../../docs/screenshots/04-actions-tab.png)
 
 *The Actions tab is the upstream of every screenshot below — green checkmarks on `CodeQL` and `Bandit (SARIF upload)` are what populates the Code Scanning view._
 
-![Code scanning alerts filtered to **Tool: Bandit**, showing rules B303 (MD5 use), B301 (pickle), B307 (eval), B602/B603 (subprocess shell=True), B608 (SQL via format), and B101/B105/B107 (assert / hardcoded passwords).](../../docs/screenshots/07-bandit-sarif-findings.png)
+![Code scanning alerts filtered to **Tool: Bandit**, showing rules B303 (MD5 use), B301 (pickle), B307 (eval), B602/B603 (subprocess shell=True), B608 (SQL via format), and B101/B105/B107 (assert / hardcoded passwords).](../../docs/screenshots/04-bandit-sarif-findings.png)
 
 *Bandit findings surfaced in `Security → Code scanning` after `upload-sarif@v3` ran. Triage UI is identical to CodeQL's — same dismiss reasons, same alert lifecycle, same PR annotations._
 

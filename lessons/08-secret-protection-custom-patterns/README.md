@@ -1,4 +1,4 @@
-# Lesson 05 — Custom Secret Scanning Patterns
+# Lesson 08 — Custom Secret Scanning Patterns
 
 Detect *org-specific* secret formats that no partner pattern covers, by defining your own regex.
 
@@ -27,7 +27,7 @@ After this lesson you can:
 - Repo-admin permission on `tkl-enteprises/ghas-demos` (custom patterns are configured in repo Settings).
 - Facilitator preflight has both `Contoso API Token` and `Contoso Workshop Demo Key` patterns published — see *Configure the patterns* below.
 
-> **Status/licensing:** AI-generated custom-pattern regexes are **generally available**, not preview. Despite using GitHub AI, the generator does **not** require a GitHub Copilot subscription. It requires GitHub Secret Protection on an organization- or enterprise-owned repository. GitHub's documented `GHE.com` data-residency exclusion applies to public monitoring (Lesson 04), not to this generator; do not invent an exclusion where the product documentation does not state one.
+> **Status/licensing:** AI-generated custom-pattern regexes are **generally available**, not preview. Despite using GitHub AI, the generator does **not** require a GitHub Copilot subscription. It requires GitHub Secret Protection on an organization- or enterprise-owned repository. GitHub's documented `GHE.com` data-residency exclusion applies to public monitoring (Lesson 07), not to this generator; do not invent an exclusion where the product documentation does not state one.
 
 ## Where the patterns live
 
@@ -66,7 +66,7 @@ Each Python file in this lesson hard-codes one fake match. Once the patterns are
 
 Once both patterns are published, GHAS rescans automatically and the two demo files in this lesson will show up under **Security → Secret scanning**.
 
-![Historical Generic AI tab of Security → Secret scanning showing AI-detected password alerts.](../../docs/screenshots/05-secret-scanning-generic-ai.png)
+![Historical Generic AI tab of Security → Secret scanning showing AI-detected password alerts.](../../docs/screenshots/08-secret-scanning-generic-ai.png)
 
 *Preserved historical UI: the current documentation calls this separate list **AI-detected secrets**. It currently detects unstructured passwords; it is not a fallback detector for arbitrary Contoso token shapes. The Contoso fixtures alert only after their custom patterns are published._
 

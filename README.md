@@ -21,7 +21,7 @@
 
 ![Repository Security and quality tab showing alert counts across Code scanning, Secret scanning, and Dependabot — the hero view this workshop builds toward.](docs/screenshots/00-security-overview.png)
 
-*The repo's `Security and quality` tab — every lesson below ladders up to a number on this page._
+*The repo's `Security and quality` tab — every lesson below ladders up to a number on this page.*
 
 ---
 
@@ -46,7 +46,7 @@
 ```bash
 git clone https://github.com/tkl-enteprises/ghas-demos.git && cd ghas-demos
 ```
-That's it for the source-review and UI lessons: no local package installation is required. Lesson 06 (Dependabot) is *intentionally* a list of vulnerable old pins in `lessons/06-dependabot-supply-chain/requirements.txt` — those packages won't install on Python 3.11 on purpose, and that's the demo (you don't need them locally; Dependabot scans the manifest from GitHub). Lesson 07's workflow installs Bandit for its SARIF exercise; lessons 10 and 11 use inert text/source fixtures that must not be executed or deployed.
+That's it for the source-review and UI lessons: no local package installation is required. Lesson 09 (Dependabot) is *intentionally* a list of vulnerable old pins in `lessons/09-supply-chain-dependabot/requirements.txt` — those packages won't install on Python 3.11 on purpose, and that's the demo (you don't need them locally; Dependabot scans the manifest from GitHub). Lesson 04's workflow installs Bandit for its SARIF exercise; lessons 05 and 06 use inert text/source fixtures that must not be executed or deployed.
 
 ## What are GitHub Code Security and GitHub Secret Protection?
 
@@ -57,46 +57,46 @@ That's it for the source-review and UI lessons: no local package installation is
 - **9 core lessons + 2 optional preview lessons**, each in its own folder under [`lessons/`](lessons/).
 - **Self-contained** — every lesson has its own `README.md` with goal, steps, and where to look in the GitHub UI.
 - **Runnable in any order** — there are no cross-lesson dependencies. Pick the pillar your audience cares about and start there.
-- **Python-first and source-review safe** — the core app examples are Python 3; lessons 10 and 11 add inert workflow and multi-language fixtures. No Docker build, Terraform apply, or cloud deployment is required.
+- **Python-first and source-review safe** — the core app examples are Python 3; lessons 05 and 06 add inert workflow and multi-language fixtures. No Docker build, Terraform apply, or cloud deployment is required.
 
 ## Workshop pillars at a glance
 
-The seven pillars below are the mental model attendees should leave with — every lesson in the next section maps to one (or more) of them.
+The five pillars below define the workshop order. Lesson folders use the exact two-digit `[number]-[pillar]-[lesson]` convention; for example, `04-code-security-sarif-integration` is lesson 04 in the `code-security` pillar.
 
 ```mermaid
 flowchart LR
-  P1["Code Security: Code Scanning"] --> L1["Lesson 1: CodeQL"]
-  P1                       --> L2["Lesson 2: Copilot Autofix"]
-  P1                       --> L3["Lesson 3: Custom queries"]
-  P1                       --> L10["Lesson 10: Actions scanning"]
-  P2["Secret Protection: Secret Scanning"] --> L4["Lesson 4: Detection + push protection"]
-  P2                       --> L5["Lesson 5: Custom patterns"]
-  P3["Supply Chain"]       --> L6["Lesson 6: Dependabot + Malware"]
-  P4["3rd-party / SARIF"]  --> L7["Lesson 7: Bandit + SARIF upload"]
-  P5["Governance"]         --> L8["Lesson 8: Org Security Overview"]
-  P6["Code Quality (public preview)"] -.-> L9["Lesson 9: Code Quality (bonus)"]
-  P7["AI security detections (public preview)"] -.-> L11["Lesson 11: AI security detections"]
+  P1["Code Security"] --> L1["01: CodeQL scanning"]
+  P1 --> L2["02: Copilot Autofix"]
+  P1 --> L3["03: Custom CodeQL queries"]
+  P1 --> L4["04: SARIF integration"]
+  P1 --> L5["05: Actions scanning"]
+  P1 -.-> L6["06: AI security detections"]
+  P2["Secret Protection"] --> L7["07: Secret scanning"]
+  P2 --> L8["08: Custom patterns"]
+  P3["Supply Chain"] --> L9["09: Dependabot"]
+  P4["Governance"] --> L10["10: Security Overview"]
+  P5["Code Quality"] -.-> L11["11: Code Quality"]
 ```
 
-> The dashed arrows mark optional public-preview material. **GitHub Code Quality** is distinct from GitHub Code Security and GitHub Secret Protection; it uses CodeQL infrastructure with maintainability and reliability queries instead of security queries. GitHub documents general availability for July 20, 2026. During preview, scans consume GitHub Actions minutes but active-committer and AI-credit usage is not billed; [GA introduces additional usage charges](https://docs.github.com/en/billing/concepts/product-billing/github-code-quality). **AI-powered security detections** complement CodeQL with advisory, pull-request-only findings for coverage gaps and require a separately configured repository that uses CodeQL default setup. See [lesson 9](lessons/09-code-quality/) and [lesson 11](lessons/11-ai-security-detections/).
+> The dashed arrows mark optional public-preview material. **Code Quality is its own pillar and is distinct from Code Security**: it uses CodeQL infrastructure with maintainability and reliability queries instead of security queries. GitHub documents general availability for July 20, 2026. During preview, scans consume GitHub Actions minutes but active-committer and AI-credit usage is not billed; [GA introduces additional usage charges](https://docs.github.com/en/billing/concepts/product-billing/github-code-quality). **AI-powered security detections** remain in the Code Security pillar because they complement CodeQL with advisory, pull-request-only security findings. They require a separately configured repository that uses CodeQL default setup. See [lesson 06](lessons/06-code-security-ai-detections/) and [lesson 11](lessons/11-code-quality-analysis/).
 
 ## Lessons
 
-Lessons are grouped by workshop pillar — Code Scanning (1–3 and 10), Secret Scanning (4–5), Supply Chain (6), 3rd-party / SARIF (7), Governance (8), plus optional preview lessons for Code Quality (9) and AI-powered security detections (11).
+Lessons are grouped in pillar order: Code Security (01–06), Secret Protection (07–08), Supply Chain (09), Governance (10), and Code Quality (11). SARIF integration and AI-powered security detections are Code Security lessons; Code Quality is not.
 
 | # | Pillar | Lesson | Folder |
 | - | ------ | ------ | ------ |
-| 1 | Code Scanning   | CodeQL Code Scanning | [`lessons/01-codeql-code-scanning/`](lessons/01-codeql-code-scanning/) |
-| 2 | Code Scanning   | Copilot Autofix | [`lessons/02-copilot-autofix/`](lessons/02-copilot-autofix/) |
-| 3 | Code Scanning   | Custom CodeQL Queries | [`lessons/03-custom-codeql-queries/`](lessons/03-custom-codeql-queries/) |
-| 4 | Secret Scanning | Secret Scanning + Push Protection | [`lessons/04-secret-scanning/`](lessons/04-secret-scanning/) |
-| 5 | Secret Scanning | Custom Secret Patterns | [`lessons/05-custom-secret-patterns/`](lessons/05-custom-secret-patterns/) |
-| 6 | Supply Chain    | Dependabot / Supply Chain (+ Malware bonus) | [`lessons/06-dependabot-supply-chain/`](lessons/06-dependabot-supply-chain/) |
-| 7 | 3rd-party / SARIF | SARIF / 3rd-party Tool Integration | [`lessons/07-sarif-integration/`](lessons/07-sarif-integration/) |
-| 8 | Governance      | Security Overview (Org-level Governance) | [`lessons/08-security-overview/`](lessons/08-security-overview/) |
-| 9 | Code Quality (bonus / public preview) | Code Quality — same engine, different queries | [`lessons/09-code-quality/`](lessons/09-code-quality/) |
-| 10 | Code Scanning | CodeQL for GitHub Actions | [`lessons/10-codeql-actions/`](lessons/10-codeql-actions/) |
-| 11 | AI security detections (optional / public preview) | AI-powered security detections in pull requests | [`lessons/11-ai-security-detections/`](lessons/11-ai-security-detections/) |
+| 01 | Code Security | CodeQL Code Scanning | [`lessons/01-code-security-codeql-scanning/`](lessons/01-code-security-codeql-scanning/) |
+| 02 | Code Security | Copilot Autofix | [`lessons/02-code-security-copilot-autofix/`](lessons/02-code-security-copilot-autofix/) |
+| 03 | Code Security | Custom CodeQL Queries | [`lessons/03-code-security-custom-codeql-queries/`](lessons/03-code-security-custom-codeql-queries/) |
+| 04 | Code Security | SARIF / 3rd-party Tool Integration | [`lessons/04-code-security-sarif-integration/`](lessons/04-code-security-sarif-integration/) |
+| 05 | Code Security | CodeQL for GitHub Actions | [`lessons/05-code-security-actions/`](lessons/05-code-security-actions/) |
+| 06 | Code Security | AI-powered security detections (optional / public preview) | [`lessons/06-code-security-ai-detections/`](lessons/06-code-security-ai-detections/) |
+| 07 | Secret Protection | Secret Scanning + Push Protection | [`lessons/07-secret-protection-secret-scanning/`](lessons/07-secret-protection-secret-scanning/) |
+| 08 | Secret Protection | Custom Secret Patterns | [`lessons/08-secret-protection-custom-patterns/`](lessons/08-secret-protection-custom-patterns/) |
+| 09 | Supply Chain | Dependabot / Supply Chain (+ Malware bonus) | [`lessons/09-supply-chain-dependabot/`](lessons/09-supply-chain-dependabot/) |
+| 10 | Governance | Security Overview (Org-level Governance) | [`lessons/10-governance-security-overview/`](lessons/10-governance-security-overview/) |
+| 11 | Code Quality | Code Quality — same engine, different queries (bonus / public preview) | [`lessons/11-code-quality-analysis/`](lessons/11-code-quality-analysis/) |
 
 ## Prerequisites
 

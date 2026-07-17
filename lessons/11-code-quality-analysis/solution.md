@@ -1,4 +1,4 @@
-# Lesson 09 — Reference remediation
+# Lesson 11 — Reference remediation
 
 `quality-fixtures.js` deliberately retains two inert quality defects so the
 default-branch scan has stable Standard findings. Apply these changes only on a

@@ -1,4 +1,4 @@
-# Lesson 10 — Solution and remediation
+# Lesson 05 — Solution and remediation
 
 The vulnerable fixture combines three independent weaknesses. Fix all three: removing only one may reduce impact without restoring a sound trust boundary.
 

@@ -39,7 +39,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "lessons/07-sarif-integration/weak_crypto.py"
+                  "uri": "lessons/04-code-security-sarif-integration/weak_crypto.py"
                 },
                 "region": {
                   "startLine": 11,
@@ -64,7 +64,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "lessons/07-sarif-integration/subprocess_use.py"
+                  "uri": "lessons/04-code-security-sarif-integration/subprocess_use.py"
                 },
                 "region": {
                   "startLine": 11,

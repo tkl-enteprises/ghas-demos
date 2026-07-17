@@ -4,7 +4,7 @@
 # - `name` is shown in the CodeQL run header.
 # - `queries` adds the custom QL pack alongside the default suite, so the
 #   built-in security queries AND our workshop-specific queries both run.
-# - `paths-ignore` skips lesson 07's directory: that lesson intentionally
+# - `paths-ignore` skips lesson 04's directory: that lesson intentionally
 #   contains insecure Python that we want flagged by Bandit (via SARIF
 #   upload), not duplicated by CodeQL.
 # ---------------------------------------------------------------------------
@@ -16,8 +16,8 @@ name: "Custom GHAS demo CodeQL config"
 queries:
   - uses: ./.github/codeql/custom-queries
 
-# Lesson 07 ships intentionally vulnerable Python that is analysed by Bandit
+# Lesson 04 ships intentionally vulnerable Python that is analysed by Bandit
 # and uploaded as SARIF. Keep CodeQL out of that directory so the two demos
 # stay independent.
 paths-ignore:
-  - 'lessons/07-sarif-integration/**'
+  - 'lessons/04-code-security-sarif-integration/**'

@@ -31,7 +31,7 @@ Rule of thumb: **one tool per coverage gap**, not three tools doing the same job
 
 GHAS Code Scanning groups alerts by `(tool name, rule ID, location, partialFingerprint)` — **not** by source line alone. So a Bandit finding and a CodeQL finding on the same line of `eval_use.py` will appear as **two separate alerts**, even though they describe the same bug. Strategies:
 
-1. **Pick one tool per rule family.** If CodeQL already covers `py/code-injection`, suppress Bandit's B307 in that path (e.g. `bandit -s B307` or a `# nosec` comment) — or vice versa. The lesson here uses `paths-ignore` in the CodeQL config to give Bandit exclusive ownership of `lessons/07-sarif-integration/`.
+1. **Pick one tool per rule family.** If CodeQL already covers `py/code-injection`, suppress Bandit's B307 in that path (e.g. `bandit -s B307` or a `# nosec` comment) — or vice versa. The lesson here uses `paths-ignore` in the CodeQL config to give Bandit exclusive ownership of `lessons/04-code-security-sarif-integration/`.
 2. **Use distinct `category:` values** when uploading SARIF (this lesson's workflow uses `category: bandit`). That keeps the two tools' results in separate result sets so re-uploading one doesn't wipe the other.
 3. **Triage in bulk** by tool: filter Code Scanning to `tool:bandit`, dismiss anything covered by another scanner with reason "won't fix → covered by CodeQL". Document the policy in `SECURITY.md` so future maintainers don't re-enable both.
 4. **Stable `partialFingerprints`** matter: if the tool emits unstable fingerprints, every push creates a new alert and dismissals don't stick. Bandit ≥ 1.7.5 emits good fingerprints out of the box.
