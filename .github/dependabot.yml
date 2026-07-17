@@ -1,28 +1,28 @@
 # ---------------------------------------------------------------------------
 # Dependabot configuration
 #
-# Powers lesson 06. Dependabot will open security update PRs against the
-# intentionally-vulnerable requirements.txt under lesson 06.
+# Powers lesson 09. Dependabot will open security update PRs against the
+# intentionally-vulnerable requirements.txt under lesson 09.
 # ---------------------------------------------------------------------------
 
 version: 2
 updates:
-  # Lesson 06: intentionally-vulnerable Python deps used to demo
+  # Lesson 09: intentionally-vulnerable Python deps used to demo
   # supply-chain alerts and grouped security update PRs. The schedule controls
   # version-update checks; security updates are created in response to alerts.
   - package-ecosystem: "pip"
-    directory: "/lessons/06-dependabot-supply-chain"
+    directory: "/lessons/09-supply-chain-dependabot"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
     groups:
-      lesson-six-security-updates:
+      lesson-nine-security-updates:
         applies-to: "security-updates"
         patterns:
           - "*"
     labels:
       - "dependencies"
-      - "lesson-06"
+      - "lesson-09"
 
   # Keep our GitHub Actions pinned and patched.
   - package-ecosystem: "github-actions"
@@ -32,11 +32,11 @@ updates:
     labels:
       - "ci"
 
-  # Lesson 07: Python deps for the Bandit/SARIF demo.
+  # Lesson 04: Python deps for the Bandit/SARIF demo.
   - package-ecosystem: "pip"
-    directory: "/lessons/07-sarif-integration"
+    directory: "/lessons/04-code-security-sarif-integration"
     schedule:
       interval: "weekly"
     labels:
       - "dependencies"
-      - "lesson-07"
+      - "lesson-04"

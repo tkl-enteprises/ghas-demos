@@ -16,6 +16,24 @@ import pytest
 import yaml
 
 
+EXPECTED_BANDIT_TARGET = "lessons/04-code-security-sarif-integration"
+EXPECTED_DEPENDABOT_LESSON_DIRECTORIES = {
+    "/lessons/04-code-security-sarif-integration",
+    "/lessons/09-supply-chain-dependabot",
+}
+EXPECTED_CODEQL_PATHS_IGNORE = ["lessons/04-code-security-sarif-integration/**"]
+EXPECTED_DEPENDABOT_LESSON_METADATA = {
+    "/lessons/04-code-security-sarif-integration": {
+        "groups": set(),
+        "labels": {"dependencies", "lesson-04"},
+    },
+    "/lessons/09-supply-chain-dependabot": {
+        "groups": {"lesson-nine-security-updates"},
+        "labels": {"dependencies", "lesson-09"},
+    },
+}
+
+
 def test_each_workflow_parses_as_yaml(workflows_dir):
     files = sorted(workflows_dir.glob("*.yml"))
     assert files, "No workflow YAML files found"
@@ -30,6 +48,7 @@ def test_bandit_target_path_exists(repo_root, workflows_dir):
     text = (workflows_dir / "sarif-bandit.yml").read_text(encoding="utf-8")
     m = re.search(r"bandit\s+-r\s+(\S+)", text)
     assert m, "Expected `bandit -r <path>` in sarif-bandit.yml"
+    assert m.group(1) == EXPECTED_BANDIT_TARGET
     target = repo_root / m.group(1)
     assert target.is_dir(), (
         f"sarif-bandit.yml runs `bandit -r {m.group(1)}` but {target} is not a directory"
@@ -50,6 +69,12 @@ def test_dependabot_directories_resolve(repo_root):
     )
     updates = cfg.get("updates") or []
     assert updates, "dependabot.yml has no updates entries"
+    lesson_directories = {
+        entry.get("directory")
+        for entry in updates
+        if str(entry.get("directory", "")).startswith("/lessons/")
+    }
+    assert lesson_directories == EXPECTED_DEPENDABOT_LESSON_DIRECTORIES
     for entry in updates:
         directory = entry.get("directory")
         assert directory, f"dependabot.yml entry missing `directory`: {entry}"
@@ -59,13 +84,19 @@ def test_dependabot_directories_resolve(repo_root):
             f"dependabot.yml `directory: {directory}` does not resolve "
             f"(expected {target})"
         )
+        if directory in EXPECTED_DEPENDABOT_LESSON_METADATA:
+            expected = EXPECTED_DEPENDABOT_LESSON_METADATA[directory]
+            assert set((entry.get("groups") or {}).keys()) == expected["groups"]
+            assert set(entry.get("labels") or []) == expected["labels"]
 
 
 def test_codeql_config_paths_ignore_resolve(repo_root):
     cfg = yaml.safe_load(
         (repo_root / ".github" / "codeql" / "codeql-config.yml").read_text(encoding="utf-8")
     )
-    for glob_pat in cfg.get("paths-ignore") or []:
+    paths_ignore = cfg.get("paths-ignore") or []
+    assert paths_ignore == EXPECTED_CODEQL_PATHS_IGNORE
+    for glob_pat in paths_ignore:
         base = glob_pat.rstrip("/*")
         target = repo_root / base
         assert target.exists(), (

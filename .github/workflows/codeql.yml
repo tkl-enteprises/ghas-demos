@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # CodeQL static analysis
 #
-# This workflow runs CodeQL static analysis. Powers lessons 01, 02, 03, 10.
+# This workflow runs CodeQL static analysis. Powers lessons 01, 02, 03, 05.
 # Custom queries in .github/codeql/custom-queries/ are loaded via
 # codeql-config.yml.
 # ---------------------------------------------------------------------------

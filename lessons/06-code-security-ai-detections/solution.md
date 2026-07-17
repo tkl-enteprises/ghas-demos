@@ -1,4 +1,4 @@
-# Lesson 11 — Reference solutions
+# Lesson 06 — Reference solutions
 
 These are review references, not files to deploy. Keep the original fixtures unchanged so future pull requests can exercise the preview. If Autofix proposes a patch, compare the security property—not just its formatting—with the corresponding solution below.
 

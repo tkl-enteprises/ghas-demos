@@ -84,7 +84,7 @@ This is the stable path and the safe fallback for the preview.
    <https://github.com/tkl-enteprises/ghas-demos/security/code-scanning>.
 2. Filter to open alerts on the default branch, then open the
    `py/sql-injection` alert for
-   `lessons/02-copilot-autofix/insecure_login.py`. If the alert is not present,
+   `lessons/02-code-security-copilot-autofix/insecure_login.py`. If the alert is not present,
    wait for the default-branch CodeQL workflow to complete before troubleshooting
    Autofix.
 3. Review the source-to-sink path ending at `cursor.execute(query)`.

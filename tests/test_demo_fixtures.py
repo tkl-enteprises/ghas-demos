@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
@@ -66,8 +67,8 @@ def _markdown_table(markdown: str, header: str) -> dict[str, list[str]]:
     return rows
 
 
-def test_lesson06_manifests_match_all_intentional_pins(repo_root: Path):
-    lesson = _lesson(repo_root, "06-dependabot-supply-chain")
+def test_lesson09_manifests_match_all_intentional_pins(repo_root: Path):
+    lesson = _lesson(repo_root, "09-supply-chain-dependabot")
     requirements = _requirements_pins(lesson / "requirements.txt")
     pyproject = tomllib.loads((lesson / "pyproject.toml").read_text(encoding="utf-8"))
     project_dependencies = tuple(pyproject["project"]["dependencies"])
@@ -77,8 +78,8 @@ def test_lesson06_manifests_match_all_intentional_pins(repo_root: Path):
     assert requirements == project_dependencies
 
 
-def test_lesson06_vulnerable_baseline_is_documented(repo_root: Path):
-    lesson = _lesson(repo_root, "06-dependabot-supply-chain")
+def test_lesson09_vulnerable_baseline_is_documented(repo_root: Path):
+    lesson = _lesson(repo_root, "09-supply-chain-dependabot")
     readme = (lesson / "README.md").read_text(encoding="utf-8")
     solution = (lesson / "solution.md").read_text(encoding="utf-8")
     rows = _markdown_table(readme, "Package")
@@ -105,8 +106,8 @@ def test_lesson06_vulnerable_baseline_is_documented(repo_root: Path):
     assert documented_pins == set(DEPENDABOT_PINS)
 
 
-def test_lesson06_safety_warnings_remain(repo_root: Path):
-    lesson = _lesson(repo_root, "06-dependabot-supply-chain")
+def test_lesson09_safety_warnings_remain(repo_root: Path):
+    lesson = _lesson(repo_root, "09-supply-chain-dependabot")
     readme = (lesson / "README.md").read_text(encoding="utf-8")
     requirements_intro = "\n".join(
         (lesson / "requirements.txt").read_text(encoding="utf-8").splitlines()[:2]
@@ -132,8 +133,8 @@ def test_lesson06_safety_warnings_remain(repo_root: Path):
     assert re.search(r"\bexecute `app\.py`", fixture_guidance, flags=re.IGNORECASE)
 
 
-def test_lesson09_retains_quality_defects_and_solution(repo_root: Path):
-    lesson = _lesson(repo_root, "09-code-quality")
+def test_lesson11_retains_quality_defects_and_solution(repo_root: Path):
+    lesson = _lesson(repo_root, "11-code-quality-analysis")
     fixture = (lesson / "quality-fixtures.js").read_text(encoding="utf-8")
     readme = (lesson / "README.md").read_text(encoding="utf-8")
     solution = (lesson / "solution.md").read_text(encoding="utf-8")
@@ -166,12 +167,12 @@ def test_lesson09_retains_quality_defects_and_solution(repo_root: Path):
     assert re.search(r"\bdo\s+not\s+merge\b", solution, flags=re.IGNORECASE)
 
 
-def test_lesson09_fixture_is_runnable_and_inert(repo_root: Path):
+def test_lesson11_fixture_is_runnable_and_inert(repo_root: Path):
     node = shutil.which("node")
     if node is None:
         pytest.skip("Node.js is optional; static fixture checks still ran")
 
-    fixture = _lesson(repo_root, "09-code-quality") / "quality-fixtures.js"
+    fixture = _lesson(repo_root, "11-code-quality-analysis") / "quality-fixtures.js"
     harness = r"""
 const assert = require("node:assert/strict");
 const Module = require("node:module");
@@ -223,3 +224,30 @@ assert.equal(
     )
     assert result.returncode == 0, result.stderr
     assert result.stdout == ""
+
+
+def test_security_fixtures_cannot_activate_accidentally(repo_root: Path):
+    actions_fixtures = _lesson(repo_root, "05-code-security-actions") / "fixtures"
+    fixture_files = sorted(path.name for path in actions_fixtures.iterdir() if path.is_file())
+    assert fixture_files == [
+        "remediated-workflow.yml.txt",
+        "vulnerable-workflow.yml.txt",
+    ]
+
+    ai_samples = _lesson(repo_root, "06-code-security-ai-detections") / "samples"
+    sample_files = {path.name: path for path in ai_samples.iterdir() if path.is_file()}
+    assert set(sample_files) == {"Dockerfile", "main.tf", "preview_path.bash", "query.php"}
+    assert all(not os.access(path, os.X_OK) for path in sample_files.values())
+
+    workflow_text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (repo_root / ".github" / "workflows").glob("*.yml")
+    )
+    assert "05-code-security-actions/fixtures" not in workflow_text
+    assert "06-code-security-ai-detections/samples" not in workflow_text
+
+    assert re.search(r"^\s*count\s*=\s*0\s*$", sample_files["main.tf"].read_text(), re.MULTILINE)
+    dockerfile = sample_files["Dockerfile"].read_text(encoding="utf-8")
+    assert not re.search(r"^\s*(RUN|CMD|ENTRYPOINT)\b", dockerfile, re.MULTILINE)
+    assert sample_files["preview_path.bash"].read_text().count("preview_path") == 1
+    assert sample_files["query.php"].read_text().count("findUser") == 1

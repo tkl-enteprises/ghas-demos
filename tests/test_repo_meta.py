@@ -4,17 +4,29 @@ Repo-level metadata + invariants the workshop relies on.
   - README.md, LICENSE, SECURITY.md, CONTRIBUTING.md, FACILITATOR.md exist.
   - Root README has the pillar mermaid block (one ```mermaid fenced block,
     contains the `flowchart` keyword, has a matching closing fence).
-  - Root README's lessons table has 11 lesson rows (one per lesson 01..11).
-  - FACILITATOR's 60-minute agenda heading references lessons 1, 4, 6, 8
-    (not the stale 1, 2, 3, 8 from the pre-rename layout).
-  - FACILITATOR's 2-hour agenda heading references the post-rename lesson
-    set (1, 2, 4, 5, 6, 7, 8 — note: NOT 3).
+  - Root README's lessons table matches the exact pillar-grouped lesson map.
+  - FACILITATOR agendas reference lessons by their pillar-grouped numbers.
 """
 
 from __future__ import annotations
 
 import re
 from pathlib import Path
+
+
+EXPECTED_LESSON_NAMES = [
+    "01-code-security-codeql-scanning",
+    "02-code-security-copilot-autofix",
+    "03-code-security-custom-codeql-queries",
+    "04-code-security-sarif-integration",
+    "05-code-security-actions",
+    "06-code-security-ai-detections",
+    "07-secret-protection-secret-scanning",
+    "08-secret-protection-custom-patterns",
+    "09-supply-chain-dependabot",
+    "10-governance-security-overview",
+    "11-code-quality-analysis",
+]
 
 
 def test_top_level_docs_exist(repo_root: Path):
@@ -37,11 +49,11 @@ def test_root_readme_fences_balanced(repo_root: Path):
     assert fence_count % 2 == 0, f"README.md has unbalanced ``` fences ({fence_count})"
 
 
-def test_root_readme_lessons_table_has_eleven_rows(repo_root: Path):
+def test_root_readme_lessons_table_matches_pillar_order(repo_root: Path):
     text = (repo_root / "README.md").read_text(encoding="utf-8")
-    refs = sorted(set(re.findall(r"`lessons/(\d{2})-[a-z0-9-]+/`", text)))
-    assert refs == [f"{n:02d}" for n in range(1, 12)], (
-        f"Root README lessons table should have rows for lessons 01..11; got {refs}"
+    refs = re.findall(r"`lessons/(\d{2}-[a-z0-9-]+)/`", text)
+    assert refs == EXPECTED_LESSON_NAMES, (
+        f"Root README lessons table should match the ordered pillar map; got {refs}"
     )
 
 
@@ -54,8 +66,8 @@ def test_facilitator_60min_agenda_lessons(repo_root: Path):
     )
     assert m, "FACILITATOR.md missing '60-minute executive overview (lessons …)' heading"
     lessons = [int(n) for n in re.findall(r"\d+", m.group(1))]
-    assert lessons == [1, 4, 6, 8], (
-        f"60-minute agenda heading should list lessons 1, 4, 6, 8 (post-rename); got {lessons}"
+    assert lessons == [1, 7, 9, 10], (
+        f"60-minute agenda should list remapped lessons 1, 7, 9, 10; got {lessons}"
     )
 
 
@@ -68,8 +80,9 @@ def test_facilitator_2hr_agenda_lessons(repo_root: Path):
     )
     assert m, "FACILITATOR.md missing '2-hour developer enablement (lessons …)' heading"
     lessons = [int(n) for n in re.findall(r"\d+", m.group(1))]
-    assert lessons == [1, 2, 4, 5, 6, 7, 8], (
-        f"2-hour agenda heading should list lessons 1, 2, 4, 5, 6, 7, 8 (post-rename, skips L3); got {lessons}"
+    assert lessons == [1, 2, 4, 7, 8, 9, 10], (
+        "2-hour agenda should list remapped lessons in pillar order "
+        f"(1, 2, 4, 7, 8, 9, 10); got {lessons}"
     )
 
 
@@ -84,43 +97,62 @@ def test_facilitator_halfday_agenda_includes_all_eleven(repo_root: Path):
 
 
 def test_root_readme_has_pillar_grouped_intro(repo_root: Path):
-    """Sanity check the lessons-section intro text reflects the post-rename layout."""
+    """Sanity check the lessons section names every recognized pillar."""
     text = (repo_root / "README.md").read_text(encoding="utf-8")
-    assert "Code Scanning" in text and "Secret Scanning" in text and "Supply Chain" in text, (
-        "README.md should mention the GHAS pillars (Code Scanning / Secret Scanning / Supply Chain)"
+    expected_pillars = (
+        "Code Security",
+        "Secret Protection",
+        "Supply Chain",
+        "Governance",
+        "Code Quality",
     )
+    missing = [pillar for pillar in expected_pillars if pillar not in text]
+    assert not missing, f"README.md should mention every lesson pillar; missing {missing}"
 
 
-def test_no_aws_first_fixtures_in_lessons_04_05(repo_root: Path):
-    """Lessons 04 + 05 must lead with Azure-first / Contoso fixtures, not AWS.
+def test_no_aws_first_fixtures_in_secret_protection_lessons(repo_root: Path):
+    """Secret Protection lessons must lead with Azure-first / Contoso fixtures.
 
     Microsoft FTEs deliver this workshop to customers; AWS-shaped values
     (`AKIA…`) in source files or screenshots are off-brand. Vendor-neutrality
     may appear in *prose* (incident-response runbooks reference Azure / AWS /
     GCP side-by-side), but:
 
-      - Lesson 05 README must not reference the legacy AKIA pattern at all
+      - Custom Patterns README must not reference the legacy AKIA pattern at all
         — its custom-pattern fixtures are Contoso-prefixed.
-      - Lesson 04 README may discuss AWS as a secondary vendor in prose, but
+      - Secret Scanning README may discuss AWS as a secondary vendor in prose, but
         the FIRST mention of a cloud provider in the file must be Azure.
         (Anchors the Azure-first framing for the live demo.)
     """
-    l5_readme = (
-        repo_root / "lessons" / "05-custom-secret-patterns" / "README.md"
+    custom_patterns_readme = (
+        repo_root
+        / "lessons"
+        / "08-secret-protection-custom-patterns"
+        / "README.md"
     ).read_text(encoding="utf-8")
-    assert "AKIA" not in l5_readme, (
-        "lesson 05 README must not reference the legacy AWS AKIA pattern; "
-        "lesson 05 custom-pattern fixtures are Contoso-prefixed"
+    assert "AKIA" not in custom_patterns_readme, (
+        "custom-pattern README must not reference the legacy AWS AKIA pattern; "
+        "its fixtures are Contoso-prefixed"
     )
 
-    l4_readme = (
-        repo_root / "lessons" / "04-secret-scanning" / "README.md"
+    secret_scanning_readme = (
+        repo_root
+        / "lessons"
+        / "07-secret-protection-secret-scanning"
+        / "README.md"
     ).read_text(encoding="utf-8")
-    aws_positions = [p for p in (l4_readme.find("AWS"), l4_readme.find("AKIA")) if p != -1]
+    aws_positions = [
+        position
+        for position in (
+            secret_scanning_readme.find("AWS"),
+            secret_scanning_readme.find("AKIA"),
+        )
+        if position != -1
+    ]
     if aws_positions:
         first_aws = min(aws_positions)
-        first_azure = l4_readme.find("Azure")
+        first_azure = secret_scanning_readme.find("Azure")
         assert first_azure != -1 and first_azure < first_aws, (
-            "lesson 04 README must mention Azure before any AWS/AKIA reference "
+            "secret-scanning README must mention Azure before any AWS/AKIA reference "
             "(Azure-first optics for Microsoft-FTE delivery)"
         )

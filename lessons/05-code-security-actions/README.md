@@ -1,4 +1,4 @@
-# Lesson 10 — CodeQL for GitHub Actions
+# Lesson 05 — CodeQL for GitHub Actions
 
 Use CodeQL to find vulnerabilities in workflow YAML before an attacker turns CI automation into a privileged execution path.
 
@@ -37,7 +37,7 @@ After this lesson you can:
 
 [`fixtures/vulnerable-workflow.yml.txt`](fixtures/vulnerable-workflow.yml.txt) is valid-looking workflow text, but its final `.txt` suffix and location outside `.github/workflows/` prevent GitHub Actions from registering it. CodeQL's Actions extractor analyzes active workflow YAML and action metadata, not this inert teaching fixture. The fixture is therefore for side-by-side review; the repository's Actions scan analyzes the real workflows without activating the vulnerable example.
 
-For an end-to-end alert exercise, use a disposable fork, copy the fixture to `.github/workflows/lesson-10-vulnerable.yml` on a short-lived branch, and let the existing `pull_request` CodeQL scan inspect the proposed file. Never merge it, and delete the branch afterward. A newly proposed `pull_request_target` file does not run from the PR branch because that event uses the workflow definition from the base branch.
+For an end-to-end alert exercise, use a disposable fork, copy the fixture to `.github/workflows/lesson-05-vulnerable.yml` on a short-lived branch, and let the existing `pull_request` CodeQL scan inspect the proposed file. Never merge it, and delete the branch afterward. A newly proposed `pull_request_target` file does not run from the PR branch because that event uses the workflow definition from the base branch.
 
 ## Hands-on steps
 

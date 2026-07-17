@@ -23,7 +23,7 @@ for req in lessons/*/requirements.txt; do
   else
     echo "ℹ ${lesson_name} deps did not install — that's expected if this lesson"
     echo "  pins intentionally-vulnerable old versions (e.g. Flask 0.12 on"
-    echo "  Python 3.11). Lesson 03 demonstrates them via Dependabot, not"
+    echo "  Python 3.11). Lesson 09 demonstrates them via Dependabot, not"
     echo "  local execution."
   fi
 done

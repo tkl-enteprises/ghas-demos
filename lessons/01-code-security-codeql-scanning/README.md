@@ -59,9 +59,9 @@ After CodeQL runs against this lesson, expect alerts similar to the table below 
    - The **rule id** (top-right) — this is what you grep for in CodeQL docs.
    - The **data-flow path** — CodeQL highlights `request.args[...]` as the *source* and `cursor.execute(...)` as the *sink*. Click "Show paths" to step through every hop.
    - The **severity** and **security-severity** scores — used by branch-protection rules.
-5. **Try Copilot Autofix.** On any alert, click **Generate fix** to see Autofix propose a patch. We dive deeper into Autofix in [lesson 02](../02-copilot-autofix/README.md).
+5. **Try Copilot Autofix.** On any alert, click **Generate fix** to see Autofix propose a patch. We dive deeper into Autofix in [lesson 02](../02-code-security-copilot-autofix/README.md).
 
-![Detail page for a CodeQL Server-Side Template Injection alert with the dataflow path expanded — source highlighted at `request.args[...]`, sink at the template render call, with every intermediate hop listed.](../../docs/screenshots/02-codeql-alert-detail.png)
+![Detail page for a CodeQL Server-Side Template Injection alert with the dataflow path expanded — source highlighted at `request.args[...]`, sink at the template render call, with every intermediate hop listed.](../../docs/screenshots/01-codeql-alert-detail.png)
 
 *Alert detail with **Show paths** expanded. The source → sink path is the artefact unique to dataflow analysis — it's what separates CodeQL from regex-based linters._
 
@@ -94,7 +94,7 @@ The demo has landed when:
 
 - CodeQL is **dataflow-aware** — it traces user input from source to sink, not just regex matches on dangerous APIs.
 - **Default setup** is one-click but the **advanced (workflow-based) setup** is required for custom queries (see lesson 03).
-- The same alert UI hosts CodeQL, third-party SARIF (lesson 07), and Copilot Autofix (lesson 02) — one triage surface.
+- The same alert UI hosts CodeQL, third-party SARIF (lesson 04), and Copilot Autofix (lesson 02) — one triage surface.
 
 ## Reset state
 

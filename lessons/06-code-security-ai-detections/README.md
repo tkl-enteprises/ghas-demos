@@ -1,4 +1,4 @@
-# Lesson 11 — AI-powered security detections (optional, public preview)
+# Lesson 06 — AI-powered security detections (optional, public preview)
 
 > **Optional preview lesson.** AI-powered security detections are in public preview and subject to change. Treat the current UI, coverage, licensing, and billing behavior as time-sensitive; verify them against the linked GitHub documentation before presenting.
 
@@ -37,7 +37,7 @@ All of the following must be true for the live scan:
 
 No model selection, new workflow, build, or custom prompt file is required. The AI scan uses specialized prompts and does not use files such as `.github/copilot-instructions.md`.
 
-> **Repository compatibility:** `tkl-enteprises/ghas-demos` intentionally uses CodeQL advanced setup for its Python custom queries and lesson 10 Actions analysis, so default setup is off here. Do not replace that shared configuration for this optional lesson. Use a disposable, organization-owned copy that meets the prerequisites above, or run the source-review fallback below.
+> **Repository compatibility:** `tkl-enteprises/ghas-demos` intentionally uses CodeQL advanced setup for its Python custom queries and lesson 05 Actions analysis, so default setup is off here. Do not replace that shared configuration for this optional lesson. Use a disposable, organization-owned copy that meets the prerequisites above, or run the source-review fallback below.
 
 ## Safe sample design
 
@@ -62,10 +62,10 @@ The files under [`samples/`](./samples/) are intentionally vulnerable **source-o
 
    ```bash
    git switch -c workshop/ai-security-detections
-   mkdir lessons/11-ai-security-detections/pr-demo
-   cp lessons/11-ai-security-detections/samples/* \
-     lessons/11-ai-security-detections/pr-demo/
-   git add lessons/11-ai-security-detections/pr-demo
+   mkdir lessons/06-code-security-ai-detections/pr-demo
+   cp lessons/06-code-security-ai-detections/samples/* \
+     lessons/06-code-security-ai-detections/pr-demo/
+   git add lessons/06-code-security-ai-detections/pr-demo
    git commit -m "Add inert AI detection demo fixtures"
    git push -u origin workshop/ai-security-detections
    gh pr create --fill

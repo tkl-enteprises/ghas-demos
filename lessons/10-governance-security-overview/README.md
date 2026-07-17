@@ -1,4 +1,4 @@
-# Lesson 8 — Security Overview and Governance
+# Lesson 10 — Governance and Security Overview
 
 > Docs-only lesson. Every demo step happens in the GitHub UI.
 
@@ -35,7 +35,7 @@ Complete this preflight before the session:
 - Use an organization on **GitHub Team or GitHub Enterprise Cloud**. Security overview is available to eligible organizations that have run a Secret Risk Assessment.
 - Prefer an **organization owner** or **security manager** account. Those roles can see all repositories and use **Assessments**. Organization members see only repositories for which they have appropriate alert access.
 - For an enterprise demo, use an organization-owner or security-manager role in each organization whose data you need to show. Enterprise ownership alone does not grant repository-level security visibility.
-- Ensure the organization contains representative dependency, code scanning, or secret scanning data. Lessons 01–07 can create useful examples.
+- Ensure the organization contains representative dependency, code scanning, or secret scanning data. Lessons 01–09 can create useful examples.
 - Confirm product entitlements before promising a feature:
   - Dependabot data and the free risk assessments do not require GitHub Code Security or GitHub Secret Protection.
   - Private or internal repository data from code scanning and continuous secret scanning requires the corresponding GitHub Advanced Security product. Eligible public repositories may expose these features without a paid license.
@@ -98,11 +98,11 @@ All views show only repositories the viewer may access. Overview, Coverage, and 
 
 **Expected outcome:** Attendees distinguish exposure (**Risk**) from control adoption (**Coverage**) and adoption over time (**Enablement**).
 
-![Org-level Security Overview → Risk view for `tkl-enteprises` showing open alerts by severity and repository, with `ghas-demos` as the dominant contributor.](../../docs/screenshots/08-org-security-overview-risk.png)
+![Org-level Security Overview → Risk view for `tkl-enteprises` showing open alerts by severity and repository, with `ghas-demos` as the dominant contributor.](../../docs/screenshots/10-org-security-overview-risk.png)
 
 *Risk identifies where intervention is needed. Alert counts naturally change between cohorts.*
 
-![Org-level Security Overview → Coverage view for `tkl-enteprises` showing per-repo enablement of CodeQL, Dependabot alerts, secret scanning, and push protection.](../../docs/screenshots/08-org-security-overview-coverage.png)
+![Org-level Security Overview → Coverage view for `tkl-enteprises` showing per-repo enablement of CodeQL, Dependabot alerts, secret scanning, and push protection.](../../docs/screenshots/10-org-security-overview-coverage.png)
 
 *Coverage answers whether the expected controls are enabled.*
 
@@ -116,7 +116,7 @@ All views show only repositories the viewer may access. Overview, Coverage, and 
 
 **Expected outcome:** Attendees use the dedicated view to prioritize supply-chain remediation and understand that “paused” updates and disabled alerts need different responses.
 
-**Fallback:** If there are no findings, show the Dependabot tab and use [About Dependabot alerts](https://docs.github.com/en/enterprise-cloud@latest/code-security/concepts/supply-chain-security/dependabot-alerts) to explain how default-branch dependency data and the GitHub Advisory Database produce alerts. Lesson 06 remains the repository-level update workflow.
+**Fallback:** If there are no findings, show the Dependabot tab and use [About Dependabot alerts](https://docs.github.com/en/enterprise-cloud@latest/code-security/concepts/supply-chain-security/dependabot-alerts) to explain how default-branch dependency data and the GitHub Advisory Database produce alerts. Lesson 09 remains the repository-level update workflow.
 
 ### 4. Explain and inspect the free risk assessments
 

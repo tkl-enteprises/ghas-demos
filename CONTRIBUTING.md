@@ -7,10 +7,12 @@ Thanks for helping improve the GitHub security workshop. This repo is a teaching
 Lessons live under [`lessons/`](lessons/) and follow a strict layout so facilitators can pick any one off the shelf:
 
 ```
-lessons/NN-short-name/
+lessons/[number]-[pillar]-[lesson]/
 ├── README.md          # the lesson itself (see structure below)
 └── *.py               # vulnerable / annotated sample code
 ```
+
+`[number]` is the two-digit workshop position (`01`–`11`), `[pillar]` is one of `code-security`, `secret-protection`, `supply-chain`, `governance`, or `code-quality`, and `[lesson]` is the concise lesson slug. Keep lessons grouped in that pillar order. Code Quality is a distinct pillar from Code Security even though both use CodeQL infrastructure.
 
 Each lesson `README.md` MUST include these sections, in this order:
 
@@ -55,4 +57,4 @@ The same suite runs in CI on every push/PR via the [`tests`](.github/workflows/t
 
 ## Don't add real secrets
 
-This repo's secret-scanning lessons rely on **fake / canary** credentials. Use the existing `FAKE-` marker pattern (see [`lessons/04-secret-scanning/`](lessons/04-secret-scanning/) and [`lessons/05-custom-secret-patterns/`](lessons/05-custom-secret-patterns/)). Never paste a real key, token, or password — even temporarily, even in a branch you plan to delete. If you do, rotate it immediately and tell a maintainer.
+This repo's secret-scanning lessons rely on **fake / canary** credentials. Use the existing `FAKE-` marker pattern (see [`lessons/07-secret-protection-secret-scanning/`](lessons/07-secret-protection-secret-scanning/) and [`lessons/08-secret-protection-custom-patterns/`](lessons/08-secret-protection-custom-patterns/)). Never paste a real key, token, or password — even temporarily, even in a branch you plan to delete. If you do, rotate it immediately and tell a maintainer.
