@@ -35,5 +35,6 @@ jobs:
             GHSA-hggm-jpg3-v476, GHSA-x4qr-2fvf-3mr5,
             GHSA-3ww4-gg4f-jr7f, GHSA-r6ph-v2qm-q3c2,
             GHSA-537c-gmf6-5ccf, GHSA-w7pp-m8wf-vj6r,
-            GHSA-9v9h-cgj8-h64p
+            GHSA-9v9h-cgj8-h64p, GHSA-8q59-q68h-6hv4,
+            GHSA-3pqx-4fqf-j49f, GHSA-6757-jp84-gxfx
           comment-summary-in-pr: on-failure
