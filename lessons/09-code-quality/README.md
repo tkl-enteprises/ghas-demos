@@ -6,7 +6,7 @@ GitHub Code Quality is a **separate product from GitHub Code Security (formerly 
 
 ## Goal
 
-Show how GitHub Code Quality combines CodeQL quality analysis, AI findings, pull-request feedback, coverage, dashboards, and rulesets—and clearly separate those capabilities from Code Security.
+Show how GitHub Code Quality detects two safe, intentional CodeQL quality defects end to end, then connect those Standard findings to remediation, AI findings, pull-request feedback, coverage, dashboards, and rulesets—while clearly separating those capabilities from Code Security.
 
 ## Learning objectives
 
@@ -21,7 +21,7 @@ After this lesson you can:
 
 ## Estimated time
 
-**~10 min demo + 5 min discussion**
+**~15 min demo + 5 min discussion**
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ After this lesson you can:
 - An enterprise owner must first allow Code Quality for an enterprise. Organization or repository settings may then control enablement, subject to higher-level enforcement.
 - Rule-based CodeQL quality analysis supports C#, Go, Java, JavaScript, Python, Ruby, and TypeScript.
 
-Nothing in this folder needs to be run. The core workshop is a guided tour of GitHub's UI, so no solution file is needed.
+The lesson includes an inert JavaScript fixture and a reference remediation. Node.js is optional and is used only for local syntax and behavior checks; GitHub's dynamic Code Quality workflow performs the actual CodeQL analysis.
 
 ## Product and licensing snapshot
 
@@ -46,6 +46,22 @@ Nothing in this folder needs to be run. The core workshop is a guided tour of Gi
 | Billing from GA | GitHub documents Actions minutes, AI credits for AI-powered capabilities, and active-committer licenses as separate cost components |
 
 The preview license estimate covers only per-committer licensing: it excludes Actions minutes, AI-credit usage, discounts, and the fact that the rolling 90-day active-committer count can change. Disable Code Quality before July 20 if the organization does not want GA charges.
+
+## Demo assets and expected Standard findings
+
+- [`quality-fixtures.js`](quality-fixtures.js) defines two functions but does not call them, perform I/O, access a network, or change repository state.
+- [`solution.md`](solution.md) contains the reference remediation and local verification commands. Keep the defective fixture on the default branch when this repository is being used for demonstrations.
+
+GitHub's current JavaScript Code Quality query list and CodeQL query help identify these expected results:
+
+| Expected rule ID | Category | Severity | Precision | Intentional defect |
+|---|---|---|---|---|
+| [`js/template-syntax-in-string-literal`](https://codeql.github.com/codeql-query-help/javascript/js-template-syntax-in-string-literal/) | Reliability | Warning | High | Ordinary quotes leave `${userName}` uninterpreted. |
+| [`js/useless-assignment-to-local`](https://codeql.github.com/codeql-query-help/javascript/js-useless-assignment-to-local/) | Maintainability | Warning | Very high | The initial `tasks.length` value is overwritten before it is read. |
+
+These are **deterministic Standard findings** from rule-based CodeQL analysis. With these two findings alone, the expected Reliability and Maintainability ratings are both **Fair**, because Warning is the worst severity in each category. The live dashboard may contain additional findings as CodeQL rules and the rest of the repository evolve.
+
+The fixture does **not** promise a particular **AI finding** or Autofix. AI findings analyze recently changed default-branch files and are nondeterministic; Autofix is also AI-generated and may vary or be unavailable even when the underlying Standard finding is stable.
 
 ## How analysis and results differ
 
@@ -85,31 +101,41 @@ Ratings need context. Small repositories may look excellent because little suppo
 
 ## Walkthrough
 
-1. **Confirm enablement.** Open repository **Settings → Code quality** and review enabled languages and the runner choice. Older preview captures may show the control under **Settings → Code security**.
+1. **Inspect the fixture locally.** Open [`quality-fixtures.js`](quality-fixtures.js). Confirm that it is inert, then run a syntax check from this directory:
+
+   ```bash
+   node --check quality-fixtures.js
+   ```
+
+   Optionally call `buildGreeting("Ada")` in a Node REPL and observe that the returned message contains literal `${userName}`. The dead initial assignment in `countCompleted` does not change its return value.
+
+2. **Confirm enablement.** Open repository **Settings → Code quality** and review enabled languages and the runner choice. Older preview captures may show the control under **Settings → Code security**.
 
    ![Preview-era settings page with the Code quality row enabled](../../docs/screenshots/code-quality-enabled.png)
 
-2. **Review Standard findings and ratings.** Open **Security and quality → Code quality → Standard findings**. Read the Maintainability and Reliability cards, then expand a rule if findings exist. This workshop repository's captured state showed **Excellent** ratings and no standard findings; current results may differ as rules and code evolve.
+3. **Review Standard findings and ratings.** After the default-branch Code Quality run completes, open **Security and quality → Code quality → Standard findings**. Locate the two rule IDs in the table above, expand each rule, and follow its result to `quality-fixtures.js`. With no other findings, both category cards should be **Fair**.
+
+   The screenshot below predates the fixture and therefore shows **Excellent** ratings and no Standard findings. Use that historical state to explain why “Excellent” only meant that the scan found nothing at that time; the live fixture-backed result is the authoritative demo.
 
    ![Code Quality Standard findings page with maintainability and reliability ratings](../../docs/screenshots/code-quality-findings.png)
 
-3. **Review AI findings.** Select **AI findings** and open a file to inspect the explanation and proposed changes. The captured state showed five findings in `FACILITATOR.md`; AI results are based on recent default-branch changes, so the live list may differ.
+4. **Review AI findings separately.** Select **AI findings** and open a file if suggestions exist. The captured state showed five findings in `FACILITATOR.md`; AI results are based on recent default-branch changes, so the live list may differ or be empty. Do not use this tab to verify the two deterministic fixture findings.
 
    ![Code Quality AI findings grouped by recently changed file](../../docs/screenshots/code-quality-ai-findings.png)
 
    During a workshop, prefer reviewing the suggestion without creating a PR or assigning work. Assignment uses Copilot cloud agent, requires a Copilot license, and may consume billable AI credits after GA.
 
-4. **Inspect a pull request.** On a PR targeting the default branch, find **CodeQL - Code Quality / Analyze** in the checks and any `github-code-quality[bot]` comments. Open an annotation, compare its severity with the configured threshold, and review—but do not blindly commit—an Autofix.
+5. **Exercise remediation on a temporary branch.** Apply the two changes in [`solution.md`](solution.md), run its local verification commands, and open a PR targeting the default branch. Find **CodeQL - Code Quality / Analyze** in the checks and verify that the branch no longer contains the two fixture findings. If the fixture is first being introduced through a PR, use that introduction PR to inspect the original `github-code-quality[bot]` comments and any Autofix suggestions before applying the remediation.
 
-5. **Contrast with Code Security.** Open **Code scanning** in the same navigation. Emphasize that both can use CodeQL and similar UI patterns, but Code Quality runs quality rules and is licensed and billed independently from GitHub Code Security.
+6. **Contrast with Code Security.** Open **Code scanning** in the same navigation. Emphasize that both can use CodeQL and similar UI patterns, but Code Quality runs quality rules and is licensed and billed independently from GitHub Code Security.
 
-6. **Open the organization dashboard.** Go to the organization's **Security and quality → Insights → Code quality** page. The bubble chart groups repositories by Maintainability and Reliability score; bubble position, appearance, and size show score combinations, lower-score severity, and repository count. Use the table to sort and drill into a repository. Viewers see only repositories whose quality findings they can access.
+7. **Open the organization dashboard.** Go to the organization's **Security and quality → Insights → Code quality** page. The bubble chart groups repositories by Maintainability and Reliability score; bubble position, appearance, and size show score combinations, lower-score severity, and repository count. Use the table to sort and drill into a repository. Viewers see only repositories whose quality findings they can access.
 
    This older preview screenshot remains useful for recognizing Code Quality in organization-level security and quality navigation, but the current documented experience is the dedicated Code Quality insights dashboard.
 
    ![Preview-era organization view listing Code Quality among enabled features](../../docs/screenshots/security-overview-with-code-quality.png)
 
-7. **Show enforcement without changing it.** Open **Settings → Rules → Rulesets** and inspect a branch ruleset:
+8. **Show enforcement without changing it.** Open **Settings → Rules → Rulesets** and inspect a branch ruleset:
    - **Require code quality results** blocks unresolved findings at the selected threshold: Errors, Warnings and higher, Notes and higher, or All.
    - Confirm the Code Quality check succeeds on PRs *before* activating the rule; otherwise every PR can be blocked.
    - **Restrict code coverage** can enforce a minimum aggregate coverage percentage and/or maximum allowed drop from the default branch. A threshold value of `0` disables that threshold.
@@ -184,15 +210,16 @@ The demo has landed when attendees can:
 
 ## Reset state
 
-The main walkthrough is read-only. Do not enable features, change rulesets, commit suggestions, open remediation PRs, or assign Copilot during a shared workshop.
+Do not enable features, change rulesets, merge remediation, commit AI suggestions, or assign Copilot during a shared workshop.
 
-If a facilitator creates a temporary branch or PR for the optional coverage exercise, close the PR and delete only that workshop branch afterward. Do not reset shared Code Quality findings or organization policy.
+If a facilitator creates a temporary remediation or coverage branch and PR, close the PR and delete only that workshop branch afterward. Leave `quality-fixtures.js` unchanged on the default branch so the two Standard findings remain available. Do not reset shared Code Quality findings or organization policy.
 
 ## Official references
 
 - [About GitHub Code Quality](https://docs.github.com/en/code-security/code-quality/concepts/about-code-quality)
 - [GitHub Code Quality billing](https://docs.github.com/en/billing/concepts/product-billing/github-code-quality)
 - [CodeQL-powered analysis for Code Quality](https://docs.github.com/en/code-security/code-quality/reference/codeql-detection)
+- [JavaScript CodeQL queries for Code Quality](https://docs.github.com/en/code-security/code-quality/reference/codeql-queries/javascript-queries)
 - [Metrics and ratings](https://docs.github.com/en/code-security/code-quality/reference/metrics-and-ratings)
 - [Fixing findings in pull requests](https://docs.github.com/en/code-security/code-quality/tutorials/fix-findings-in-prs)
 - [Improving recently merged code with AI](https://docs.github.com/en/code-security/code-quality/tutorials/improve-recent-merges)

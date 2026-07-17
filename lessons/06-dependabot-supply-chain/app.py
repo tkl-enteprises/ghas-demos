@@ -10,6 +10,7 @@ import requests
 from cryptography.fernet import Fernet
 
 app = Flask(__name__)
+# Flask 0.12.0 runs atop the separately pinned Werkzeug 0.14; both are vulnerable.
 
 
 @app.route("/render")
@@ -22,27 +23,28 @@ def render():
 @app.route("/load")
 def load():
     data = request.args.get("data", "{}")
-    # ⚠️ yaml.load (vs safe_load) on PyYAML <5.1 → arbitrary code execution.
+    # ⚠️ PyYAML 5.1's affected loader can execute code (GHSA-8q59-q68h-6hv4).
     return yaml.load(data)
 
 
 @app.route("/fetch")
 def fetch():
     url = request.args.get("url", "https://example.com")
-    # ⚠️ requests<2.20 leaks Authorization header on cross-origin redirects (GHSA-x84v-xcm2-53pg).
+    # ⚠️ requests 2.19.1 leaks credentials on redirects (GHSA-x84v-xcm2-53pg);
+    # urllib3 1.24.1 can bypass certificate validation (GHSA-mh33-7rrq-662w).
     return requests.get(url).text
 
 
 @app.route("/render2")
 def render2():
     name = request.args.get("name", "")
-    # ⚠️ Jinja2<2.10.1 sandbox escape via str.format (GHSA-462w-v97r-4m45).
+    # ⚠️ Jinja2 2.10 sandbox escape via str.format (GHSA-462w-v97r-4m45).
     return Template("Hello {{ n }}").render(n=name)
 
 
 @app.route("/key")
 def key():
-    # ⚠️ cryptography 2.3 has multiple advisories — see README table.
+    # ⚠️ cryptography 2.3 has an RSA timing oracle (GHSA-hggm-jpg3-v476).
     return Fernet.generate_key()
 
 

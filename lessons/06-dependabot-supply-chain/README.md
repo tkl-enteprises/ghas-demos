@@ -50,17 +50,17 @@ After this lesson you can:
 
 Every line in `requirements.txt` maps to at least one published advisory in the GitHub Advisory Database. Dependabot will surface them under **Security and quality → Findings → Dependabot → Vulnerabilities** once the dependency graph processes the file.
 
-| Package        | Version | Advisory                                                                      | Severity        | Impact summary                                                              |
-|----------------|---------|-------------------------------------------------------------------------------|-----------------|-----------------------------------------------------------------------------|
-| Flask          | 0.12.0  | `GHSA-5wv5-4vpf-pj6m`                                                         | Moderate        | Denial of service via crafted JSON input on the dev server.                 |
-| Jinja2         | 2.10    | `GHSA-462w-v97r-4m45`                                                         | High            | Sandbox escape via `str.format` on user-controlled format strings.          |
-| Werkzeug       | 0.14    | `GHSA-px8h-6qxv-m22q` and others (see Dependabot alert in repo)               | Moderate / High | Open redirect; debug-pin RCE on older versions; cookie parsing issues.      |
-| urllib3        | 1.24.1  | `GHSA-mh33-7rrq-662w`                                                         | Moderate        | CRLF injection in request method allows header smuggling.                   |
-| requests       | 2.19.1  | `GHSA-x84v-xcm2-53pg`                                                         | Moderate        | `Authorization` header leaked on cross-origin redirects.                    |
-| PyYAML         | 5.1     | `CVE-2020-14343`                                                              | Critical        | Arbitrary code execution via `yaml.load` before 5.4.                        |
-| cryptography   | 2.3     | `GHSA-hggm-jpg3-v476` and others (see Dependabot alert in repo)               | Variable        | RSA key generation issues; multiple subsequent advisories through 41.x.     |
+| Package      | Version | Representative advisory | Current severity | First patched | Impact summary |
+|--------------|---------|-------------------------|------------------|---------------|----------------|
+| Flask        | 0.12.0  | `GHSA-562c-5r94-xh97`  | High             | 0.12.3        | Denial of service via incorrectly encoded JSON data. |
+| Jinja2       | 2.10    | `GHSA-462w-v97r-4m45`  | High             | 2.10.1        | Sandbox escape via `str.format` on user-controlled format strings. |
+| Werkzeug     | 0.14    | `GHSA-2g68-c3qc-8985`  | High             | 3.0.3         | Debugger access and code execution after interaction with an attacker-controlled domain. |
+| urllib3      | 1.24.1  | `GHSA-mh33-7rrq-662w`  | High             | 1.24.2        | Certificate validation can be bypassed in affected configurations. |
+| requests     | 2.19.1  | `GHSA-x84v-xcm2-53pg`  | High             | 2.20.0        | `Authorization` header leaked on cross-origin redirects. |
+| PyYAML       | 5.1     | `GHSA-8q59-q68h-6hv4`  | Critical         | 5.4           | Arbitrary code execution when loading untrusted YAML with the affected loader. |
+| cryptography | 2.3     | `GHSA-hggm-jpg3-v476`  | High             | 3.2           | RSA decryption exposes a Bleichenbacher timing oracle. |
 
-> Advisory IDs are stable identifiers in the GitHub Advisory Database — search any of them at <https://github.com/advisories>.
+> Each exact pin and representative affected range was checked against the current GitHub Advisory Database metadata. Several pins match additional advisories, so the alert count can exceed the package count. Advisory IDs are stable identifiers — search any of them at <https://github.com/advisories>.
 
 ## Visual reference
 
@@ -74,7 +74,7 @@ Every line in `requirements.txt` maps to at least one published advisory in the 
 
 ![Detail of a Dependabot PR bumping Flask, with the CVE annotation, severity badge, release notes, and compatibility score visible on the right rail.](../../docs/screenshots/06-dependabot-pr-detail.png)
 
-*A single security-update PR. Note the **CVE annotation**, **release notes pulled from the upstream repo**, and the **compatibility score** — Dependabot's signal that the bump is unlikely to break callers._
+*A single security-update PR. Note the **CVE annotation**, **release notes pulled from the upstream repo**, and the **compatibility score** — Dependabot's signal that the bump is unlikely to break callers.*
 
 ## Hands-on steps
 

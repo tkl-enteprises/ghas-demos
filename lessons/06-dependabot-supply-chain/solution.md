@@ -2,6 +2,12 @@
 
 This is the operational companion to `README.md`. It's written for the workshop facilitator (or a security engineer landing on a new repo) and covers: how to triage each alert, what your resolution options actually are, how to tune `dependabot.yml` so the alerts stay actionable, and the limits of "alert" vs "reachable risk".
 
+## Fixture integrity
+
+This lesson intentionally pins `Flask==0.12.0`, `Jinja2==2.10`, `Werkzeug==0.14`, `urllib3==1.24.1`, `requests==2.19.1`, `PyYAML==5.1`, and `cryptography==2.3` in both manifests. Each exact version is in the affected range of the representative GitHub Advisory Database entry listed in `README.md` and has a patched version available, making it eligible for the grouped security-update demo. Some packages match more than one advisory.
+
+Never install these dependencies or execute `app.py`. Keep the manifest warning, exact pins, and the `applies-to: security-updates` group intact when resetting the workshop.
+
 ## Triage workflow
 
 When a Dependabot alert lands, walk the same checklist every time:
