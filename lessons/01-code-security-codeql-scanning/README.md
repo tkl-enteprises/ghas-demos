@@ -26,7 +26,7 @@ After this lesson you can:
 
 ## Prerequisites
 
-- GHAS enabled on the repo with the `CodeQL` workflow configured (default or workflow-based setup).
+- GHAS enabled on the repo with the [`CodeQL` workflow](../../.github/workflows/codeql.yml) configured (default or workflow-based setup).
 - The CodeQL workflow has run at least once on `main` — check the **Actions** tab.
 - `scripts/preflight.sh` passed for the workshop run.
 
