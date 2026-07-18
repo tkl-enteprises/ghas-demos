@@ -19,8 +19,6 @@ from pathlib import Path
 NUMBERED_SCREENSHOT_LESSONS = {
     "01-code-scanning-alerts.png": "01-code-security-codeql-scanning",
     "01-codeql-alert-detail.png": "01-code-security-codeql-scanning",
-    "03-custom-codeql-alert-detail.png": "03-code-security-custom-codeql-queries",
-    "03-custom-codeql-rule-list.png": "03-code-security-custom-codeql-queries",
     "04-actions-tab.png": "04-code-security-sarif-integration",
     "04-bandit-sarif-findings.png": "04-code-security-sarif-integration",
     "07-push-protection-settings.png": "07-secret-protection-secret-scanning",

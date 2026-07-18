@@ -175,8 +175,6 @@ The repo ships with a frozen set of screenshots under [`docs/screenshots/`](docs
 | [`docs/screenshots/00-security-overview.png`](docs/screenshots/00-security-overview.png) | (root README hero) | Repo `Security and quality` tab landing page — alert counts across Code scanning, Secret scanning, and Dependabot. |
 | [`docs/screenshots/01-code-scanning-alerts.png`](docs/screenshots/01-code-scanning-alerts.png) | 01 — CodeQL Code Scanning | Code-scanning alerts list filtered to **Tool: CodeQL**. |
 | [`docs/screenshots/01-codeql-alert-detail.png`](docs/screenshots/01-codeql-alert-detail.png) | 01 — CodeQL Code Scanning | Alert detail page (SSTI) with the dataflow path expanded — source → sink hops visible. |
-| [`docs/screenshots/03-custom-codeql-rule-list.png`](docs/screenshots/03-custom-codeql-rule-list.png) | 03 — Custom CodeQL Queries | Code-scanning alerts filtered to rule `py/tkl/hardcoded-debug-true` — proves precision (`bypass.py` absent) and recall (`target.py` present). |
-| [`docs/screenshots/03-custom-codeql-alert-detail.png`](docs/screenshots/03-custom-codeql-alert-detail.png) | 03 — Custom CodeQL Queries | Alert detail for the custom-query finding — `@id`, `@kind`, source location. |
 | [`docs/screenshots/04-actions-tab.png`](docs/screenshots/04-actions-tab.png) | 04 — SARIF Integration | Repo `Actions` tab showing CodeQL, Bandit-SARIF, Dependency review, and Dependabot Updates workflows green. |
 | [`docs/screenshots/04-bandit-sarif-findings.png`](docs/screenshots/04-bandit-sarif-findings.png) | 04 — SARIF Integration | Code-scanning alerts filtered to **Tool: Bandit** — B303, B301, B307, B602/B603, B608, B101/B105/B107. |
 | [`docs/screenshots/07-push-protection-settings.png`](docs/screenshots/07-push-protection-settings.png) | 07 — Secret Scanning + Push Protection | Repo `Settings → Code security → Secret scanning` showing the push-protection toggle on. |
@@ -192,6 +190,7 @@ The repo ships with a frozen set of screenshots under [`docs/screenshots/`](docs
 Gaps still worth capturing live in your tenant for a follow-up deck:
 
 - 📸 Lesson 02 — the **Copilot Autofix** suggestion diff (before / after acceptance) on the `py/sql-injection` alert in `insecure_login.py`.
+- 📸 Lesson 03 — the code-scanning list and alert detail for `py/tkl/putin-khuylo-false`; the previous `DEBUG = True` captures were removed when the example changed.
 - 📸 Lesson 10 — the **Configurations** page showing the `GitHub recommended` security configuration's feature toggles.
 - 📸 Lesson 10 — a **Security campaigns** detail page (paid feature) with assigned repos and progress bars.
 
@@ -254,7 +253,7 @@ For mixed appsec + platform engineering audiences who want the full toolkit — 
 | 0:00–0:15 | — | Welcome, repo tour, pre-flight walkthrough (`scripts/preflight.sh`) | What does enabling Code Security and Secret Protection actually mean? Five toggles. |
 | 0:15–0:35 | 01 — CodeQL | Full triage flow on alert #21: detail → dataflow → close as fixed via PR. | When CodeQL is wrong: investigation flow + dismissal reasons. |
 | 0:35–0:45 | 02 — Copilot Autofix | Autofix on alert #21. Edit-then-accept. | Where Autofix earns its keep; where it doesn't. |
-| 0:45–1:15 | 03 — Custom CodeQL | Read and run `py/tkl/hardcoded-debug-true.ql`; show the resulting alert. | Custom query vs. lint rule? |
+| 0:45–1:15 | 03 — Custom CodeQL | Read and run `py/tkl/putin-khuylo-false`; show the finding on `noncompliant.py` and explain the Terraform/HCL extractor boundary. | Custom query vs. lint rule? |
 | 1:15–1:30 | 04 — SARIF | Bandit upload → unified code-scanning view. | Which scanners stay? |
 | 1:30–1:40 | 05 — Actions scanning | Compare the inert vulnerable and remediated workflow fixtures; show **Analyze (actions)**. | Where do workflow privileges cross trust boundaries? |
 | 1:40–1:55 | — | ☕ Break | — |

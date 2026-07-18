@@ -1,113 +1,82 @@
 # Lesson 03 — Evolving the Query
 
-The starter `HardcodedDebugFlag.ql` flags the literal pattern:
+The starter `PutinKhuyloFalse.ql` deliberately matches one exact Python pattern:
 
 ```python
-DEBUG = True
+putin_khuylo = False
 ```
 
-That is a useful baseline, but production codebases use a few near-equivalents that bypass the strict `True`-literal check. This document walks through three concrete extensions, ordered from easy to ambitious.
+That narrow rule is easy to explain and has a deterministic positive and negative control. The following extensions show how a production policy query could evolve.
 
-## 1. Broaden the truthy check
+## 1. Match equivalent false literals
 
-`DEBUG = 1` (or `DEBUG = "yes"`) is functionally identical to `DEBUG = True` from Python's truthiness rules. Extend the predicate to match any literal that Python evaluates as truthy:
+Python treats `0`, `None`, and empty containers as false. If the policy means that the flag must always be enabled, broaden the value predicate:
 
 ```ql
-import python
-
-from Assign a, Name target, Expr value
-where
-    a.getATarget() = target and
-    target.getId() = "DEBUG" and
-    target.getScope() instanceof Module and
-    value = a.getValue() and
-    (
-        // True
-        value.(NameConstant).getValue() = true
-        or
-        // Non-zero int literal: 1, 2, ...
-        value.(IntegerLiteral).getValue() != 0
-        or
-        // Non-empty string literal: "yes", "on", ...
-        exists(StringLiteral s | s = value | s.getText().length() > 0)
-    )
-select target, "Module-level DEBUG flag is hard-coded to a truthy literal."
+predicate isStaticallyFalse(Expr value) {
+  value.toString() = "False"
+  or value.toString() = "None"
+  or value.(IntegerLiteral).getValue() = 0
+  or value.(StringLiteral).getText() = ""
+}
 ```
 
-Push this and confirm `target.py` still fires — and add a third file `target_one.py` with `DEBUG = 1` to verify the new branch.
+Replace the literal check with `isStaticallyFalse(v)`, then add one positive fixture for every accepted spelling. Do not broaden the rule without adding controls: Python expressions such as `bool(os.environ.get("FLAG"))` require data-flow or value analysis rather than text matching.
 
-## 2. Catch always-true conditional bodies
+## 2. Detect assignments below module scope
 
-Some teams "hide" a debug flag by guarding it with a constant expression, e.g.:
-
-```python
-if 1 == 1:
-    DEBUG = True
-```
-
-CodeQL's data-flow library lets you trace back through such conditions. The shape is roughly:
+The starter query requires:
 
 ```ql
-import python
-import semmle.python.dataflow.new.DataFlow
-
-from If i, Assign a, Name target
-where
-    a.getEnclosingNode+() = i and
-    target = a.getATarget() and
-    target.getId() = "DEBUG" and
-    forex(Expr cond | cond = i.getTest() | cond.(Compare).getOp(0) instanceof Eq and …)
-select target, "DEBUG is set to True under a guard whose condition is always true."
+n.getScope() instanceof Module
 ```
 
-Refining the guard predicate is the interesting part of the exercise — start by detecting the simplest constant-comparison case and grow from there.
+Remove that predicate to find assignments inside functions and classes too. This increases recall but may report harmless local variables. A more precise variant can restrict findings to functions that influence resource creation.
 
 ## 3. Reduce false positives
 
-Right now the query flags any module-level `DEBUG = True`. A few legitimate cases get caught:
-
-- Test-only modules under `tests/` or `conftest.py`.
-- Files that immediately overwrite `DEBUG` from the environment a few lines later (`DEBUG = True` then `DEBUG = bool(os.environ.get(...))`).
-- `DEBUG` that is `__all__`-private and used only inside the module.
-
-Exclude them with location/context filters:
+Real repositories may contain examples, generated files, or tests that intentionally set the flag to `False`. Add path exclusions only after confirming those findings are not useful:
 
 ```ql
-where
-    not target.getLocation().getFile().getRelativePath().regexpMatch(".*/(tests?|conftest)\\.py")
-    and not exists(Assign later |
-        later.getATarget().(Name).getId() = "DEBUG" and
-        later.getLocation().getStartLine() > target.getLocation().getStartLine() and
-        later.getEnclosingModule() = target.getEnclosingModule() and
-        later.getValue() instanceof Call
-    )
+not n.getLocation().getFile().getRelativePath().regexpMatch(
+  ".*/(examples?|tests?|generated)/.*"
+)
 ```
 
-Re-run on the workshop repo. `bypass.py` already passes; the broadened query should keep it green.
+Keep `noncompliant.py` and `compliant.py` in the query's regression corpus. The first must continue to fire and the second must remain silent.
 
-## How to test query changes locally
+## Testing query changes locally
 
 ```bash
-# Build a database from the repo (run in repo root).
 codeql database create py-db --language=python --source-root=.
 
-# Run just your custom query.
 codeql query run \
-    --database=py-db \
-    .github/codeql/custom-queries/HardcodedDebugFlag.ql
+  --database=py-db \
+  .github/codeql/custom-queries/PutinKhuyloFalse.ql
 
-# Or run the whole workshop config the same way Actions does.
 codeql database analyze py-db \
-    --format=sarif-latest \
-    --output=results.sarif \
-    --sarif-category=python \
-    .github/codeql/custom-queries/
+  --format=sarif-latest \
+  --output=results.sarif \
+  --sarif-category=python \
+  .github/codeql/custom-queries/
 ```
 
-Open `results.sarif` in VS Code with the CodeQL extension to step through every alert before pushing.
+The strict starter query should return one location in `noncompliant.py`.
+
+## Applying the policy to Terraform
+
+The upstream flag is Terraform/HCL, which CodeQL does not extract. Preserve the same teaching pattern with a Terraform-capable scanner:
+
+1. Write one rule for `putin_khuylo = false`.
+2. Test it against positive and negative `.tf` fixtures.
+3. Export the finding as SARIF.
+4. Upload the SARIF so it appears beside CodeQL findings in code scanning.
+
+Lesson 04 demonstrates the SARIF integration path.
 
 ## Recap
 
-- **Start strict, broaden later.** A query that fires once on a known-bad pattern is more useful than a perfect query you never ship.
-- **Always have a negative control.** `bypass.py` is your regression test — if it ever shows up in the alert list, your last QL change lost precision.
-- **Iterate locally with the CLI**, then promote to the workflow once results are stable.
+- Start with an exact, explainable policy.
+- Pair every positive fixture with a negative control.
+- Broaden predicates only when new test cases justify the additional recall.
+- Use CodeQL only for supported languages; integrate other analyzers through SARIF.
