@@ -24,6 +24,18 @@ After this lesson you can:
 
 CodeQL turns source code into a queryable database, runs security queries against it, and uploads the results to GitHub as code scanning alerts.
 
+The CodeQL database is **not a graph database such as Neo4j**. It is a relational representation of one language at a specific commit. Conceptually, it contains:
+
+| Layer | Examples |
+| --- | --- |
+| Syntax | Files, functions, expressions, and abstract syntax tree (AST) nodes |
+| Semantics | Names, types, imports, calls, and source locations |
+| Program flow | Control-flow and data-flow relationships between nodes |
+
+CodeQL's QL language queries those relations using an object-oriented view. Data-flow and taint-tracking queries traverse the graph-like relationships to find a path from an untrusted **source** to a dangerous **sink**.
+
+Browse the [Python built-in security queries](https://docs.github.com/en/code-security/reference/code-scanning/codeql/codeql-queries/python-built-in-queries), their [query help](https://codeql.github.com/codeql-query-help/python/), or the [query source code](https://github.com/github/codeql/tree/main/python/ql/src/Security).
+
 ```mermaid
 flowchart LR
     A["Checkout source code"] --> B["Create CodeQL database"]
