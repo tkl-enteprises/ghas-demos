@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import os
 import re
 import shutil
@@ -65,6 +66,39 @@ def _markdown_table(markdown: str, header: str) -> dict[str, list[str]]:
         cells = [cell.strip().strip("`") for cell in line.strip("|").split("|")]
         rows[cells[0]] = cells[1:]
     return rows
+
+
+def _module_boolean_assignments(path: Path) -> dict[str, bool]:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    assignments = {}
+    for node in tree.body:
+        if (
+            isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+            and isinstance(node.value, ast.Constant)
+            and isinstance(node.value.value, bool)
+        ):
+            assignments[node.targets[0].id] = node.value.value
+    return assignments
+
+
+def test_lesson03_custom_query_and_controls_stay_aligned(repo_root: Path):
+    lesson = _lesson(repo_root, "03-code-security-custom-codeql-queries")
+    query_path = (
+        repo_root / ".github" / "codeql" / "custom-queries" / "PutinKhuyloFalse.ql"
+    )
+    query = query_path.read_text(encoding="utf-8")
+
+    assert "@id py/tkl/putin-khuylo-false" in query
+    assert 'n.getId() = "putin_khuylo"' in query
+    assert 'v.toString() = "False"' in query
+    assert _module_boolean_assignments(lesson / "noncompliant.py")[
+        "putin_khuylo"
+    ] is False
+    assert _module_boolean_assignments(lesson / "compliant.py")[
+        "putin_khuylo"
+    ] is True
 
 
 def test_lesson09_manifests_match_all_intentional_pins(repo_root: Path):
