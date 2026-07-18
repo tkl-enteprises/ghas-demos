@@ -285,3 +285,17 @@ def test_security_fixtures_cannot_activate_accidentally(repo_root: Path):
     assert not re.search(r"^\s*(RUN|CMD|ENTRYPOINT)\b", dockerfile, re.MULTILINE)
     assert sample_files["preview_path.bash"].read_text().count("preview_path") == 1
     assert sample_files["query.php"].read_text().count("findUser") == 1
+
+
+def test_lesson05_secret_exposure_demo_stays_disabled(repo_root: Path):
+    workflow = (
+        repo_root / ".github" / "workflows" / "lesson-05-secret-exposure.yml"
+    ).read_text(encoding="utf-8")
+    helper = (
+        _lesson(repo_root, "05-code-security-actions") / "print_repository_secret.py"
+    ).read_text(encoding="utf-8")
+
+    assert re.search(r"^\s{4}if:\s*\$\{\{\s*false\s*\}\}\s*$", workflow, re.MULTILINE)
+    assert "fromJSON(secrets.LESSON_05_CREDENTIALS).password" in workflow
+    assert "print_repository_secret.py" in workflow
+    assert 'logging.warning("Repository password: %s", password)' in helper
