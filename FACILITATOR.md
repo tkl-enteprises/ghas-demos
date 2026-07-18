@@ -149,16 +149,16 @@ Lessons whose demo flow needs more than the timing bucket and the talking-point 
 
 **Why no committed screenshot.** Lesson 02 is the only lesson with no embedded image. Autofix is intrinsically interactive — the proposed fix is generated on demand inside the PR review UI, takes 10–30 seconds to render, and then needs to be discussed live (accept / edit / dismiss). A still screenshot strips out everything that makes the lesson land.
 
-**Recommended live alert.** Pick one of these two — both are deterministic and Autofix-supported on this repo:
+**Recommended live alert.** Use the deterministic, Autofix-supported Lesson 02
+finding:
 
-| Alert | Rule | File | Why it's a good demo |
-| --- | --- | --- | --- |
-| **#21** | `py/template-injection` (SSTI) | `lessons/02-code-security-copilot-autofix/insecure_login.py` | High severity, dataflow path is short, Copilot's fix typically introduces `escape()` / autoescape config — easy to read. |
-| **#28** | `py/weak-cryptographic-algorithm` | `lessons/02-code-security-copilot-autofix/insecure_login.py` | Smallest possible fix surface (one-line MD5 → SHA-256 swap). Use this when you have ≤ 5 minutes for the lesson. |
+| Rule | File | Why it's a good demo |
+| --- | --- | --- |
+| `py/sql-injection` | `lessons/02-code-security-copilot-autofix/insecure_login.py` | The remote-input-to-SQL dataflow is short, and the expected bound-parameter fix is easy to review. |
 
 **Demo flow** (≈ 90 seconds end to end):
 
-1. `Security and quality → Code scanning → Alerts`. Filter to **Tool: CodeQL** and click into alert #21 (or #28).
+1. `Security and quality → Code scanning → Alerts`. Filter to **Tool: CodeQL** and path `lessons/02-code-security-copilot-autofix`, then open the SQL-injection alert.
 2. Click **Generate fix** (button label may also read *"Autofix this alert"*). Wait 10–30 seconds — narrate the suggestion preview as it loads.
 3. Click **Create PR with fix**. Walk through the diff Copilot proposes — *out loud, in the PR review UI*, before merging. This is the part attendees remember.
 4. Demonstrate the **edit-then-accept** flow: change one line of Copilot's diff, push to the branch, show that the alert is still resolved when CodeQL re-runs on the PR. Reinforces that Autofix is a starting point, not a rubber stamp.

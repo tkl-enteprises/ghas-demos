@@ -4,10 +4,15 @@ The manual fix you'd expect a careful reviewer to write — and the rough shape 
 
 ## What Autofix should produce
 
-Autofix sees a `py/sql-injection` alert with a taint path from `username`/`password` (function parameters → tainted strings) into `cursor.execute(query)`. It should rewrite `authenticate` to use parameter binding:
+Autofix sees a `py/sql-injection` alert with a taint path from the Flask
+`request.args` values into `cursor.execute(query)`. It should rewrite `login`
+to use parameter binding:
 
 ```python
-def authenticate(username: str, password: str) -> bool:
+@app.get("/login")
+def login() -> tuple[str, int]:
+    username = request.args.get("username", "")
+    password = request.args.get("password", "")
     conn = sqlite3.connect(DB_PATH)
     try:
         cursor = conn.cursor()
@@ -15,7 +20,9 @@ def authenticate(username: str, password: str) -> bool:
             "SELECT 1 FROM users WHERE username = ? AND password = ?",
             (username, password),
         )
-        return cursor.fetchone() is not None
+        if cursor.fetchone() is not None:
+            return "authenticated", 200
+        return "denied", 401
     finally:
         conn.close()
 ```
@@ -24,7 +31,7 @@ Key properties of the patch:
 
 1. The two `+` concatenations are gone — every user-supplied value is now a bound parameter.
 2. The SQL string is a constant — easy to grep, easy to audit.
-3. The function signature and return type are unchanged — callers don't break.
+3. The route signature and HTTP responses are unchanged — callers don't break.
 4. The SQLite driver does the quoting, so the alert auto-closes on the next CodeQL run.
 
 ## How to evaluate Autofix's actual suggestion
@@ -32,9 +39,9 @@ Key properties of the patch:
 When the workshop run produces a real Autofix patch, walk through this checklist:
 
 - [ ] Did it convert **both** `username` and `password` to bound parameters? (A patch that fixes only one is half a fix.)
-- [ ] Did it preserve `fetchone() is not None` semantics, or did it accidentally switch to `fetchall()`?
+- [ ] Did it preserve the authenticated/denied response semantics, or did it accidentally switch to `fetchall()`?
 - [ ] Is `conn.close()` (or the `try/finally`) still present?
-- [ ] Did it touch only `authenticate`, or did it modify the `__main__` block too?
+- [ ] Did it touch only the SQL construction in `login`, or did it modify the Flask route too?
 - [ ] Does the rationale text mention CWE-89 / SQL injection / parameterised queries — i.e. is it reasoning about the *security* property, not just style?
 
 ## Review the draft PR
