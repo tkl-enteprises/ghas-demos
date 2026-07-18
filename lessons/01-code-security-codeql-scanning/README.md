@@ -20,6 +20,18 @@ After this lesson you can:
 - Walk through a source → sink data-flow path inside an alert.
 - Compare a default-suite alert against a custom-query alert (lesson 03).
 
+## How CodeQL works
+
+CodeQL turns source code into a queryable database, runs security queries against it, and uploads the results to GitHub as code scanning alerts.
+
+```mermaid
+flowchart LR
+    A["Checkout source code"] --> B["Create CodeQL database"]
+    B --> C["Run security queries"]
+    C --> D["Trace source-to-sink flows"]
+    D --> E["Publish code scanning alerts"]
+```
+
 ## Estimated time
 
 **~15 min demo + 5 min discussion**
