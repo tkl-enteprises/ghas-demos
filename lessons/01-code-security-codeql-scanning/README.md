@@ -24,7 +24,7 @@ After this lesson you can:
 
 CodeQL turns source code into a queryable database, runs security queries against it, and uploads the results to GitHub as code scanning alerts.
 
-The CodeQL database is **not a graph database such as Neo4j**. It is a relational representation of one language at a specific commit. Conceptually, it contains:
+The CodeQL database stores a relational representation of one language at a specific commit. Conceptually, it contains:
 
 | Layer | Examples |
 | --- | --- |
