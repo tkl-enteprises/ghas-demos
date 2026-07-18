@@ -22,7 +22,7 @@ Run through this before attendees join. None of these are reversible mid-session
    - `Contoso Workshop Demo Key` → format `contoso_demo_[a-z0-9]{32}`, test string `contoso_demo_abcdef0123456789abcdef0123456789`
    Tick *Push protection* on each if you want lesson 08's optional push-block step to work. See [lesson 08 README](lessons/08-secret-protection-custom-patterns/README.md) for screenshots of the preflight.
 7. **Have the org Security Overview tab open on a second tab.** [https://github.com/orgs/tkl-enteprises/security/overview](https://github.com/orgs/tkl-enteprises/security/overview) — lesson 10 is entirely UI-driven and the page can take a few seconds to load on first visit.
-8. **Prepare lesson 06 separately if you plan to run it live.** AI-powered security detections require CodeQL default setup, but this repository uses advanced setup for custom queries and Actions analysis. Use a disposable organization-owned copy with the required Code Security, Copilot, AI-credit, and policy settings; otherwise use lesson 06's source-review fallback. Do not replace this repository's advanced setup during a workshop.
+8. **Prepare lesson 06 separately if you plan to show AI findings live.** This repository now provides deterministic Trivy SARIF alerts for the lesson fixtures, but AI-powered security detections require CodeQL default setup and this repository uses advanced setup for custom queries and Actions analysis. Use a disposable organization-owned copy with the required Code Security, Copilot, AI-credit, and policy settings for the AI-labeled PR experience. Do not replace this repository's advanced setup during a workshop.
 
 ## Repo configuration baseline
 
@@ -37,7 +37,7 @@ The repo ships with the following config applied. If you fork/copy this repo, re
 | Non-provider patterns | enabled | Generic password/key detection |
 | Dependabot alerts + security updates | enabled | Powers lesson 09 |
 | CodeQL (advanced workflow) | `build-mode: none` for Python | Default setup is OFF — would conflict |
-| AI-powered security detections (lesson 06) | source-review fallback in this repo | Live preview requires a separate eligible repository with CodeQL default setup |
+| AI-powered security detections (lesson 06) | Trivy SARIF alerts plus source review | Live AI preview requires a separate eligible repository with CodeQL default setup |
 | Branch protection on `main` | required checks: CodeQL, Bandit, Dependency Review; admins can bypass | Keeps `main` green |
 | Custom secret patterns (lesson 08) | UI-only, not in source | See lesson 08 README + preflight step 6 |
 
@@ -54,7 +54,7 @@ No clock times — pace varies wildly by audience. Use these qualitative buckets
 | 03 | Custom CodeQL Queries | long | The most technical lesson. Skip on non-engineering audiences. |
 | 04 | SARIF / 3rd-party Tool Integration | medium | Show how non-GitHub scanners surface in the same UI. |
 | 05 | CodeQL for GitHub Actions | medium | Review trust boundaries first; use the inert `.txt` fixtures unless working in a disposable copy. |
-| 06 | AI-powered security detections (optional / public preview) | short | Use a separately configured repository or the documented source-review fallback. |
+| 06 | AI-powered security detections (optional / public preview) | short | Start with this repo's Trivy alerts; use a separately configured repository for AI-labeled PR findings. |
 | 07 | Secret Scanning + Push Protection | short | Live `git push` of a fake key is the whole demo — keep it tight. |
 | 08 | Custom Secret Patterns | medium | Org admins love this; ICs less so. Match to your audience. |
 | 09 | Dependabot / Supply Chain (+ Malware bonus) | medium | Walk through both alerts *and* the auto-generated PRs. End with the Malware tab tour. |
@@ -124,7 +124,9 @@ The default CodeQL suite is a starting point, not a ceiling. Security teams writ
 CodeQL can analyze workflow YAML as the `actions` language. Use the inert `.yml.txt` pair to show why privileged checkout, expression-to-shell interpolation, and mutable action tags are separate trust-boundary failures. The repository's dedicated **Analyze (actions)** job uses `build-mode: none`; `security-extended` adds the medium-precision unpinned-tag query.
 
 ### 06. AI-powered security detections (optional / public preview)
-AI-powered security detections complement CodeQL with advisory findings on pull-request changes in coverage gaps such as PHP, Shell/Bash, Terraform/HCL, and Dockerfiles. They are PR-only, carry an **AI** indicator, and cannot currently enforce rulesets. The preview requires Code Security, Copilot, AI credits, layered enterprise/organization/repository opt-in, and CodeQL default setup. Because this repository uses advanced setup, demonstrate the live scan in a disposable eligible copy or use the source-review fallback.
+Begin with the persistent Trivy findings under `lessons/06-code-security-ai-detections` to show that a SARIF-capable scanner can cover configuration gaps in this repository. Explicitly identify **Trivy** as the tool; these alerts are not AI-generated.
+
+AI-powered security detections complement CodeQL with advisory findings on pull-request changes in coverage gaps such as PHP, Shell/Bash, Terraform/HCL, and Dockerfiles. They are PR-only, carry an **AI** indicator, and cannot currently enforce rulesets. The preview requires Code Security, Copilot, AI credits, layered enterprise/organization/repository opt-in, and CodeQL default setup. Because this repository uses advanced setup, demonstrate the AI-labeled live scan in a disposable eligible copy or use the Trivy-plus-source-review fallback.
 
 ### 07. Secret Scanning + Push Protection
 [Secret scanning](https://docs.github.com/en/code-security/secret-scanning) looks for known credential patterns (cloud provider keys, npm tokens, Stripe keys, ~200 partner patterns). **Push protection** moves that detection *left* — it runs at `git push` time and blocks the push before the secret reaches the remote. The mental model: secret scanning is the smoke detector; push protection is the sprinkler that goes off before the fire reaches the server room.
@@ -266,4 +268,4 @@ For mixed appsec + platform engineering audiences who want the full toolkit — 
 | 3:35–3:50 | 11 — Code Quality (bonus) | Compare Standard and AI quality findings with Code scanning. | Would your team gate merges on quality? |
 | 3:50–4:00 | — | Wrap, action items, follow-up resources | — |
 
-**Total: 240 min** with two 15-minute breaks. Lesson 03 gets the largest slot because authoring and running a custom query is the most technical content. Lesson 06's live path assumes its disposable default-setup repository passed preflight; otherwise use the source-review fallback without changing this repository.
+**Total: 240 min** with two 15-minute breaks. Lesson 03 gets the largest slot because authoring and running a custom query is the most technical content. Lesson 06's AI path assumes its disposable default-setup repository passed preflight; otherwise use this repository's Trivy findings and source-review fallback without changing CodeQL setup.

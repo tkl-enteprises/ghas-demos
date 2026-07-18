@@ -4,6 +4,8 @@
 
 AI-powered security detections complement CodeQL by reviewing pull request changes in languages and frameworks that CodeQL does not currently cover deeply. Early preview coverage includes **Terraform configuration (HCL), PHP, Shell/Bash, and Dockerfiles**, as well as framework gaps such as JSP and Blazor. They do not replace CodeQL's precise semantic analysis for its supported languages.
 
+This repository also runs a deterministic **Trivy misconfiguration scan** over the lesson fixtures and uploads its SARIF results to Code Scanning. Those persistent `main`-branch alerts make the lesson demonstrable here, but they are Trivy findings—not AI-powered findings. The AI-labeled experience still requires the separate pull-request setup described below.
+
 ## Goal
 
 Open a pull request containing inert, source-only examples and learn how GitHub Code Security presents AI-powered security findings alongside CodeQL results.
@@ -17,6 +19,7 @@ After this lesson you can:
 - Identify an AI-powered finding by its **AI** label in a pull request.
 - Explain the preview's PR-only, advisory, and ruleset limitations.
 - Evaluate a Copilot Autofix suggestion when one is available.
+- Compare persistent Trivy SARIF alerts with PR-only AI findings.
 - Run a useful fallback lesson when the preview is unavailable.
 
 ## Estimated time
@@ -35,9 +38,24 @@ All of the following must be true for the live scan:
 - The repository-level **AI findings** toggle is enabled or inherited from the organization. Repository administrators can opt out.
 - You can create a branch and pull request. Repository administration requires the corresponding owner or administrator role.
 
-No model selection, new workflow, build, or custom prompt file is required. The AI scan uses specialized prompts and does not use files such as `.github/copilot-instructions.md`.
+No model selection, build, or custom prompt file is required for the AI scan itself. It uses specialized prompts and does not use files such as `.github/copilot-instructions.md`. The repository's separate Trivy workflow is only the deterministic fallback and does not enable AI findings.
 
 > **Repository compatibility:** `tkl-enteprises/ghas-demos` intentionally uses CodeQL advanced setup for its Python custom queries and lesson 05 Actions analysis, so default setup is off here. Do not replace that shared configuration for this optional lesson. Use a disposable, organization-owned copy that meets the prerequisites above, or run the source-review fallback below.
+
+## Verify the findings in this repository
+
+The [`Lesson 06 Trivy SARIF`](../../.github/workflows/lesson-06-trivy.yml) workflow statically scans the fixtures as configuration files. It does not execute PHP or Bash, run Terraform, or build the Dockerfile.
+
+1. Open `Actions → Lesson 06 Trivy SARIF` and run the workflow if no completed `main` run exists yet.
+2. Open `Security → Code scanning`.
+3. Filter with:
+
+   ```text
+   is:open branch:main path:lessons/06-code-security-ai-detections
+   ```
+
+4. Confirm the results use the **Trivy** tool. The seeded Dockerfile should produce findings for its floating `latest` tag and explicit root user; additional low-severity checks may vary with Trivy's rule bundle.
+5. Open a result and identify the rule, severity, affected line, and remediation. These alerts persist in the repository backlog because they come from uploaded SARIF. They do not carry the **AI** indicator.
 
 ## Safe sample design
 
@@ -94,10 +112,11 @@ The files under [`samples/`](./samples/) are intentionally vulnerable **source-o
 
 Do not fabricate a result or enable unrelated products to force the demo.
 
-1. Use the four fixtures and [`solution.md`](./solution.md) as a source-review exercise.
-2. Show the [AI-powered security detections documentation](https://docs.github.com/en/code-security/concepts/code-scanning/ai-powered-security-detections) and walk through the enablement chain.
-3. Check enterprise policy, organization opt-in, repository opt-out, CodeQL default setup, licenses, and AI-credit availability in that order.
-4. Continue using CodeQL for supported languages and an approved SARIF-capable scanner for uncovered ecosystems until the preview is available. Record those results as that tool's findings—not as AI-powered detections.
+1. Use this repository's Trivy alerts to demonstrate SARIF-backed findings for the Dockerfile, then compare them with [`solution.md`](./solution.md).
+2. Use the four fixtures and [`solution.md`](./solution.md) as a source-review exercise for patterns Trivy does not report.
+3. Show the [AI-powered security detections documentation](https://docs.github.com/en/code-security/concepts/code-scanning/ai-powered-security-detections) and walk through the enablement chain.
+4. Check enterprise policy, organization opt-in, repository opt-out, CodeQL default setup, licenses, and AI-credit availability in that order.
+5. Continue using CodeQL for supported languages and approved SARIF-capable scanners for uncovered ecosystems until the preview is available. Record those results as that tool's findings—not as AI-powered detections.
 
 This fallback preserves the lesson's coverage and governance outcomes without promising preview access or a particular model response.
 
@@ -118,6 +137,7 @@ The lesson is complete when attendees can:
 - Name the enterprise, organization, and repository enablement layers.
 - Name the Code Security, Copilot, and AI-credit prerequisites.
 - Distinguish an AI-labeled PR finding from a CodeQL alert.
+- Distinguish a persistent Trivy SARIF alert from an AI-labeled PR finding.
 - Explain that the preview is PR-only, advisory, absent from the alert backlog, and unavailable to ruleset enforcement.
 - Explain that Autofix may be absent and must always be reviewed.
 - Describe the fallback when the preview is unavailable.
@@ -125,6 +145,7 @@ The lesson is complete when attendees can:
 ## Key takeaways
 
 - **Complement, not replacement:** CodeQL remains the high-precision engine for supported languages; AI-powered detections expand PR coverage into additional ecosystems.
+- **Tool identity matters:** this repository's stable lesson 06 alerts are produced by Trivy; only AI-labeled PR findings demonstrate the preview.
 - **Governance is layered:** enterprise policy must allow it, the organization must opt in, the repository must use CodeQL default setup, and the repository may opt out.
 - **Licensing and metering matter:** GitHub Code Security and Copilot licenses plus available AI credits are required during the preview.
 - **Findings are clearly labeled and advisory:** look for the **AI** indicator, then review the finding rather than treating it as a merge gate.
