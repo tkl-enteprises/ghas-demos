@@ -128,3 +128,25 @@ def test_codeql_config_queries_pack_exists(repo_root):
             continue
         target = repo_root / uses[2:]
         assert target.exists(), f"codeql-config.yml `uses: {uses}` does not resolve"
+
+
+def test_codeql_analyzes_github_actions(workflows_dir):
+    cfg = yaml.safe_load((workflows_dir / "codeql.yml").read_text(encoding="utf-8"))
+    job = cfg["jobs"]["analyze-actions"]
+    init_step = next(
+        step
+        for step in job["steps"]
+        if str(step.get("uses", "")).startswith("github/codeql-action/init@")
+    )
+    analyze_step = next(
+        step
+        for step in job["steps"]
+        if str(step.get("uses", "")).startswith("github/codeql-action/analyze@")
+    )
+
+    assert init_step["with"] == {
+        "languages": "actions",
+        "build-mode": "none",
+        "queries": "security-extended",
+    }
+    assert analyze_step["with"]["category"] == "/language:actions"
