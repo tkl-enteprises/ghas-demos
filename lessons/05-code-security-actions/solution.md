@@ -95,12 +95,10 @@ The version comments are for human and dependency-bot readability; the SHA is th
 The disabled live example extracts a password from a JSON repository secret:
 
 ```yaml
-env:
-  REPOSITORY_PASSWORD: ${{ fromJSON(secrets.LESSON_05_CREDENTIALS).password }}
-run: python lessons/05-code-security-actions/print_repository_secret.py
+run: echo "${{ fromJSON(secrets.LESSON_05_CREDENTIALS).password }}"
 ```
 
-GitHub masks the exact value of `${{ secrets.LESSON_05_CREDENTIALS }}`, but it cannot infer that the extracted `password` property is also secret. Passing that derived value to a helper that logs it can expose the password in the Actions log.
+GitHub masks the exact value of `${{ secrets.LESSON_05_CREDENTIALS }}`, but it cannot infer that the extracted `password` property is also secret. Echoing that derived value can expose the password in the Actions log.
 
 ### Preferred fix
 

@@ -1,0 +1,18 @@
+# INTENTIONALLY VULNERABLE GitHub Actions training example.
+# The job-level false condition is the safety boundary: CodeQL analyzes this
+# workflow, but GitHub Actions never runs it or reads a repository secret.
+name: "Lesson 05 - vulnerable secret printing (disabled)"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secret-exposure-demo:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print repository password
+        run: echo "${{ fromJSON(secrets.LESSON_05_CREDENTIALS).password }}"

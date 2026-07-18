@@ -2,7 +2,7 @@
 
 Use CodeQL to find vulnerabilities in workflow YAML before an attacker turns CI automation into a privileged execution path.
 
-> **Safety boundary:** the examples in `fixtures/` end in `.txt`. GitHub only loads workflow files from `.github/workflows/*.yml` or `.yaml`, so these fixtures cannot run in this repository. The live [secret-exposure workflow](../../.github/workflows/lesson-05-secret-exposure.yml) has a job-level `if: ${{ false }}` guard: CodeQL analyzes it, but GitHub Actions never executes it. Do not remove that guard or use a real secret with this demo.
+> **Safety boundary:** the examples in `fixtures/` end in `.txt`. GitHub only loads workflow files from `.github/workflows/*.yml` or `.yaml`, so these fixtures cannot run in this repository. The live [vulnerable workflow](../../.github/workflows/lesson-05-vulnerable.yml) has a job-level `if: ${{ false }}` guard: CodeQL analyzes it, but GitHub Actions never executes it or reads a repository secret. Do not remove that guard or use a real secret with this demo.
 
 ## Goal
 
@@ -43,22 +43,15 @@ For an end-to-end alert exercise, use a disposable fork, copy the fixture to `.g
 
 ## Detectable secret-exposure example
 
-The repository also contains a deliberately disabled workflow that models someone trying to print a password extracted from the repository secret `LESSON_05_CREDENTIALS`:
+The repository also contains a deliberately vulnerable but disabled workflow that directly tries to print a password extracted from the repository secret `LESSON_05_CREDENTIALS`:
 
 ```yaml
 if: ${{ false }}
 # ...
-env:
-  REPOSITORY_PASSWORD: ${{ fromJSON(secrets.LESSON_05_CREDENTIALS).password }}
-run: python lessons/05-code-security-actions/print_repository_secret.py
+run: echo "${{ fromJSON(secrets.LESSON_05_CREDENTIALS).password }}"
 ```
 
-The secret does not need to exist. The job-level false condition prevents checkout, secret access, and script execution. CodeQL still analyzes both static paths:
-
-- `actions/unmasked-secret-exposure` reports the derived password expression in `.github/workflows/lesson-05-secret-exposure.yml`;
-- `py/clear-text-logging-sensitive-data` reports the logging sink in `print_repository_secret.py`, so the lesson path filter shown in the Code scanning page returns a result.
-
-Current CodeQL versions may also report `py/log-injection` at the same logging sink because environment data reaches a log entry without newline neutralization.
+The secret does not need to exist. The job-level false condition prevents secret access and command execution. CodeQL still analyzes the YAML and reports `actions/unmasked-secret-exposure` on the expression in `.github/workflows/lesson-05-vulnerable.yml`.
 
 A direct `${{ secrets.NAME }}` value is normally masked by the runner. A property extracted with `fromJSON(secrets.NAME).password` is a new value the runner does not know, so printing it may expose clear text.
 
@@ -68,15 +61,13 @@ A direct `${{ secrets.NAME }}` value is normally masked by the runner. A propert
 2. **Inspect the trust boundary.** In the vulnerable fixture, find `on: pull_request_target`, the checkout of `github.event.pull_request.head.sha`, and the subsequent `pytest` command. The event supplies base-repository privileges while the checkout supplies attacker-controlled executable code.
 3. **Trace script injection.** Follow `github.event.pull_request.title` into the `run:` block. GitHub expands `${{ ... }}` before the runner invokes Bash, so a crafted title can alter the generated script.
 4. **Audit action references.** Find `actions/checkout@v4` and `actions/setup-python@v5`. Tags are mutable names; a full commit SHA makes the selected action content immutable.
-5. **Trace secret exposure.** Open the disabled secret-exposure workflow and follow the derived password into `print_repository_secret.py`. Confirm that `if: ${{ false }}` is on the job, not merely on one step.
+5. **Trace secret exposure.** Open the disabled vulnerable workflow and find the derived password directly interpolated into `run: echo`. Confirm that `if: ${{ false }}` is on the job, not merely on one step.
 6. **Compare the repaired design.** Open [`fixtures/remediated-workflow.yml.txt`](fixtures/remediated-workflow.yml.txt), then use [`solution.md`](solution.md) to map each vulnerable line to its fix.
-7. **Review CodeQL alerts.** In **Security and quality → Code scanning**, filter **Tool: CodeQL**. Use `path:lessons/05-code-security-actions` for the Python logging alert. Use `path:.github/workflows/lesson-05-secret-exposure.yml language:github-actions` for the Actions alert. The two critical `.txt` fixture findings appear only if you completed the disposable-fork exercise above. Useful rule IDs include:
+7. **Review the GitHub Actions alert.** In **Security and quality → Code scanning**, replace the lesson-directory path filter with `is:open branch:main language:github-actions path:.github/workflows/lesson-05-vulnerable.yml`. Workflow files must live under the repository-root `.github/workflows/` directory, so `path:lessons/05-code-security-actions` cannot return a GitHub Actions alert. The two critical `.txt` fixture findings appear only if you completed the disposable-fork exercise above. Useful rule IDs include:
    - `actions/untrusted-checkout/critical`
    - `actions/code-injection/critical`
    - `actions/unpinned-tag`
    - `actions/unmasked-secret-exposure`
-   - `py/clear-text-logging-sensitive-data`
-   - `py/log-injection`
 
 ## Files
 
@@ -84,8 +75,7 @@ A direct `${{ secrets.NAME }}` value is normally masked by the runner. A propert
 | --- | --- |
 | `fixtures/vulnerable-workflow.yml.txt` | Non-executable text fixture containing all three findings. |
 | `fixtures/remediated-workflow.yml.txt` | Non-executable, hardened comparison fixture. |
-| `print_repository_secret.py` | Intentionally vulnerable logging sink reached only by the disabled workflow. |
-| `.github/workflows/lesson-05-secret-exposure.yml` | Active for CodeQL extraction, permanently skipped at runtime. |
+| `.github/workflows/lesson-05-vulnerable.yml` | Vulnerable YAML extracted by CodeQL, permanently skipped at runtime. |
 | `solution.md` | Finding-by-finding explanation and remediation guidance. |
 
 ## Exit criteria
