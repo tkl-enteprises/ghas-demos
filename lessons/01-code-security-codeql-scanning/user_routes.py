@@ -3,23 +3,19 @@
 Part of GHAS workshop demos: https://github.com/tkl-enteprises/ghas-demos
 Do not deploy or use in production. Every issue here is detected by GHAS.
 
-A pretend "Flask-style" search endpoint. We do not actually depend on Flask
-in the workshop image — instead we fake the request with sys.argv so that
-CodeQL still sees user input flowing into a sqlite3 query.
+Flask route handlers that pass remote request data directly to sqlite3.
 """
 
 import sqlite3
-import sys
+
+from flask import Flask, request
 
 
-class FakeRequest:
-    """Mimics the parts of a Flask request object that we need."""
-
-    def __init__(self, args: dict[str, str]):
-        self.args = args
+app = Flask(__name__)
 
 
-def search_users(request: FakeRequest) -> list[tuple]:
+@app.get("/users/search")
+def search_users() -> list[tuple]:
     """Search users by partial name match.
 
     ⚠️ The `q` parameter is concatenated straight into the SQL string, so
@@ -35,7 +31,8 @@ def search_users(request: FakeRequest) -> list[tuple]:
     return cursor.fetchall()
 
 
-def list_user_orders(request: FakeRequest) -> list[tuple]:
+@app.get("/users/orders")
+def list_user_orders() -> list[tuple]:
     """List orders for a given user_id.
 
     ⚠️ Same pattern, different sink — useful for showing CodeQL's per-route
@@ -46,9 +43,3 @@ def list_user_orders(request: FakeRequest) -> list[tuple]:
     cursor = conn.cursor()
     cursor.execute("SELECT id, total FROM orders WHERE user_id = " + user_id)
     return cursor.fetchall()
-
-
-if __name__ == "__main__":
-    # Pretend the first argv is the `q` parameter.
-    fake = FakeRequest({"q": sys.argv[1] if len(sys.argv) > 1 else ""})
-    print(search_users(fake))
