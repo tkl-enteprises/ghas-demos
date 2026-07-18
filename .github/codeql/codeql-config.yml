@@ -2,8 +2,9 @@
 # CodeQL configuration for the GHAS demo repo.
 #
 # - `name` is shown in the CodeQL run header.
-# - `queries` adds the custom QL pack alongside the default suite, so the
-#   built-in security queries AND our workshop-specific queries both run.
+# - `queries` adds the extended security suite and the custom QL pack.
+# - `threat-models` includes local inputs so the CLI-based lesson fixtures are
+#   treated as user-controlled sources.
 # - `paths-ignore` skips lesson 04's directory: that lesson intentionally
 #   contains insecure Python that we want flagged by Bandit (via SARIF
 #   upload), not duplicated by CodeQL.
@@ -11,10 +12,15 @@
 
 name: "Custom GHAS demo CodeQL config"
 
-# Run the default security suite *plus* our custom queries from the QL pack
+# Run the extended security suite plus our custom queries from the QL pack
 # under .github/codeql/custom-queries/.
 queries:
+  - uses: security-extended
   - uses: ./.github/codeql/custom-queries
+
+# The lesson 01 sampler uses command-line arguments to make source-to-sink
+# paths explicit. Keep the default remote model and add local input sources.
+threat-models: [local, remote]
 
 # Lesson 04 ships intentionally vulnerable Python that is analysed by Bandit
 # and uploaded as SARIF. Keep CodeQL out of that directory so the two demos

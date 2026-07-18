@@ -53,7 +53,7 @@ After CodeQL runs against this lesson, expect alerts similar to the table below 
 | `py/path-injection` | CWE-22 | High | `vulnerable_app.py` → `read_report` |
 | `py/code-injection` | CWE-94 | Critical | `vulnerable_app.py` → `evaluate_expression` |
 | `py/clear-text-logging-sensitive-data` | CWE-312 | Medium / High | `vulnerable_app.py` → `log_login_attempt` |
-| `py/weak-cryptographic-algorithm` | CWE-327 | Medium | `vulnerable_app.py` → `hash_password` |
+| `py/weak-sensitive-data-hashing` | CWE-327 | Medium | `vulnerable_app.py` → `hash_password` |
 | `py/hardcoded-credentials` | CWE-798 | High | `vulnerable_app.py` → `ADMIN_PASSWORD` |
 
 > 💡 You should see between 7 and ~10 alerts depending on whether CodeQL splits some sinks into multiple findings. That is normal.
@@ -90,9 +90,9 @@ After CodeQL runs against this lesson, expect alerts similar to the table below 
 
 Use these to drive the workshop conversation after attendees have explored the alerts:
 
-1. **Severity vs exploitability.** Two alerts share the same `security-severity` score but very different real-world impact (e.g. `py/sql-injection` in `lookup_user` vs `py/weak-cryptographic-algorithm`). How would you decide which to fix first in your own backlog?
+1. **Severity vs exploitability.** Two alerts share the same `security-severity` score but very different real-world impact (e.g. `py/sql-injection` in `lookup_user` vs `py/weak-sensitive-data-hashing`). How would you decide which to fix first in your own backlog?
 2. **Source vs sink.** CodeQL's path view shows where untrusted input enters the program and where it reaches a dangerous API. Which side is usually easier to harden, and why? When does *sanitisation at the boundary* fall short?
-3. **Default suite vs security-extended.** This repo runs the **default** Python query suite. Browse [the security-extended pack](https://codeql.github.com/codeql-query-help/python/) — pick one query that is *not* in the default suite and discuss whether your team would accept its noise budget.
+3. **Default suite vs security-extended.** This repo runs the **security-extended** Python query suite so lower-precision workshop examples such as hard-coded credentials are included. Compare it with the default suite and discuss whether your team would accept the additional noise.
 
 ## Exit criteria
 
