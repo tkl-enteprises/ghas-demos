@@ -2,7 +2,8 @@
 # CodeQL configuration for the GHAS demo repo.
 #
 # - `name` is shown in the CodeQL run header.
-# - `queries` adds the extended security suite and the custom QL pack.
+# - `queries` adds the extended security suite, Lesson 01's targeted
+#   hard-coded credentials query, and the custom QL pack.
 # - `threat-models` includes local inputs so the CLI-based lesson fixtures are
 #   treated as user-controlled sources.
 # - `paths-ignore` skips lesson 04's directory: that lesson intentionally
@@ -16,6 +17,7 @@ name: "Custom GHAS demo CodeQL config"
 # under .github/codeql/custom-queries/.
 queries:
   - uses: security-extended
+  - uses: ./.github/codeql/hardcoded-credentials.qls
   - uses: ./.github/codeql/custom-queries
 
 # The lesson 01 sampler uses command-line arguments to make source-to-sink

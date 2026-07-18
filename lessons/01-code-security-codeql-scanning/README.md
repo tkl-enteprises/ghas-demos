@@ -92,7 +92,7 @@ Use these to drive the workshop conversation after attendees have explored the a
 
 1. **Severity vs exploitability.** Two alerts share the same `security-severity` score but very different real-world impact (e.g. `py/sql-injection` in `lookup_user` vs `py/weak-sensitive-data-hashing`). How would you decide which to fix first in your own backlog?
 2. **Source vs sink.** CodeQL's path view shows where untrusted input enters the program and where it reaches a dangerous API. Which side is usually easier to harden, and why? When does *sanitisation at the boundary* fall short?
-3. **Default suite vs security-extended.** This repo runs the **security-extended** Python query suite so lower-precision workshop examples such as hard-coded credentials are included. Compare it with the default suite and discuss whether your team would accept the additional noise.
+3. **Default suite vs security-extended.** This repo runs the **security-extended** Python suite and explicitly adds the low-precision `py/hardcoded-credentials` query for this workshop. Compare it with the default suite and discuss whether your team would accept the additional noise.
 
 ## Exit criteria
 
