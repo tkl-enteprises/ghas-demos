@@ -27,7 +27,7 @@ delete_branch() {
 
 process_alert() {
   local alert_number="$1"
-  local alert branch existing_pr alert_sha status description
+  local alert branch existing_pr alert_sha current_alert_sha status description
   local attempt pr_url
 
   if ! alert="$(gh api "repos/${repository}/code-scanning/alerts/${alert_number}")"; then
@@ -47,6 +47,7 @@ process_alert() {
     warn "Skipping alert #${alert_number}: alert is not on ${default_branch}."
     return
   fi
+  alert_sha="$(jq -r '.most_recent_instance.commit_sha' <<<"$alert")"
 
   branch="autofix/codeql-alert-${alert_number}"
   existing_pr="$(
@@ -104,7 +105,16 @@ process_alert() {
     return
   fi
 
-  alert_sha="$(jq -r '.most_recent_instance.commit_sha' <<<"$alert")"
+  current_alert_sha="$(
+    gh api \
+      "repos/${repository}/code-scanning/alerts/${alert_number}" \
+      --jq '.most_recent_instance.commit_sha'
+  )"
+  if [[ "$current_alert_sha" != "$alert_sha" ]]; then
+    warn "Skipping alert #${alert_number}: a newer CodeQL analysis replaced the alert while Autofix was running."
+    return
+  fi
+
   if ! gh api \
     --method POST \
     "repos/${repository}/git/refs" \

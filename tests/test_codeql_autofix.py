@@ -25,4 +25,5 @@ def test_codeql_autofix_workflow_is_guarded(repo_root, workflows_dir):
     assert workflow["jobs"]["create-draft-fixes"]["if"].count("workflow_run") >= 3
     assert "--draft" in script
     assert "autofix/commits" in script
+    assert 'current_alert_sha" != "$alert_sha' in script
     assert "gh pr merge" not in script
