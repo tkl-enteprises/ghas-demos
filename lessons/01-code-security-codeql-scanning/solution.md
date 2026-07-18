@@ -155,7 +155,7 @@ hashlib.sha256(payload).hexdigest()
 **Bad**:
 
 ```python
-ADMIN_PASSWORD = "hunter2_FAKE_PASSWORD_FOR_DEMO"
+ADMIN_PASSWORD = "insecure_pwd"
 ```
 
 **Good** — load from environment / secret manager and compare with `secrets.compare_digest` to avoid timing attacks:

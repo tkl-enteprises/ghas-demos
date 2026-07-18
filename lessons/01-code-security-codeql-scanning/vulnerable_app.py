@@ -86,7 +86,7 @@ def hash_password(password: str) -> str:
 # ---------------------------------------------------------------------------
 # 7. Hard-coded credentials — CodeQL: py/hardcoded-credentials (CWE-798)
 # ---------------------------------------------------------------------------
-ADMIN_PASSWORD = "hunter2_FAKE_PASSWORD_FOR_DEMO"
+ADMIN_PASSWORD = "insecure_pwd"
 
 
 def is_admin(submitted_password: str) -> bool:
