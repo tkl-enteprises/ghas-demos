@@ -21,14 +21,14 @@ NUMBERED_SCREENSHOT_LESSONS = {
     "01-codeql-alert-detail.png": "01-code-security-codeql-scanning",
     "04-actions-tab.png": "04-code-security-sarif-integration",
     "04-bandit-sarif-findings.png": "04-code-security-sarif-integration",
-    "07-push-protection-settings.png": "07-secret-protection-secret-scanning",
-    "07-secret-scanning-default-empty.png": "07-secret-protection-secret-scanning",
-    "08-secret-scanning-generic-ai.png": "08-secret-protection-custom-patterns",
-    "09-dependabot-alerts.png": "09-supply-chain-dependabot",
-    "09-dependabot-pr-detail.png": "09-supply-chain-dependabot",
-    "09-dependabot-prs-list.png": "09-supply-chain-dependabot",
-    "10-org-security-overview-coverage.png": "10-governance-security-overview",
-    "10-org-security-overview-risk.png": "10-governance-security-overview",
+    "08-push-protection-settings.png": "08-secret-protection-secret-scanning",
+    "08-secret-scanning-default-empty.png": "08-secret-protection-secret-scanning",
+    "09-secret-scanning-generic-ai.png": "09-secret-protection-custom-patterns",
+    "10-dependabot-alerts.png": "10-supply-chain-dependabot",
+    "10-dependabot-pr-detail.png": "10-supply-chain-dependabot",
+    "10-dependabot-prs-list.png": "10-supply-chain-dependabot",
+    "11-org-security-overview-coverage.png": "11-governance-security-overview",
+    "11-org-security-overview-risk.png": "11-governance-security-overview",
 }
 
 NON_NUMBERED_PREFIX_RE = re.compile(r"^\d{2}-")

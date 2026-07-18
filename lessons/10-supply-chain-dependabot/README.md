@@ -1,4 +1,4 @@
-# Lesson 09 — Grouped Dependabot security updates
+# Lesson 10 — Grouped Dependabot security updates
 
 A facilitator-ready demo of dependency alerts, grouped Dependabot security-update pull requests, organization-level prioritization, and npm malware alerts. The Python dependencies are **intentionally vulnerable** fixtures. Do not install them, run the app, or merge Dependabot's fixes into the workshop branch.
 
@@ -64,15 +64,15 @@ Every line in `requirements.txt` maps to at least one published advisory in the 
 
 ## Visual reference
 
-![Dependabot vulnerability alerts showing advisories grouped by severity across Flask, Jinja2, Werkzeug, urllib3, requests, PyYAML, and cryptography.](../../docs/screenshots/09-dependabot-alerts.png)
+![Dependabot vulnerability alerts showing advisories grouped by severity across Flask, Jinja2, Werkzeug, urllib3, requests, PyYAML, and cryptography.](../../docs/screenshots/10-dependabot-alerts.png)
 
 *The Dependabot alerts page after the dependency graph parses `requirements.txt` and `pyproject.toml`. Each row maps back to a published advisory in the GitHub Advisory Database.*
 
-![Pull requests tab filtered to `is:pr is:open author:app/dependabot` showing pip security-update PRs against the lesson's vulnerable dependencies.](../../docs/screenshots/09-dependabot-prs-list.png)
+![Pull requests tab filtered to `is:pr is:open author:app/dependabot` showing pip security-update PRs against the lesson's vulnerable dependencies.](../../docs/screenshots/10-dependabot-prs-list.png)
 
 *This screenshot may predate grouping. With the current configuration, eligible pip fixes matched by the group are combined when GitHub can resolve them together.*
 
-![Detail of a Dependabot PR bumping Flask, with the CVE annotation, severity badge, release notes, and compatibility score visible on the right rail.](../../docs/screenshots/09-dependabot-pr-detail.png)
+![Detail of a Dependabot PR bumping Flask, with the CVE annotation, severity badge, release notes, and compatibility score visible on the right rail.](../../docs/screenshots/10-dependabot-pr-detail.png)
 
 *A single security-update PR. Note the **CVE annotation**, **release notes pulled from the upstream repo**, and the **compatibility score** — Dependabot's signal that the bump is unlikely to break callers.*
 
@@ -84,7 +84,7 @@ Open `requirements.txt`, but **do not install it**. Point out the warning and th
 
 ```yaml
 groups:
-  lesson-nine-security-updates:
+  lesson-ten-security-updates:
     applies-to: "security-updates"
     patterns:
       - "*"
@@ -103,8 +103,8 @@ Talk track: "An alert is a finding, not a PR. There can be several alerts for on
 
 ### 3. Inspect the grouped security update (4 minutes)
 
-1. Open **Pull requests** and use `is:pr author:app/dependabot label:lesson-09`.
-2. Open the PR whose title or branch includes `lesson-nine-security-updates`.
+1. Open **Pull requests** and use `is:pr author:app/dependabot label:lesson-10`.
+2. Open the PR whose title or branch includes `lesson-ten-security-updates`.
 3. Show that its manifest diff updates multiple dependencies, then inspect release notes, compatibility information when available, and CI.
 4. Explain that the group is the review unit: one incompatible update can block the whole PR. Split or manually remediate when packages cannot safely ship together.
 

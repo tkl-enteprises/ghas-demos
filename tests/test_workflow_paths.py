@@ -17,10 +17,9 @@ import yaml
 
 
 EXPECTED_BANDIT_TARGET = "lessons/04-code-security-sarif-integration"
-EXPECTED_TRIVY_TARGET = "lessons/06-code-security-ai-detections"
 EXPECTED_DEPENDABOT_LESSON_DIRECTORIES = {
     "/lessons/04-code-security-sarif-integration",
-    "/lessons/09-supply-chain-dependabot",
+    "/lessons/10-supply-chain-dependabot",
 }
 EXPECTED_CODEQL_PATHS_IGNORE = ["lessons/04-code-security-sarif-integration/**"]
 EXPECTED_DEPENDABOT_LESSON_METADATA = {
@@ -28,9 +27,9 @@ EXPECTED_DEPENDABOT_LESSON_METADATA = {
         "groups": set(),
         "labels": {"dependencies", "lesson-04"},
     },
-    "/lessons/09-supply-chain-dependabot": {
-        "groups": {"lesson-nine-security-updates"},
-        "labels": {"dependencies", "lesson-09"},
+    "/lessons/10-supply-chain-dependabot": {
+        "groups": {"lesson-ten-security-updates"},
+        "labels": {"dependencies", "lesson-10"},
     },
 }
 
@@ -54,18 +53,6 @@ def test_bandit_target_path_exists(repo_root, workflows_dir):
     assert target.is_dir(), (
         f"sarif-bandit.yml runs `bandit -r {m.group(1)}` but {target} is not a directory"
     )
-
-
-def test_trivy_target_path_exists(repo_root, workflows_dir):
-    text = (workflows_dir / "lesson-06-trivy.yml").read_text(encoding="utf-8")
-    m = re.search(r"scan-ref:\s*(\S+)", text)
-    assert m, "Expected `scan-ref: <path>` in lesson-06-trivy.yml"
-    assert m.group(1) == EXPECTED_TRIVY_TARGET
-    assert (repo_root / m.group(1)).is_dir()
-    assert re.search(r"^\s+scanners:\s*misconfig\s*$", text, re.MULTILINE)
-    assert re.search(r"^\s+format:\s*sarif\s*$", text, re.MULTILINE)
-    assert '--arg prefix "lessons/06-code-security-ai-detections/"' in text
-    assert "github/codeql-action/upload-sarif@" in text
 
 
 def test_demo_health_script_path_exists(repo_root, workflows_dir):

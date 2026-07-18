@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # Dependency Review
 #
-# Powers lesson 09. Blocks PRs that introduce known-vulnerable deps.
+# Powers lesson 10. Blocks PRs that introduce known-vulnerable deps.
 # ---------------------------------------------------------------------------
 
 name: "Dependency Review"
@@ -26,7 +26,7 @@ jobs:
         uses: actions/dependency-review-action@v4 # v4.5.0
         with:
           fail-on-severity: moderate
-          # Lesson 09 intentionally pins these advisories for the Dependabot demo.
+          # Lesson 10 intentionally pins these advisories for the Dependabot demo.
           allow-ghsas: >-
             GHSA-29vq-49wr-vm6x, GHSA-2g68-c3qc-8985,
             GHSA-2xpw-w6gg-jr37, GHSA-34jh-p97f-mpxf,

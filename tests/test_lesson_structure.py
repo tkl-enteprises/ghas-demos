@@ -29,12 +29,12 @@ EXPECTED_LESSON_NAMES = (
     "03-code-security-custom-codeql-queries",
     "04-code-security-sarif-integration",
     "05-code-security-actions",
-    "06-code-security-ai-detections",
-    "07-secret-protection-secret-scanning",
-    "08-secret-protection-custom-patterns",
-    "09-supply-chain-dependabot",
-    "10-governance-security-overview",
-    "11-code-quality-analysis",
+    "06-code-quality-standard-findings",
+    "07-code-quality-ai-findings",
+    "08-secret-protection-secret-scanning",
+    "09-secret-protection-custom-patterns",
+    "10-supply-chain-dependabot",
+    "11-governance-security-overview",
 )
 EXPECTED_LESSON_PREFIXES = tuple(f"{n:02d}" for n in range(1, 12))
 RECOGNIZED_PILLARS = (
@@ -45,11 +45,11 @@ RECOGNIZED_PILLARS = (
     "code-quality",
 )
 EXPECTED_PILLAR_ORDER = (
-    *(["code-security"] * 6),
+    *(["code-security"] * 5),
+    *(["code-quality"] * 2),
     *(["secret-protection"] * 2),
     "supply-chain",
     "governance",
-    "code-quality",
 )
 LESSON_DIR_RE = re.compile(
     rf"^(?P<number>\d{{2}})-"

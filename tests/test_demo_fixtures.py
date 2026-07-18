@@ -101,8 +101,8 @@ def test_lesson03_custom_query_and_controls_stay_aligned(repo_root: Path):
     ] is True
 
 
-def test_lesson09_manifests_match_all_intentional_pins(repo_root: Path):
-    lesson = _lesson(repo_root, "09-supply-chain-dependabot")
+def test_lesson10_manifests_match_all_intentional_pins(repo_root: Path):
+    lesson = _lesson(repo_root, "10-supply-chain-dependabot")
     requirements = _requirements_pins(lesson / "requirements.txt")
     pyproject = tomllib.loads((lesson / "pyproject.toml").read_text(encoding="utf-8"))
     project_dependencies = tuple(pyproject["project"]["dependencies"])
@@ -112,8 +112,8 @@ def test_lesson09_manifests_match_all_intentional_pins(repo_root: Path):
     assert requirements == project_dependencies
 
 
-def test_lesson09_vulnerable_baseline_is_documented(repo_root: Path):
-    lesson = _lesson(repo_root, "09-supply-chain-dependabot")
+def test_lesson10_vulnerable_baseline_is_documented(repo_root: Path):
+    lesson = _lesson(repo_root, "10-supply-chain-dependabot")
     readme = (lesson / "README.md").read_text(encoding="utf-8")
     solution = (lesson / "solution.md").read_text(encoding="utf-8")
     rows = _markdown_table(readme, "Package")
@@ -140,8 +140,8 @@ def test_lesson09_vulnerable_baseline_is_documented(repo_root: Path):
     assert documented_pins == set(DEPENDABOT_PINS)
 
 
-def test_lesson09_safety_warnings_remain(repo_root: Path):
-    lesson = _lesson(repo_root, "09-supply-chain-dependabot")
+def test_lesson10_safety_warnings_remain(repo_root: Path):
+    lesson = _lesson(repo_root, "10-supply-chain-dependabot")
     readme = (lesson / "README.md").read_text(encoding="utf-8")
     requirements_intro = "\n".join(
         (lesson / "requirements.txt").read_text(encoding="utf-8").splitlines()[:2]
@@ -167,8 +167,8 @@ def test_lesson09_safety_warnings_remain(repo_root: Path):
     assert re.search(r"\bexecute `app\.py`", fixture_guidance, flags=re.IGNORECASE)
 
 
-def test_lesson11_retains_quality_defects_and_solution(repo_root: Path):
-    lesson = _lesson(repo_root, "11-code-quality-analysis")
+def test_lesson06_retains_quality_defects_and_solution(repo_root: Path):
+    lesson = _lesson(repo_root, "06-code-quality-standard-findings")
     fixture = (lesson / "quality-fixtures.js").read_text(encoding="utf-8")
     readme = (lesson / "README.md").read_text(encoding="utf-8")
     solution = (lesson / "solution.md").read_text(encoding="utf-8")
@@ -201,12 +201,12 @@ def test_lesson11_retains_quality_defects_and_solution(repo_root: Path):
     assert re.search(r"\bdo\s+not\s+merge\b", solution, flags=re.IGNORECASE)
 
 
-def test_lesson11_fixture_is_runnable_and_inert(repo_root: Path):
+def test_lesson06_fixture_is_runnable_and_inert(repo_root: Path):
     node = shutil.which("node")
     if node is None:
         pytest.skip("Node.js is optional; static fixture checks still ran")
 
-    fixture = _lesson(repo_root, "11-code-quality-analysis") / "quality-fixtures.js"
+    fixture = _lesson(repo_root, "06-code-quality-standard-findings") / "quality-fixtures.js"
     harness = r"""
 const assert = require("node:assert/strict");
 const Module = require("node:module");
@@ -260,6 +260,111 @@ assert.equal(
     assert result.stdout == ""
 
 
+def test_lesson07_ai_findings_fixture_is_contextual_and_inert(repo_root: Path):
+    lesson = _lesson(repo_root, "07-code-quality-ai-findings")
+    fixture = lesson / "ai-findings-fixtures.js"
+    text = fixture.read_text(encoding="utf-8")
+    readme = (lesson / "README.md").read_text(encoding="utf-8")
+
+    assert re.search(r"let\s+selectedWorkshop\s*=\s*workshops\[0\]", text)
+    assert "registration were succesfully saved" in text
+    assert re.search(r"attendees\.sort\(", text)
+    assert re.search(r"attendee\.name\s*=", text)
+    assert re.search(r"for\s*\([^)]*workshopId[^)]*\)\s*\{[^}]*await", text, re.DOTALL)
+    assert "At least one pull request is merged after Code Quality was enabled" in readme
+
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node.js is optional; static AI fixture checks still ran")
+
+    harness = r"""
+const assert = require("node:assert/strict");
+const Module = require("node:module");
+
+const fixturePath = process.argv[1];
+const originalLoad = Module._load;
+Module._load = function (request, parent, isMain) {
+  if (request === fixturePath) {
+    return originalLoad.call(this, request, parent, isMain);
+  }
+  throw new Error(`Fixture imported unexpected module: ${request}`);
+};
+
+for (const name of ["fetch", "setInterval", "setTimeout"]) {
+  globalThis[name] = () => {
+    throw new Error(`Fixture invoked ${name}`);
+  };
+}
+for (const name of ["debug", "error", "info", "log", "warn"]) {
+  console[name] = () => {
+    throw new Error(`Fixture wrote to console.${name}`);
+  };
+}
+
+const fixtures = require(fixturePath);
+    assert.deepEqual(Object.keys(fixtures).sort(), [
+      "buildRegistrationMessage",
+      "findWorkshopById",
+      "loadWorkshopDetails",
+      "normalizeAttendees",
+    ]);
+    assert.equal(
+      fixtures.buildRegistrationMessage("Ada"),
+      "Ada, your registration were succesfully saved.",
+    );
+
+const workshops = [{ id: "first" }, { id: "second" }];
+assert.equal(fixtures.findWorkshopById(workshops, "missing"), workshops[0]);
+
+const attendees = [
+  { name: "  Zoe", email: "ZOE@EXAMPLE.COM " },
+  { name: " Ada ", email: " ADA@EXAMPLE.COM" },
+];
+    assert.equal(fixtures.normalizeAttendees(attendees), attendees);
+    assert.deepEqual(attendees, [
+      { name: "Zoe", email: "zoe@example.com" },
+      { name: "Ada", email: "ada@example.com" },
+    ]);
+
+let active = 0;
+let maximumActive = 0;
+async function fetchWorkshop(id) {
+  active += 1;
+  maximumActive = Math.max(maximumActive, active);
+  await Promise.resolve();
+  active -= 1;
+  return { id };
+}
+
+(async () => {
+  assert.deepEqual(
+    await fixtures.loadWorkshopDetails(["first", "second"], fetchWorkshop),
+    [{ id: "first" }, { id: "second" }],
+  );
+  assert.equal(maximumActive, 1);
+})().catch((error) => {
+  process.stderr.write(`${error.stack}\n`);
+  process.exitCode = 1;
+});
+"""
+    result = subprocess.run(
+        [node, "--check", str(fixture)],
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    assert result.returncode == 0, result.stderr
+
+    result = subprocess.run(
+        [node, "-e", harness, str(fixture.resolve())],
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == ""
+
+
 def test_security_fixtures_cannot_activate_accidentally(repo_root: Path):
     actions_fixtures = _lesson(repo_root, "05-code-security-actions") / "fixtures"
     fixture_files = sorted(path.name for path in actions_fixtures.iterdir() if path.is_file())
@@ -268,23 +373,11 @@ def test_security_fixtures_cannot_activate_accidentally(repo_root: Path):
         "vulnerable-workflow.yml.txt",
     ]
 
-    ai_samples = _lesson(repo_root, "06-code-security-ai-detections") / "samples"
-    sample_files = {path.name: path for path in ai_samples.iterdir() if path.is_file()}
-    assert set(sample_files) == {"Dockerfile", "main.tf", "preview_path.bash", "query.php"}
-    assert all(not os.access(path, os.X_OK) for path in sample_files.values())
-
     workflow_text = "\n".join(
         path.read_text(encoding="utf-8")
         for path in (repo_root / ".github" / "workflows").glob("*.yml")
     )
     assert "05-code-security-actions/fixtures" not in workflow_text
-    assert "06-code-security-ai-detections/samples" not in workflow_text
-
-    assert re.search(r"^\s*count\s*=\s*0\s*$", sample_files["main.tf"].read_text(), re.MULTILINE)
-    dockerfile = sample_files["Dockerfile"].read_text(encoding="utf-8")
-    assert not re.search(r"^\s*(RUN|CMD|ENTRYPOINT)\b", dockerfile, re.MULTILINE)
-    assert sample_files["preview_path.bash"].read_text().count("preview_path") == 1
-    assert sample_files["query.php"].read_text().count("findUser") == 1
 
 
 def test_lesson05_secret_exposure_demo_stays_disabled(repo_root: Path):

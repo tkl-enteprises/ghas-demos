@@ -1,28 +1,28 @@
 # ---------------------------------------------------------------------------
 # Dependabot configuration
 #
-# Powers lesson 09. Dependabot will open security update PRs against the
-# intentionally-vulnerable requirements.txt under lesson 09.
+# Powers lesson 10. Dependabot will open security update PRs against the
+# intentionally-vulnerable requirements.txt under lesson 10.
 # ---------------------------------------------------------------------------
 
 version: 2
 updates:
-  # Lesson 09: intentionally-vulnerable Python deps used to demo
+  # Lesson 10: intentionally-vulnerable Python deps used to demo
   # supply-chain alerts and grouped security update PRs. The schedule controls
   # version-update checks; security updates are created in response to alerts.
   - package-ecosystem: "pip"
-    directory: "/lessons/09-supply-chain-dependabot"
+    directory: "/lessons/10-supply-chain-dependabot"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
     groups:
-      lesson-nine-security-updates:
+      lesson-ten-security-updates:
         applies-to: "security-updates"
         patterns:
           - "*"
     labels:
       - "dependencies"
-      - "lesson-09"
+      - "lesson-10"
 
   # Keep our GitHub Actions pinned and patched.
   - package-ecosystem: "github-actions"

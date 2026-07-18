@@ -20,12 +20,12 @@ EXPECTED_LESSON_NAMES = [
     "03-code-security-custom-codeql-queries",
     "04-code-security-sarif-integration",
     "05-code-security-actions",
-    "06-code-security-ai-detections",
-    "07-secret-protection-secret-scanning",
-    "08-secret-protection-custom-patterns",
-    "09-supply-chain-dependabot",
-    "10-governance-security-overview",
-    "11-code-quality-analysis",
+    "06-code-quality-standard-findings",
+    "07-code-quality-ai-findings",
+    "08-secret-protection-secret-scanning",
+    "09-secret-protection-custom-patterns",
+    "10-supply-chain-dependabot",
+    "11-governance-security-overview",
 ]
 
 
@@ -66,8 +66,8 @@ def test_facilitator_60min_agenda_lessons(repo_root: Path):
     )
     assert m, "FACILITATOR.md missing '60-minute executive overview (lessons …)' heading"
     lessons = [int(n) for n in re.findall(r"\d+", m.group(1))]
-    assert lessons == [1, 7, 9, 10], (
-        f"60-minute agenda should list remapped lessons 1, 7, 9, 10; got {lessons}"
+    assert lessons == [1, 8, 10, 11], (
+        f"60-minute agenda should list remapped lessons 1, 8, 10, 11; got {lessons}"
     )
 
 
@@ -80,9 +80,9 @@ def test_facilitator_2hr_agenda_lessons(repo_root: Path):
     )
     assert m, "FACILITATOR.md missing '2-hour developer enablement (lessons …)' heading"
     lessons = [int(n) for n in re.findall(r"\d+", m.group(1))]
-    assert lessons == [1, 2, 4, 7, 8, 9, 10], (
+    assert lessons == [1, 2, 4, 8, 9, 10, 11], (
         "2-hour agenda should list remapped lessons in pillar order "
-        f"(1, 2, 4, 7, 8, 9, 10); got {lessons}"
+        f"(1, 2, 4, 8, 9, 10, 11); got {lessons}"
     )
 
 
@@ -127,7 +127,7 @@ def test_no_aws_first_fixtures_in_secret_protection_lessons(repo_root: Path):
     custom_patterns_readme = (
         repo_root
         / "lessons"
-        / "08-secret-protection-custom-patterns"
+        / "09-secret-protection-custom-patterns"
         / "README.md"
     ).read_text(encoding="utf-8")
     assert "AKIA" not in custom_patterns_readme, (
@@ -138,7 +138,7 @@ def test_no_aws_first_fixtures_in_secret_protection_lessons(repo_root: Path):
     secret_scanning_readme = (
         repo_root
         / "lessons"
-        / "07-secret-protection-secret-scanning"
+        / "08-secret-protection-secret-scanning"
         / "README.md"
     ).read_text(encoding="utf-8")
     aws_positions = [

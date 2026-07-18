@@ -1,4 +1,4 @@
-# Lesson 07 — Secret Scanning + Push Protection
+# Lesson 08 — Secret Scanning + Push Protection
 
 See GitHub Secret Protection detect hard-coded credentials in source, block new ones before they reach GitHub, and validate supported partner tokens.
 
@@ -60,11 +60,11 @@ Secret scanning patterns and provider-specific logic evolve. Obviously nonfuncti
 
 This is why the **live push-protection moment** is the heart of this lesson. Use only the nonfunctional canary below, and run preflight first because a known test value may be excluded or deprioritized.
 
-![Captured Default tab of Security → Secret scanning showing no alerts for the nonfunctional workshop fixtures.](../../docs/screenshots/07-secret-scanning-default-empty.png)
+![Captured Default tab of Security → Secret scanning showing no alerts for the nonfunctional workshop fixtures.](../../docs/screenshots/08-secret-scanning-default-empty.png)
 
 *This captured **Default** view is useful when explaining that a safe fixture is not guaranteed to produce a current partner alert. Do not infer the exact suppression reason from an empty list._
 
-![Historical Generic tab of Security → Secret scanning showing AI-detected password alerts.](../../docs/screenshots/08-secret-scanning-generic-ai.png)
+![Historical Generic tab of Security → Secret scanning showing AI-detected password alerts.](../../docs/screenshots/09-secret-scanning-generic-ai.png)
 
 *This screenshot preserves an earlier **Generic** label. The current documentation calls these **AI-detected secrets** and displays them separately from regular secret-scanning alerts. The current AI-detected type is `password`; deterministic connection-string/private-key detectors are instead called generic patterns._
 
@@ -72,7 +72,7 @@ This is why the **live push-protection moment** is the heart of this lesson. Use
 
 For a command-line push, GitHub evaluates the update server-side and rejects it before the secret is accepted into the repository. Try it:
 
-![Repo Settings → Code security → Secret scanning showing Push protection toggled on, with the bypass-prompt copy displayed for contributors.](../../docs/screenshots/07-push-protection-settings.png)
+![Repo Settings → Code security → Secret scanning showing Push protection toggled on, with the bypass-prompt copy displayed for contributors.](../../docs/screenshots/08-push-protection-settings.png)
 
 *Repo settings page showing push protection enabled. Confirm this checkbox is green before running the live demo — without it the push below will succeed silently._
 
@@ -81,7 +81,7 @@ For a command-line push, GitHub evaluates the update server-side and rejects it 
    git clone https://github.com/tkl-enteprises/ghas-demos.git
    cd ghas-demos
    ```
-2. Edit `lessons/07-secret-protection-secret-scanning/payment.py` and add a new line that *looks* like a real Azure storage connection string — anything matching the partner pattern (`AccountKey=<88-char base64>` inside a `DefaultEndpointsProtocol=…` block) will do. For example:
+2. Edit `lessons/08-secret-protection-secret-scanning/payment.py` and add a new line that *looks* like a real Azure storage connection string — anything matching the partner pattern (`AccountKey=<88-char base64>` inside a `DefaultEndpointsProtocol=…` block) will do. For example:
    ```python
    NEW_AZURE_KEY = (
        "DefaultEndpointsProtocol=https;AccountName=demo;"
@@ -91,7 +91,7 @@ For a command-line push, GitHub evaluates the update server-side and rejects it 
    ```
 3. Commit and try to push:
    ```bash
-   git add lessons/07-secret-protection-secret-scanning/payment.py
+   git add lessons/08-secret-protection-secret-scanning/payment.py
    git commit -m "test push protection"
    git push
    ```
