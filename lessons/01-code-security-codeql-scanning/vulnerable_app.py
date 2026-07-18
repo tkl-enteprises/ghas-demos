@@ -74,8 +74,8 @@ def log_login_attempt(username: str, password: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# 6. Weak cryptographic algorithm — CodeQL:
-#    py/weak-cryptographic-algorithm (CWE-327)
+# 6. Weak hashing of sensitive data — CodeQL:
+#    py/weak-sensitive-data-hashing (CWE-327)
 # ---------------------------------------------------------------------------
 def hash_password(password: str) -> str:
     """MD5 is broken for password hashing — use a slow KDF (bcrypt, argon2,
@@ -86,7 +86,7 @@ def hash_password(password: str) -> str:
 # ---------------------------------------------------------------------------
 # 7. Hard-coded credentials — CodeQL: py/hardcoded-credentials (CWE-798)
 # ---------------------------------------------------------------------------
-ADMIN_PASSWORD = "hunter2_FAKE_PASSWORD_FOR_DEMO"
+ADMIN_PASSWORD = "insecure_pwd"
 
 
 def is_admin(submitted_password: str) -> bool:
@@ -98,6 +98,11 @@ def is_admin(submitted_password: str) -> bool:
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python vulnerable_app.py <username>")
+        print("Usage: python vulnerable_app.py <untrusted-input>")
         sys.exit(1)
-    print(lookup_user(sys.argv[1]))
+
+    user_input = sys.argv[1]
+    print(lookup_user(user_input))
+    print(ping_host(user_input))
+    print(read_report(user_input))
+    print(evaluate_expression(user_input))

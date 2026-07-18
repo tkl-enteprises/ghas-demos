@@ -127,7 +127,7 @@ def log_login_attempt(username: str, password: str, *, success: bool) -> None:
 
 If you absolutely must log the secret for forensic reasons, hash it with a peppered KDF and store *that* — but in 99% of cases, just don't.
 
-## 6. `py/weak-cryptographic-algorithm` — strong KDF, never raw MD5/SHA1
+## 6. `py/weak-sensitive-data-hashing` — strong KDF, never raw MD5/SHA1
 
 **Bad** (`hash_password`):
 
@@ -155,7 +155,7 @@ hashlib.sha256(payload).hexdigest()
 **Bad**:
 
 ```python
-ADMIN_PASSWORD = "hunter2_FAKE_PASSWORD_FOR_DEMO"
+ADMIN_PASSWORD = "insecure_pwd"
 ```
 
 **Good** — load from environment / secret manager and compare with `secrets.compare_digest` to avoid timing attacks:
