@@ -58,6 +58,8 @@ The secret does not need to exist. The job-level false condition prevents checko
 - `actions/unmasked-secret-exposure` reports the derived password expression in `.github/workflows/lesson-05-secret-exposure.yml`;
 - `py/clear-text-logging-sensitive-data` reports the logging sink in `print_repository_secret.py`, so the lesson path filter shown in the Code scanning page returns a result.
 
+Current CodeQL versions may also report `py/log-injection` at the same logging sink because environment data reaches a log entry without newline neutralization.
+
 A direct `${{ secrets.NAME }}` value is normally masked by the runner. A property extracted with `fromJSON(secrets.NAME).password` is a new value the runner does not know, so printing it may expose clear text.
 
 ## Hands-on steps
@@ -74,6 +76,7 @@ A direct `${{ secrets.NAME }}` value is normally masked by the runner. A propert
    - `actions/unpinned-tag`
    - `actions/unmasked-secret-exposure`
    - `py/clear-text-logging-sensitive-data`
+   - `py/log-injection`
 
 ## Files
 

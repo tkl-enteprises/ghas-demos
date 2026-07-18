@@ -89,7 +89,7 @@ The version comments are for human and dependency-bot readability; the SHA is th
 ## Finding 4: a derived repository secret may be printed unmasked
 
 **CodeQL rule:** `actions/unmasked-secret-exposure`
-**Security severity:** high (9.0)
+**Security severity:** critical (9.0)
 **Precision:** high
 
 The disabled live example extracts a password from a JSON repository secret:
