@@ -106,6 +106,3 @@ if __name__ == "__main__":
     print(ping_host(user_input))
     print(read_report(user_input))
     print(evaluate_expression(user_input))
-    log_login_attempt(user_input, user_input)
-    print(hash_password(user_input))
-    print(is_admin(user_input))
