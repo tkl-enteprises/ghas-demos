@@ -44,7 +44,7 @@ flowchart LR
 
 ## What you'll see in GitHub
 
-After CodeQL runs against this lesson, expect alerts similar to the table below in [Security → Code scanning](https://github.com/tkl-enteprises/ghas-demos/security/code-scanning). Exact line numbers shift as the files evolve — match by **rule id**, not line number.
+After CodeQL runs against this lesson, open the [Lesson 01 code scanning alerts](https://github.com/tkl-enteprises/ghas-demos/security/code-scanning?query=is%3Aopen+branch%3Amain+path%3Alessons%2F01-code-security-codeql-scanning) view. It is pre-filtered to open alerts on `main` from this lesson only. Exact line numbers shift as the files evolve — match by **rule id**, not line number.
 
 | Rule id (CodeQL) | CWE | Severity | Where to look |
 | --- | --- | --- | --- |
