@@ -6,7 +6,7 @@ Layer Bandit (and any other SARIF-emitting SAST tool) on top of CodeQL so every 
 
 ## Goal
 
-Show how to ingest 3rd-party SAST results into GitHub Code Scanning via SARIF, using Bandit (Python-focused security linter) as the example tool.
+Show how to ingest 3rd-party SAST results into GitHub Code Scanning via SARIF, using Bandit (a Python-focused security scanner) as the example tool.
 
 ## Learning objectives
 
@@ -29,7 +29,7 @@ After this lesson you can:
 
 ## Why use SARIF integration
 
-GitHub Code Scanning is a **SARIF receiver**, not just a CodeQL frontend. Any tool that produces a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/) file — Bandit, Semgrep, Trivy, Checkov, Snyk, KICS, ESLint, gitleaks, you name it — can upload via `github/codeql-action/upload-sarif@v3` and findings appear alongside CodeQL results. That means triage, dismissals, autofix branches, and PR annotations all happen in one UI. Layer multiple scanners for breadth (Bandit catches Python footguns CodeQL deprioritises; Trivy catches container/IaC issues neither covers).
+GitHub Code Scanning is a **SARIF receiver**, not just a CodeQL frontend. Any security tool that produces a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/) file — Bandit, Semgrep, Trivy, Checkov, Snyk, KICS, or gitleaks — can upload via `github/codeql-action/upload-sarif@v3` and findings appear alongside CodeQL results. That means triage, dismissals, autofix branches, and PR annotations all happen in one UI. Layer multiple scanners for breadth (Bandit catches Python footguns CodeQL deprioritises; Trivy catches container/IaC issues neither covers).
 
 ## How CodeQL and Bandit fit together
 
@@ -38,7 +38,7 @@ CodeQL and Bandit are independent scanners. Neither runs inside nor converts res
 ```mermaid
 flowchart LR
     A["Source code"] --> B["CodeQL scanner"]
-    A --> C["Bandit security linter"]
+    A --> C["Bandit SAST scanner"]
     B --> D["CodeQL SARIF results"]
     C --> E["bandit.sarif"]
     D --> F["GitHub Code Scanning"]
