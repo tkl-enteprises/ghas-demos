@@ -31,6 +31,24 @@ After this lesson you can:
 
 GitHub Code Scanning is a **SARIF receiver**, not just a CodeQL frontend. Any tool that produces a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/) file — Bandit, Semgrep, Trivy, Checkov, Snyk, KICS, ESLint, gitleaks, you name it — can upload via `github/codeql-action/upload-sarif@v3` and findings appear alongside CodeQL results. That means triage, dismissals, autofix branches, and PR annotations all happen in one UI. Layer multiple scanners for breadth (Bandit catches Python footguns CodeQL deprioritises; Trivy catches container/IaC issues neither covers).
 
+## How CodeQL and Bandit fit together
+
+CodeQL and Bandit are independent scanners. Neither runs inside nor converts results for the other; they both use SARIF as a shared result format, and GitHub Code Scanning brings those results together.
+
+```mermaid
+flowchart LR
+    A["Source code"] --> B["CodeQL scanner"]
+    A --> C["Bandit security linter"]
+    B --> D["CodeQL SARIF results"]
+    C --> E["bandit.sarif"]
+    D --> F["GitHub Code Scanning"]
+    E --> G["upload-sarif action"]
+    G --> F
+    F --> H["One alerts UI<br/>Filter by Tool"]
+```
+
+Despite its name, `github/codeql-action/upload-sarif` is a generic SARIF uploader. It uploads Bandit's SARIF directly; it does not turn Bandit findings into CodeQL findings.
+
 ## Workflow
 
 `.github/workflows/sarif-bandit.yml` (created by the github-config agent):
