@@ -64,6 +64,7 @@ def test_trivy_target_path_exists(repo_root, workflows_dir):
     assert (repo_root / m.group(1)).is_dir()
     assert re.search(r"^\s+scanners:\s*misconfig\s*$", text, re.MULTILINE)
     assert re.search(r"^\s+format:\s*sarif\s*$", text, re.MULTILINE)
+    assert '--arg prefix "lessons/06-code-security-ai-detections/"' in text
     assert "github/codeql-action/upload-sarif@" in text
 
 

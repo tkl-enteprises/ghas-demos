@@ -46,6 +46,14 @@ jobs:
           output: trivy-results.sarif
           exit-code: 0
 
+      - name: Normalize SARIF paths to the repository root
+        run: |
+          jq --arg prefix "lessons/06-code-security-ai-detections/" '
+            (.runs[].results[]?.locations[]?.physicalLocation.artifactLocation.uri) |=
+              if startswith($prefix) then . else $prefix + . end
+          ' trivy-results.sarif > trivy-results.normalized.sarif
+          mv trivy-results.normalized.sarif trivy-results.sarif
+
       - name: Upload Trivy results to Code Scanning
         uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
         with:
