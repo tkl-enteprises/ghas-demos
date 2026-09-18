@@ -121,15 +121,28 @@ def test_codeql_analyzes_github_actions(workflows_dir):
     cfg = yaml.safe_load((workflows_dir / "codeql.yml").read_text(encoding="utf-8"))
     job = cfg["jobs"]["analyze-actions"]
     init_step = next(
-        step
-        for step in job["steps"]
-        if str(step.get("uses", "")).startswith("github/codeql-action/init@")
+        (
+            step
+            for step in job["steps"]
+            if str(step.get("uses", "")).startswith("github/codeql-action/init@")
+        ),
+        None,
     )
     analyze_step = next(
-        step
-        for step in job["steps"]
-        if str(step.get("uses", "")).startswith("github/codeql-action/analyze@")
+        (
+            step
+            for step in job["steps"]
+            if str(step.get("uses", "")).startswith("github/codeql-action/analyze@")
+        ),
+        None,
     )
+
+    assert (
+        init_step is not None
+    ), "codeql-action/init step not found in analyze-actions job"
+    assert (
+        analyze_step is not None
+    ), "codeql-action/analyze step not found in analyze-actions job"
 
     assert init_step["with"] == {
         "languages": "actions",
