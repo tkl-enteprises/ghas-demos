@@ -1,0 +1,56 @@
+# ---------------------------------------------------------------------------
+# No-credit CodeQL Autofix automation
+#
+# After a successful CodeQL push scan on the default branch, request Autofix
+# patches for alerts first detected by that scan. Each successful patch is
+# committed to its own branch and opened as a draft pull request for review.
+# A manual dispatch can process one existing default-branch alert by number.
+# ---------------------------------------------------------------------------
+
+name: "CodeQL Autofix PRs"
+
+on:
+  workflow_run:
+    workflows: ["CodeQL"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      alert_number:
+        description: "Existing default-branch CodeQL alert number"
+        required: true
+        type: string
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+  security-events: write
+
+concurrency:
+  group: codeql-autofix-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  create-draft-fixes:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == github.event.repository.default_branch
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout automation
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Generate Autofix draft pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUTOFIX_ALERT_NUMBER: ${{ inputs.alert_number || '' }}
+          CODEQL_RUN_ID: ${{ github.event.workflow_run.id || '' }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          MAX_AUTOFIX_ALERTS: "5"
+        run: bash scripts/codeql-autofix.sh
