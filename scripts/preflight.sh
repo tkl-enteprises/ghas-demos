@@ -17,6 +17,9 @@
 # Exit codes:
 #   0   all checks passed
 #   1   one or more checks failed (see red ✗ lines above the summary)
+#
+# Section 8 runs scripts/demo-health.py with your gh token to confirm that every
+# intentional finding in scripts/expected-alerts.json is still open on main.
 
 set -u
 set -o pipefail
@@ -98,9 +101,9 @@ check_sa() {
 }
 check_sa "secret_scanning"                       "Secret scanning"
 check_sa "secret_scanning_push_protection"       "Push protection"
-check_sa "secret_scanning_ai_detection"          "Secret scanning AI detection"
+check_sa "secret_scanning_ai_detection"          "AI-detected secrets"
 check_sa "secret_scanning_validity_checks"       "Secret scanning validity checks"
-check_sa "secret_scanning_non_provider_patterns" "Non-provider patterns"
+check_sa "secret_scanning_non_provider_patterns" "Generic patterns"
 check_sa "dependabot_security_updates"           "Dependabot security updates"
 
 # ----------------------------------------------------------------------------
@@ -113,7 +116,7 @@ case "$CQ_STATE" in
     ok "default-setup CodeQL is not-configured (advanced workflow owns SARIF upload)"
     ;;
   configured)
-    fail "default-setup CodeQL is CONFIGURED — turn it off in Settings → Code security, otherwise the advanced workflow can't upload SARIF"
+    fail "default-setup CodeQL is CONFIGURED — turn it off in Settings → Advanced Security, otherwise the advanced workflow can't upload SARIF"
     ;;
   error)
     warn "could not read default-setup state — likely a permissions blip; verify in Settings UI"
@@ -189,6 +192,27 @@ case "$CQ_CONCLUSION" in
     fail "latest CodeQL run on main = '${CQ_CONCLUSION}' (status=${CQ_STATUS}) — fix before workshop"
     ;;
 esac
+
+# ----------------------------------------------------------------------------
+# 8. Intentional lesson findings (scripts/demo-health.py)
+# ----------------------------------------------------------------------------
+hdr "8. Intentional lesson findings still open on main"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ "$REPO" != "tkl-enteprises/ghas-demos" ]; then
+  warn "skipped — scripts/demo-health.py is pinned to tkl-enteprises/ghas-demos"
+elif ! command -v python3 >/dev/null 2>&1; then
+  warn "python3 not found — skipping scripts/demo-health.py"
+else
+  HEALTH_OUT="$(GITHUB_TOKEN="$(gh auth token 2>/dev/null)" python3 "${SCRIPT_DIR}/demo-health.py" 2>/dev/null)"
+  HEALTH_RC=$?
+  INVENTORY_ROW="$(printf '%s\n' "$HEALTH_OUT" | grep 'Intentional lesson findings' || true)"
+  if [ "$HEALTH_RC" -eq 0 ]; then
+    ok "demo-health.py passed — ${INVENTORY_ROW:-every check green}"
+  else
+    fail "demo-health.py reported drift (fix it or revert the offending PR):"
+    printf '%s\n' "$HEALTH_OUT" | grep '❌' | sed 's/^/      /'
+  fi
+fi
 
 # ----------------------------------------------------------------------------
 # Summary

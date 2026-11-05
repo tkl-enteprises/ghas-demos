@@ -28,12 +28,13 @@ Each lesson `README.md` MUST include these sections, in this order:
 ## How to test a lesson change
 
 1. **Fork** this repo (don't push directly to `main`).
-2. On your fork, enable the required **GitHub Code Security** and **GitHub Secret Protection** capabilities (Settings → Code security).
+2. On your fork, enable the required **GitHub Code Security** and **GitHub Secret Protection** capabilities (Settings → Advanced Security).
 3. Push your branch and watch the **Security and quality** tab on your fork — every alert the lesson promises should appear within a couple of minutes.
 4. Run through the lesson's `Walkthrough` end-to-end with the fork's UI open. If a step references a URL or screenshot, update both.
 
 ## Style
 
+- Pin every action in `.github/workflows/` to a full commit SHA with a `# vX.Y.Z` comment; a test enforces it, and Dependabot keeps the pins current in one grouped PR.
 - Hands-on, second-person voice ("Open the Security and quality tab", not "The Security and quality tab can be opened").
 - Short paragraphs, lots of bullets, screenshots over prose where it helps.
 - Match the tone of existing lessons — direct, concrete, no marketing language.
@@ -46,12 +47,16 @@ Each lesson `README.md` MUST include these sections, in this order:
 
 ## Running tests locally
 
-The repo ships a workshop-infrastructure pytest suite under [`tests/`](tests/) that validates static repo invariants (lesson layout, link integrity, workflow paths, script smoke, manifest shape). It does **not** assert security properties of the intentionally-vulnerable demo code — those are the GitHub security scanners' job.
+The repo ships a workshop-infrastructure pytest suite under [`tests/`](tests/) that validates static repo invariants (lesson layout, link integrity, workflow paths, action pinning, script smoke, manifest shape). It never asserts that the demo code is secure — finding vulnerabilities is the GitHub security scanners' job. The fixture guards assert the opposite: that every planted vulnerability is still present and that no real credential was committed.
 
 ```bash
 pip install -r tests/requirements.txt
 python -m pytest tests/ -v
 ```
+
+### Intentional findings are part of the contract
+
+[`scripts/expected-alerts.json`](scripts/expected-alerts.json) lists every code scanning finding a lesson depends on (tool, rule, path). `tests/test_expected_alerts.py` checks that each entry exists and is documented, `tests/test_demo_fixtures.py` checks that the vulnerable lines are still present, and [`scripts/demo-health.py`](scripts/demo-health.py) checks the live repository against the same list every day. When you add, move, or remove an intentional finding, update the inventory, the fixture guard, and the lesson README in the same PR.
 
 The same suite runs in CI on every push/PR via the [`tests`](.github/workflows/tests.yml) workflow. It is *not* part of the required-status-checks ruleset on `main`; treat a red `tests` run as an early-warning signal that a recent change drifted the workshop scaffolding.
 

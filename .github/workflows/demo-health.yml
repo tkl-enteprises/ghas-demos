@@ -2,11 +2,17 @@
 # Workshop demo health check
 #
 # Runs nightly + on-demand to validate that the live state of the demo repo
-# (alert counts, CodeQL runs, main-branch ruleset, GHAS toggles) hasn't
-# drifted before a facilitator runs the workshop. See scripts/demo-health.py
-# for the actual checks; this workflow is just the runner.
+# (intentional lesson findings, alert counts, CodeQL runs, main-branch
+# ruleset, security toggles) hasn't drifted before a facilitator runs the
+# workshop. See scripts/demo-health.py for the actual checks and
+# scripts/expected-alerts.json for the findings every lesson relies on.
 #
-# future: auto-open issue on drift (label: demo-drift) when any check fails
+# The default GITHUB_TOKEN can read code scanning alerts and workflow runs.
+# Dependabot alerts, secret scanning alerts and repository security settings
+# need more access: add an optional repository secret DEMO_HEALTH_TOKEN (a
+# fine-grained PAT with read-only "Dependabot alerts", "Secret scanning
+# alerts" and "Administration" permissions on this repo) to turn those
+# skipped rows into real checks.
 # ---------------------------------------------------------------------------
 
 name: Demo health
@@ -18,9 +24,8 @@ on:
 
 permissions:
   contents: read
+  actions: read
   security-events: read
-  pull-requests: read
-  issues: write
 
 jobs:
   health-check:
@@ -28,9 +33,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Run health checks
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 scripts/demo-health.py
+          GITHUB_TOKEN: ${{ secrets.DEMO_HEALTH_TOKEN || secrets.GITHUB_TOKEN }}
+        run: python3 scripts/demo-health.py | tee -a "$GITHUB_STEP_SUMMARY"

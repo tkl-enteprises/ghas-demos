@@ -30,7 +30,7 @@ After this lesson you can:
 
 ## Prerequisites
 
-- GitHub Code Security enabled with **workflow-based CodeQL setup**; default setup does not load repository-local custom queries.
+- GitHub Code Security enabled. This repository uses the **workflow-based (advanced) CodeQL setup**, so the configuration that loads the query is visible in source. Since August 2026, default setup can also apply a CodeQL configuration file through the `github-codeql-config-file` repository property (add queries, exclude paths, set threat models) — the at-scale option when you don't want a workflow in every repository.
 - `.github/codeql/codeql-config.yml` references the custom query pack.
 - The `CodeQL` workflow has run after the query and fixtures were committed.
 - Optional: the CodeQL CLI for local iteration.
@@ -47,7 +47,7 @@ Its metadata gives the result the rule id `py/tkl/putin-khuylo-false`. Its predi
 
 ## How custom queries get loaded
 
-The [CodeQL configuration](https://github.com/tkl-enteprises/ghas-demos/blob/main/.github/codeql/codeql-config.yml) loads the default Python suite and the QL pack under `.github/codeql/custom-queries/`. Every `.ql` query in that pack runs during the Python analysis job and reports under its own rule id.
+The [CodeQL configuration](https://github.com/tkl-enteprises/ghas-demos/blob/main/.github/codeql/codeql-config.yml) loads three things: the `security-extended` suite, a one-query suite that adds lesson 01's low-precision `py/hardcoded-credentials`, and the QL pack under `.github/codeql/custom-queries/`. Every `.ql` query in that pack runs during the Python analysis job and reports under its own rule id.
 
 ## Hands-on steps
 
@@ -74,16 +74,21 @@ where
 select a, "`putin_khuylo` must not be set to `False`."
 ```
 
-Run it locally from the repository root:
+Run it locally from the repository root with the [CodeQL bundle](https://github.com/github/codeql-action/releases) for your platform (it already contains the `codeql/python-all` dependency; with a CLI-only install, run `codeql pack install .github/codeql/custom-queries` first):
 
 ```bash
 codeql database create py-db --language=python --source-root=.
-codeql query run \
-  --database=py-db \
-  .github/codeql/custom-queries/PutinKhuyloFalse.ql
+
+# Fast iteration loop: prints the raw result table.
+codeql query run --database=py-db .github/codeql/custom-queries/PutinKhuyloFalse.ql
+
+# Precision check: results with file and line.
+codeql database analyze py-db .github/codeql/custom-queries/PutinKhuyloFalse.ql \
+  --format=csv --output=putin.csv
+cat putin.csv
 ```
 
-The result should contain `noncompliant.py` and no result for `compliant.py`.
+`putin.csv` should contain exactly one row, for `noncompliant.py` line 7, and nothing for `compliant.py` (verified with CodeQL 2.27.4).
 
 ## Files
 

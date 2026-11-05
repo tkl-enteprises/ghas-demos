@@ -26,21 +26,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v6 # v5.3.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.11"
 
       - name: Install Bandit
-        run: pip install "bandit[sarif]==1.7.9"
+        run: pip install -r lessons/04-code-security-sarif-integration/requirements.txt
 
       - name: Run Bandit (SARIF output)
         run: bandit -r lessons/04-code-security-sarif-integration -f sarif -o bandit.sarif --exit-zero
 
       - name: Upload SARIF to Code Scanning
-        uses: github/codeql-action/upload-sarif@v4 # v3.27.5
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: bandit.sarif
           category: bandit

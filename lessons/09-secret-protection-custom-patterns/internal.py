@@ -7,7 +7,7 @@ Do not reuse in production.
 
 # Fake match for the custom pattern "Contoso API Token".
 # Format: CONTOSO-API-[A-Z0-9]{16,}
-# The pattern is published in repo Settings → Code security → Secret scanning →
+# The pattern is published in repo Settings → Advanced Security → Secret Protection →
 # Custom patterns. See lesson README for the facilitator preflight that
 # configures it. This value is workshop-only and matches no real service —
 # `Contoso` is Microsoft's canonical fictitious-customer name, so the prefix

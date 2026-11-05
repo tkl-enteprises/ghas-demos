@@ -54,7 +54,7 @@ Treat this table as a facilitator preflight, not a licensing quote. GitHub plans
 | Security overview | Organizations on GitHub Team or GitHub Enterprise that have run a Secret Risk Assessment; additional views exist for enterprises and licensed Advanced Security products | Every view is permission-scoped. Summary views use default-branch/default-alert data and can differ from feature-specific findings. |
 | Secret Risk Assessment | Free for organizations on GitHub Team or GitHub Enterprise; organization owners and security managers; rerunnable every 90 days | A point-in-time report, not continuous secret scanning or push protection. The current docs present it as an available feature rather than a preview. |
 | Code Security Risk Assessment | Free for GitHub Team and GitHub Enterprise Cloud organizations; organization owners and security managers; rerunnable every 90 days | Announced in **public preview** and subject to change. It scans at most 20 selected private/internal repositories and is not continuous code scanning. |
-| Code scanning campaigns | Requires available code scanning alerts and the applicable Code Security/GHAS entitlement; created by owners, security managers, or organization members with the admin role | Templates select alerts supported by Copilot Autofix. Creating a campaign can notify developers; publishing can optionally create repository issues. |
+| Code scanning campaigns | Requires available code scanning alerts and the applicable Code Security/GHAS entitlement; created by owners, security managers, or organization members with the admin role | Templates select alerts supported by Copilot Autofix. Creating a campaign can notify developers; publishing can optionally create repository issues. Where agentic autofix is enabled (GA October 2026), up to 25 campaign alerts can be assigned to Copilot in one agent session, which consumes AI credits. |
 | Secret scanning campaigns | Requires available secret scanning alerts and the applicable Secret Protection/GHAS entitlement | GitHub announced general availability in November 2025, but the current campaign concept and creation docs still carry a **public preview** warning. Treat the documented workflow as changeable and verify the tenant before delivery. |
 | Dependabot overview | Dependabot data is available in security overview for eligible organizations without a GHAS license | It summarizes vulnerable-dependency risk and remediation. Update schedules and pull requests are still configured at repository level. |
 
@@ -125,7 +125,8 @@ All views show only repositories the viewer may access. Overview, Coverage, and 
 3. For the Secret Risk Assessment, call out total secrets, public leaks, preventable leaks, secret categories, and affected repositories.
 4. For the Code Security Risk Assessment, call out vulnerabilities by severity and the count supported by Copilot Autofix.
 5. Show the report date and the next eligible rerun date.
-6. If no report exists, explain that **Scan your organization** starts both assessments on the first run. Start it only if the facilitator is authorized and the selected repositories have been reviewed.
+6. Since November 2, 2026, both reports show whether findings sit in **protected or unprotected repositories**. Use that split to bridge to **Coverage**: unprotected repositories with findings are the first enablement targets.
+7. If no report exists, explain that **Scan your organization** starts both assessments on the first run. Start it only if the facilitator is authorized and the selected repositories have been reviewed.
 
 **Expected outcome:** Attendees can describe both assessments as free discovery tools and avoid presenting them as continuous protection.
 
@@ -154,7 +155,7 @@ All views show only repositories the viewer may access. Overview, Coverage, and 
 3. Use a narrow example such as `is:open autofilter:true autofix:supported severity:critical`.
 4. Review the selected alerts and repository owners. Campaigns support at most 1,000 alerts.
 5. Choose **Draft campaign**, add a clear name, due date, manager, and contact link, then stop before publishing.
-6. Explain that code campaign alerts are submitted to Copilot Autofix and that publishing can notify contributors and optionally create repository issues.
+6. Explain that code campaign alerts are submitted to Copilot Autofix and that publishing can notify contributors and optionally create repository issues. If agentic autofix is enabled, campaign alerts can also be assigned to Copilot — up to 25 per agent session and pull request (see lesson 02). Don't start a session on a shared demo without an approved AI-credit budget.
 
 **Expected outcome:** Attendees can turn a filtered code scanning backlog into a measurable, owned remediation effort without surprising developers.
 

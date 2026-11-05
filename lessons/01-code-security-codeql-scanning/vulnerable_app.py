@@ -23,7 +23,8 @@ def lookup_user(username: str) -> list:
     so a username like `' OR 1=1 --` returns every row."""
     conn = sqlite3.connect("workshop.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT id, email FROM users WHERE username = ?", (username,))
+    query = "SELECT id, email FROM users WHERE username = '" + username + "'"
+    cursor.execute(query)
     return cursor.fetchall()
 
 

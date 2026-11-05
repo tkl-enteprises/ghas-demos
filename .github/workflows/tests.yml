@@ -3,8 +3,9 @@
 #
 # Runs the pytest suite under tests/ on every push/PR to main. These tests
 # validate static repo invariants (lesson layout, link integrity, workflow
-# paths, script smoke, manifest shape) — they do NOT assert security
-# properties of the intentionally-vulnerable demo code.
+# paths, action pinning, script smoke, manifest shape). They never assert that
+# the demo code is secure — the fixture guards assert the opposite: that the
+# planted vulnerabilities survive, so an Autofix/Copilot fix PR fails here.
 #
 # This workflow is intentionally NOT part of the required-status-checks
 # ruleset on main. It's an early-warning canary for facilitator-ergonomics
@@ -29,10 +30,12 @@ jobs:
     name: pytest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.11"
           cache: pip

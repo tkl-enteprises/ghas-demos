@@ -1,8 +1,8 @@
 # Lesson 02 — Copilot Autofix and agentic remediation
 
 Remediate an existing CodeQL alert on the default branch with either a focused
-Copilot Autofix suggestion or, when the public preview is available, Copilot
-cloud agent.
+Copilot Autofix suggestion or agentic autofix, which is generally available
+since October 15, 2026.
 
 ## Goal
 
@@ -20,7 +20,7 @@ After this lesson you can:
   remediation.
 - Review either draft PR against the manual fix in [`solution.md`](./solution.md).
 - Identify the access, product, availability, and billing differences.
-- Fall back safely when a preview control or fix suggestion is unavailable.
+- Fall back safely when a control or fix suggestion is unavailable.
 
 ## Estimated time
 
@@ -28,20 +28,25 @@ After this lesson you can:
 
 ## Choose the right flow
 
-| | Copilot Autofix | Assign to Copilot |
+| | Copilot Autofix | Agentic autofix (Assign to Copilot) |
 | --- | --- | --- |
 | Lesson label | **Passive suggestion** | **Agentic remediation** |
-| Status | Generally available for eligible CodeQL alerts | **Public preview; subject to change** |
-| Starts with | **Generate fix** | **Assign to Copilot** |
-| What it does | Generates one targeted patch and explanation for you to evaluate | Starts a cloud-agent session that explores the repository, edits code, and validates on a best-effort basis |
-| Result | **Create PR with fix** commits the suggestion to a new branch from the default branch and opens a draft PR | Typically opens a Copilot-authored draft PR with a summary and validation results |
-| Iteration | Edit or test the PR yourself | Review the session log and mention Copilot in PR comments to request changes |
-| Copilot plan and billing | No GitHub Copilot subscription is required; the alert-resolution docs do not bill this as a cloud-agent session | Requires an eligible paid Copilot plan and consumes GitHub Actions minutes plus AI credits as a cloud-agent session |
+| Status | Generally available for eligible CodeQL alerts | **Generally available since October 15, 2026** on GitHub Enterprise Cloud (including data residency) |
+| Starts with | **Generate fix** | **Assign to Copilot** — when agentic autofix is enabled it *replaces* **Generate fix** on individual alerts |
+| What it does | Generates one targeted patch and explanation for you to evaluate | Starts an agent session that explores the repository, proposes a fix, reruns CodeQL to confirm the alert closes, and iterates if needed |
+| Result | **Create PR with fix** commits the suggestion to a new branch from the default branch and opens a draft PR | Opens a draft PR with a summary of the fix, why it closes the alert, and the validation steps taken |
+| Iteration | Edit or test the PR yourself | Comment on the PR, or continue the session from the repository's **Agents** tab |
+| Licensing and billing | No GitHub Copilot subscription; suggested fixes don't consume AI credits | No Copilot license either, but a Copilot billing method must exist; each session consumes AI credits from the Code Security budget plus GitHub Actions minutes |
 
 “Passive” is a teaching distinction, not a GitHub product name. Autofix still
 uses AI, but it proposes a bounded change and waits for you. The agentic path
 performs a multi-step task in a GitHub Actions-powered environment. Neither
 path makes a fix trustworthy without human review and testing.
+
+> **Facilitator decision:** a repository shows one button or the other. If
+> agentic autofix is enabled for this repository (or inherited from the
+> organization), **Generate fix** is replaced by **Assign to Copilot**. Decide
+> before the session which flow you will show, and confirm the button in the UI.
 
 ## Prerequisites
 
@@ -60,25 +65,27 @@ path makes a fix trustworthy without human review and testing.
   needs a **GitHub Code Security** license.
 - A GitHub Copilot subscription is **not** required.
 
-### Assign to Copilot
+### Agentic autofix (Assign to Copilot)
 
-- The code-scanning assignment experience is in **public preview** and may not
-  appear in every repository or GitHub deployment.
-- Both Copilot Autofix and Copilot cloud agent must be available in the
-  repository.
-- Copilot cloud agent requires a paid Copilot plan. For Copilot Business or
-  Enterprise, an administrator must enable the relevant policy; repository
-  owners can also opt repositories out.
-- Each assignment is billed as a cloud-agent session. Usage consumes GitHub
-  Actions minutes and AI credits based on the selected model and tokens used.
-  Included allowances may cover it; budget policy can permit additional
-  charges or block further usage. Some legacy personal annual plans may still
-  display **premium requests** instead of current AI-credit terminology.
-  Check the account's current plan and budget before starting a workshop run.
+- **Generally available** (October 15, 2026) for GitHub Code Security and
+  GitHub Advanced Security customers on GitHub Enterprise Cloud.
+- Access is layered: an enterprise owner or security manager allows it with
+  the **Agentic autofix** policy, then an organization owner or security
+  manager enables it. Organization enablement turns it on for eligible
+  repositories by default; repository administrators can opt out.
+- No Copilot license is required, but a **Copilot billing method** must be
+  defined. Each agent session consumes **AI credits from the Code Security
+  budget** plus GitHub Actions minutes. Check the budget before a workshop run.
+- Only alerts on the **default branch** can be assigned. Agentic autofix isn't
+  available for repositories owned by Enterprise Managed Users.
+- Copilot validates its fix by rerunning CodeQL with the default code scanning
+  suite, so it can't confirm fixes for custom queries, the `security-extended`
+  suite, or third-party SARIF alerts. This lesson's `py/sql-injection` alert is
+  in the default suite, so validation works.
 
 ## Hands-on steps
 
-This is the stable path and the safe fallback for the preview.
+This is the free Copilot Autofix path (shown when agentic autofix is not enabled for the repository) and the safe fallback.
 
 1. Open the repository's **Security and quality → Code scanning** backlog:
    <https://github.com/tkl-enteprises/ghas-demos/security/code-scanning>.
@@ -98,37 +105,43 @@ This is the stable path and the safe fallback for the preview.
    [`solution.md`](./solution.md). Do not mark it ready or merge it merely
    because it was generated by Autofix.
 
-## Optional public-preview path: Assign to Copilot
+## Agentic path: Assign to Copilot
 
 Use this path only if **Assign to Copilot** is visible and the workshop owner
-has approved cloud-agent usage.
+has approved the AI-credit and Actions-minute usage.
 
 1. Return to the open `py/sql-injection` alert.
 2. Click **Assign to Copilot**. This starts an agentic autofix session rather
    than generating the single Autofix suggestion above.
-3. Follow the session. Copilot cloud agent explores the repository, proposes a
-   fix, and attempts to run relevant validation.
+3. Follow the session. Copilot explores the repository, proposes a fix,
+   reruns CodeQL to confirm the alert closes, and iterates if needed.
 4. Open the resulting **draft PR**. Review the summary, validation results,
    session log, and diff.
 5. Compare the patch with [`solution.md`](./solution.md). If changes are
-   needed, comment on the PR and mention Copilot, or take over manually.
+   needed, comment on the PR, continue the session from the **Agents** tab, or
+   take over manually.
 
-The alert backlog can also assign **1–25 alerts** to Copilot in one operation,
-producing one PR, but keep this workshop run to the single SQL-injection alert
-so the scope and billing are predictable.
+The alert backlog — or a security campaign (lesson 11) — can also assign
+**up to 25 alerts** to Copilot in one operation, producing one PR, but keep
+this workshop run to the single SQL-injection alert so the scope and billing
+are predictable.
 
 ## If a control is missing
 
 Do not weaken repository policy, dismiss the alert, or merge an unreviewed
 manual change just to complete the demo.
 
-1. **No Assign to Copilot:** treat this as an expected preview, plan, policy,
-   or repository-availability difference. Use **Generate fix** and
-   **Create PR with fix** instead. Do not use an API call to bypass a disabled
-   policy.
-2. **No Generate fix:** confirm that the alert is from CodeQL, is open on the
-   default branch, the latest analysis completed, the repository is eligible
-   for Autofix, and you have write access. Some queries cannot produce a fix.
+1. **No Assign to Copilot:** treat this as an expected plan, policy, or
+   repository-availability difference (GitHub Enterprise Cloud, the
+   enterprise policy, organization enablement, and a billing method are all
+   required). Use **Generate fix** and **Create PR with fix** instead. Do not
+   use an API call to bypass a disabled policy.
+2. **No Generate fix:** if **Assign to Copilot** appears in its place, agentic
+   autofix is enabled and has replaced the button — use the agentic path or ask
+   an administrator to opt the workshop repository out. Otherwise confirm that
+   the alert is from CodeQL, is open on the default branch, the latest analysis
+   completed, the repository is eligible for Autofix, and you have write
+   access. Some queries cannot produce a fix.
 3. **Still no suggestion:** create a normal branch and draft PR using the
    parameterized query in [`solution.md`](./solution.md). Run the same tests,
    request review, and let a subsequent CodeQL scan verify that the alert
@@ -160,9 +173,9 @@ gh api --method POST \
 
 Use a token with the permissions documented for these endpoints, protect the
 target branch, inspect the generated diff, run tests, and open a draft PR.
-Agentic assignment also has a REST path—updating the alert assignee to
-`copilot-swe-agent[bot]`—but only use it where the preview and cloud-agent
-policy are already enabled. It is not a fallback for absent UI or policy.
+Agentic assignment also has a REST path—setting the alert's `assignees` to
+`["copilot-swe-agent[bot]"]`—but only use it where agentic autofix is already
+enabled. It is not a fallback for absent UI or policy.
 
 ## Review checklist
 
@@ -185,8 +198,8 @@ not a reason to dismiss the finding.
 - **Generate fix** is a bounded Autofix suggestion; **Assign to Copilot** starts
   a metered, multi-step cloud-agent session.
 - Both routes produce draft PRs that require normal human review and testing.
-- Public-preview availability and billing policy are prerequisites, not
-  controls to bypass; passive Autofix and a manual draft PR are safe fallbacks.
+- Policy enablement and AI-credit budgets are prerequisites, not controls to
+  bypass; passive Autofix and a manual draft PR are safe fallbacks.
 
 ## Files
 
@@ -220,6 +233,7 @@ for the next cohort; do not copy the vulnerable code into production.
 ## References
 
 - [Resolving code scanning alerts](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/resolving-code-scanning-alerts)
-- [About Copilot Autofix for code scanning](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-autofix-for-codeql-code-scanning)
+- [About autofix for code scanning (agentic autofix and Copilot Autofix)](https://docs.github.com/en/code-security/concepts/code-scanning/autofix-for-code-scanning)
+- [Agentic autofix general availability (changelog, 2026-10-15)](https://github.blog/changelog/2026-10-15-agentic-autofix-for-code-scanning-alerts-general-availability/)
 - [REST API endpoints for code scanning](https://docs.github.com/en/rest/code-scanning/code-scanning)
 - [About Copilot cloud agent](https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-coding-agent)

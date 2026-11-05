@@ -19,7 +19,7 @@ When a Dependabot alert lands, walk the same checklist every time:
 5. **Blast radius.** Is this dep loaded in a request-handling path, a build-time tool, or a test-only helper? Test-only deps usually deserve faster patches because nobody validates them, but lower priority because they don't touch production.
 6. **Fix availability.** Does a fixed version exist *and* is it semver-compatible with your current pin? If yes → upgrade. If no → see "Resolution paths" below.
 
-Document the decision on the alert itself with **Dismiss → Reason** so the next person (and your auditors) can see why.
+Document the decision on the alert itself with **Dismiss → Reason** so the next person (and your auditors) can see why. Dependabot's reasons are: *A fix has already been started*, *No bandwidth to fix this*, *Risk is tolerable to this project*, *This alert is inaccurate or incorrect*, and *Vulnerable code is not actually used*. (Code scanning has its own list — see lesson 01.)
 
 ## Resolution paths
 
@@ -27,16 +27,17 @@ Document the decision on the alert itself with **Dismiss → Reason** so the nex
 |---------------------|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
 | **Upgrade**         | A fixed version exists and your tests pass against it.                                             | Merge the Dependabot PR. For grouped updates, review the release notes Dependabot embeds in the PR.    |
 | **Replace**         | The package is unmaintained or the fix forces a major-version migration you'd rather skip.        | Swap to an actively-maintained alternative (e.g. `requests` → `httpx`, `PyYAML` → `ruamel.yaml`).      |
-| **Ignore w/ comment** | Vulnerable code path is provably unreachable in your usage.                                       | Dismiss the alert as **"Used in tests"** / **"Not vulnerable code"** with a written justification.     |
-| **Accept risk**     | No fix available, replacement is unrealistic, exposure is bounded by other controls.               | Dismiss as **"Risk tolerated"**, log a tracking issue, set a recheck date in your risk register.       |
+| **Ignore w/ comment** | Vulnerable code path is provably unreachable in your usage.                                       | Dismiss the alert as **"Vulnerable code is not actually used"** with a written justification.          |
+| **Accept risk**     | No fix available, replacement is unrealistic, exposure is bounded by other controls.               | Dismiss as **"Risk is tolerable to this project"**, log a tracking issue, set a recheck date in your risk register. |
 | **Pin transitive**  | A vulnerability is in a transitive dep and your direct dep hasn't released a fix yet.              | Add a constraint file or `pyproject.toml` override pinning the transitive to a safe version.           |
 
 ## Dependabot configuration tips
 
-The platform agent has dropped `.github/dependabot.yml` at the repo root. A few knobs worth knowing for follow-up work:
+The repository's [`.github/dependabot.yml`](../../.github/dependabot.yml) is the reference configuration for this lesson. A few knobs worth knowing for follow-up work:
 
 - **Security grouping** — under the ecosystem entry, use `groups.<identifier>.applies-to: security-updates` plus `patterns`/`exclude-patterns`. Without `applies-to`, a group applies to version updates. This lesson uses `"*"` to group all eligible pip security fixes in its directory.
 - **Schedule** — `schedule.interval` controls checks for version updates. Security updates react to Dependabot alerts and available fixes; the weekly schedule does not delay an alert until the next weekly run.
+- **Cooldown** — since July 2026 version updates wait a default 3 days after a release before Dependabot proposes them (tune with `cooldown:`). Security updates are not delayed.
 - **Version-update target branch** — `target-branch:` can point version updates at a long-lived integration branch. Do not set it on this security-update demo: security updates target the default branch.
 - **Allow / ignore lists** — `allow:` restricts to specific dep types (e.g. only `direct`); `ignore:` lets you skip a known-noisy package or a major version you've consciously deferred. Always document *why* in a comment next to the entry.
 - **Open PR limit** — `open-pull-requests-limit:` keeps the queue bounded. Pair with auto-merge for patch bumps.
@@ -50,7 +51,9 @@ Grouped security updates require the dependency graph, Dependabot alerts, and De
 
 This is the most common source of confusion in workshops, so it's worth spelling out:
 
-> **Dependabot alerts on the *presence* of a vulnerable dependency in your dep graph. It does not analyse whether your code actually calls the vulnerable function.**
+> **For this Python lesson, Dependabot alerts on the *presence* of a vulnerable dependency in your dep graph. It does not analyse whether your code actually calls the vulnerable function.**
+
+Since October 2026, Dependabot **reachability analysis** (public preview) adds that context for **JavaScript and TypeScript** only: CodeQL builds a call graph across the repository and its dependencies and marks each alert *Reachable*, *Potentially reachable*, or *Unreachable*. It does not cover Python, so the reasoning below still applies to this fixture.
 
 That means:
 
@@ -59,7 +62,7 @@ That means:
 
 To get **reachability** — "does my code actually hit the vulnerable code path?" — you need a layer above Dependabot:
 
-- **CodeQL** — GitHub's own static analyser. It can taint-track from sources (e.g. `request.args`) to sinks (e.g. `yaml.load`) and tell you when a Dependabot-flagged dep is reached by attacker-controlled data.
+- **CodeQL** — GitHub's own static analyser. It can taint-track from sources (e.g. `request.args`) to sinks (e.g. `yaml.load`) and tell you when a Dependabot-flagged dep is reached by attacker-controlled data. This lesson's `app.py` shows it: `py/unsafe-deserialization` points at the same `yaml.load` call the PyYAML advisory is about.
 - **Commercial SCA** (Snyk, Mend, Sonatype, Endor Labs) — each has its own reachability engine, with different language coverage and false-positive profiles.
 - **Manual code review** — for small, critical libs, often the fastest path.
 
