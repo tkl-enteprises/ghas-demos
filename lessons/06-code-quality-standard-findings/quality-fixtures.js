@@ -7,7 +7,7 @@ function buildGreeting(userName) {
 
   return {
     preview,
-    message: "Welcome, ${userName}!",
+    message: `Welcome, ${userName}!`,
   };
 }
 
