@@ -52,7 +52,7 @@ if: ${{ false }}
 run: echo "${{ fromJSON(secrets.LESSON_05_CREDENTIALS).password }}"
 ```
 
-The secret does not need to exist. The job-level false condition prevents secret access and command execution. CodeQL still analyzes the YAML and reports `actions/unmasked-secret-exposure` on the expression in `.github/workflows/lesson-05-vulnerable.yml`.
+The secret does not need to exist. The job-level false condition prevents secret access and command execution. CodeQL still analyzes the YAML and reports `actions/unmasked-secret-exposure` on the expression in [`.github/workflows/lesson-05-vulnerable.yml`](../../.github/workflows/lesson-05-vulnerable.yml).
 
 A direct `${{ secrets.NAME }}` value is normally masked by the runner. A property extracted with `fromJSON(secrets.NAME).password` is a new value the runner does not know, so printing it may expose clear text.
 
@@ -73,9 +73,9 @@ Note the trade-off in the first row: SHA pins protect you from a hijacked tag, b
 2. **Inspect the trust boundary.** In the vulnerable fixture, find `on: pull_request_target`, the checkout of `github.event.pull_request.head.sha`, and the subsequent `pytest` command. The event supplies base-repository privileges while the checkout supplies attacker-controlled executable code.
 3. **Trace script injection.** Follow `github.event.pull_request.title` into the `run:` block. GitHub expands `${{ ... }}` before the runner invokes Bash, so a crafted title can alter the generated script.
 4. **Audit action references.** Find `actions/checkout@v4` and `actions/setup-python@v5`. Tags are mutable names; a full commit SHA (or a workflow lockfile entry) makes the selected action content immutable. Compare with this repository's own workflows, which pin every action to a full SHA with a version comment; a test in `tests/test_workflow_paths.py` keeps it that way.
-5. **Trace secret exposure.** Open the disabled vulnerable workflow and find the derived password directly interpolated into `run: echo`. Confirm that `if: ${{ false }}` is on the job, not merely on one step.
+5. **Trace secret exposure.** Open the [disabled vulnerable workflow](../../.github/workflows/lesson-05-vulnerable.yml) and find the derived password directly interpolated into `run: echo`. Confirm that `if: ${{ false }}` is on the job, not merely on one step.
 6. **Compare the repaired design.** Open [`fixtures/remediated-workflow.yml.txt`](fixtures/remediated-workflow.yml.txt), then use [`solution.md`](solution.md) to map each vulnerable line to its fix.
-7. **Review the GitHub Actions alert.** Open [critical alert #93: Unmasked Secret Exposure](https://github.com/tkl-enteprises/ghas-demos/security/code-scanning/93) directly. To find it from the alert list, clear the current query and enter `is:open branch:main "Unmasked Secret Exposure"`. Do not use `path:.github/workflows/`; GitHub does not treat that value as a directory-prefix search. Workflow files must live under the repository-root `.github/workflows/` directory, so the lesson-directory path filter cannot return a GitHub Actions alert. The two critical `.txt` fixture findings appear only if you completed the disposable-fork exercise above. Useful rule IDs include:
+7. **Review the GitHub Actions alert.** Open [critical alert #93: Unmasked Secret Exposure](https://github.com/tkl-enteprises/ghas-demos/security/code-scanning/93) directly, or find it in the [Lesson 05 code scanning alerts](https://github.com/tkl-enteprises/ghas-demos/security/code-scanning?query=is%3Aopen+branch%3Amain+rule%3Aactions%2Funmasked-secret-exposure) view, pre-filtered to `is:open branch:main rule:actions/unmasked-secret-exposure`. Do not use `path:.github/workflows/`; GitHub does not treat that value as a directory-prefix search. Workflow files must live under the repository-root `.github/workflows/` directory, so the lesson-directory path filter cannot return a GitHub Actions alert. The two critical `.txt` fixture findings appear only if you completed the disposable-fork exercise above. Useful rule IDs include:
    - `actions/untrusted-checkout/critical`
    - `actions/code-injection/critical`
    - `actions/unpinned-tag`
@@ -87,7 +87,7 @@ Note the trade-off in the first row: SHA pins protect you from a hijacked tag, b
 | --- | --- |
 | `fixtures/vulnerable-workflow.yml.txt` | Non-executable text fixture containing all three findings. |
 | `fixtures/remediated-workflow.yml.txt` | Non-executable, hardened comparison fixture. |
-| `.github/workflows/lesson-05-vulnerable.yml` | Vulnerable YAML extracted by CodeQL, permanently skipped at runtime. |
+| [`.github/workflows/lesson-05-vulnerable.yml`](../../.github/workflows/lesson-05-vulnerable.yml) | Vulnerable YAML extracted by CodeQL, permanently skipped at runtime. |
 | `solution.md` | Finding-by-finding explanation and remediation guidance. |
 
 ## Exit criteria
