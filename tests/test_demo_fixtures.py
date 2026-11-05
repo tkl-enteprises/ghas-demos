@@ -67,37 +67,48 @@ def _markdown_table(markdown: str, header: str) -> dict[str, list[str]]:
     return rows
 
 
-def _module_boolean_assignments(path: Path) -> dict[str, bool]:
+def _route_protection(path: Path) -> dict[str, bool]:
+    """Map each `@app.route` URL in a fixture to whether `@admin_required` guards it."""
     tree = ast.parse(path.read_text(encoding="utf-8"))
-    assignments = {}
+    routes = {}
     for node in tree.body:
-        if (
-            isinstance(node, ast.Assign)
-            and len(node.targets) == 1
-            and isinstance(node.targets[0], ast.Name)
-            and isinstance(node.value, ast.Constant)
-            and isinstance(node.value.value, bool)
-        ):
-            assignments[node.targets[0].id] = node.value.value
-    return assignments
+        if not isinstance(node, ast.FunctionDef):
+            continue
+        decorator_names = {d.id for d in node.decorator_list if isinstance(d, ast.Name)}
+        for decorator in node.decorator_list:
+            if (
+                isinstance(decorator, ast.Call)
+                and isinstance(decorator.func, ast.Attribute)
+                and decorator.func.attr == "route"
+            ):
+                routes[decorator.args[0].value] = "admin_required" in decorator_names
+    return routes
 
 
 def test_lesson03_custom_query_and_controls_stay_aligned(repo_root: Path):
     lesson = _lesson(repo_root, "03-code-security-custom-codeql-queries")
-    query_path = (
-        repo_root / ".github" / "codeql" / "custom-queries" / "PutinKhuyloFalse.ql"
-    )
-    query = query_path.read_text(encoding="utf-8")
+    queries = repo_root / ".github" / "codeql" / "custom-queries"
+    query = (queries / "UnprotectedAdminRoute.ql").read_text(encoding="utf-8")
 
-    assert "@id py/tkl/putin-khuylo-false" in query
-    assert 'n.getId() = "putin_khuylo"' in query
-    assert 'v.toString() = "False"' in query
-    assert _module_boolean_assignments(lesson / "noncompliant.py")[
-        "putin_khuylo"
-    ] is False
-    assert _module_boolean_assignments(lesson / "compliant.py")[
-        "putin_khuylo"
-    ] is True
+    assert "@id py/tkl/unprotected-admin-route" in query
+    assert '.getId() = "admin_required"' in query
+    assert 'regexpMatch("/admin(/.*)?")' in query
+    assert (queries / "UnprotectedAdminRoute.md").is_file(), "rule help for the alert page"
+
+    assert _route_protection(lesson / "noncompliant.py") == {
+        "/health": False,
+        "/admin/audit-log": True,
+        "/admin/users/export": False,
+    }, (
+        "noncompliant.py must keep exactly one unprotected /admin route for the custom "
+        "query to report. If a demo PR added @admin_required there, close it unmerged "
+        "or revert it."
+    )
+    assert _route_protection(lesson / "compliant.py") == {
+        "/health": False,
+        "/admin/audit-log": True,
+        "/admin/users/export": True,
+    }
 
 
 def test_lesson10_manifests_match_all_intentional_pins(repo_root: Path):
