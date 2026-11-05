@@ -1,0 +1,4 @@
+# Scanner pin for .github/workflows/sarif-bandit.yml (not a lesson fixture).
+# It lives next to the code Bandit scans so the lesson-04 entry in
+# .github/dependabot.yml has a manifest to keep current.
+bandit[sarif]==1.9.4

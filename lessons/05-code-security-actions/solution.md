@@ -22,11 +22,15 @@ permissions:
   contents: read
 
 steps:
-  - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+  - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
   - run: python -m pytest
 ```
 
-The normal checkout behavior uses the PR merge commit, and forked PRs receive a restricted token without repository secrets. The full SHA shown above resolves from the official `actions/checkout` repository's `v4` tag at the time this lesson was authored; verify upstream ownership and the current release before adopting any pin.
+The normal checkout behavior uses the PR merge commit, and forked PRs receive a restricted token without repository secrets. The full SHA shown above resolves from the official `actions/checkout` repository's `v7.0.1` tag (verified November 2026); verify upstream ownership and the current release before adopting any pin.
+
+### Platform guardrails are defense in depth, not the fix
+
+`actions/checkout` v7 — and, since July 20, 2026, the floating major tags of earlier supported versions — refuses to fetch fork pull request code in `pull_request_target` and `workflow_run` workflows unless `allow-unsafe-pr-checkout: true` is set. Public repositories also block `pull_request_target` by default from December 2, 2026 unless an Actions event policy allows it. Neither makes the pattern safe to keep: CodeQL still reports it, a `run:` step that does `git fetch origin refs/pull/N/head` bypasses checkout's guard, and private repositories are not covered by the event block.
 
 ### If privileged follow-up is required
 
@@ -80,11 +84,16 @@ References such as these resolve a mutable tag each time the job starts:
 Pin each action to a verified full commit SHA:
 
 ```yaml
-- uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-- uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+- uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
 ```
 
 The version comments are for human and dependency-bot readability; the SHA is the security boundary. Verify a pin against the action's official repository, review updates, and configure Dependabot to propose SHA refreshes.
+
+Two newer alternatives and enforcement levers:
+
+- **Workflow lockfiles** (GA October 28, 2026): keep readable tags in the workflow and run `gh actions-lock` to record exact commits in `.github/workflows/actions.lock`. Dependabot updates the lockfile in its PRs, a **Require lockfile** policy enforces adoption, and CodeQL's `actions/unpinned-tag` no longer reports references pinned by a valid lockfile entry.
+- **SHA-pinning policy** (since August 2025): the allowed-actions policy can require full-length SHA pins and block specific actions or versions (prefix an entry with `!`).
 
 ## Finding 4: a derived repository secret may be printed unmasked
 

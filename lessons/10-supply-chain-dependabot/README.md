@@ -1,6 +1,6 @@
 # Lesson 10 — Grouped Dependabot security updates
 
-A facilitator-ready demo of dependency alerts, grouped Dependabot security-update pull requests, organization-level prioritization, and npm malware alerts. The Python dependencies are **intentionally vulnerable** fixtures. Do not install them, run the app, or merge Dependabot's fixes into the workshop branch.
+A facilitator-ready demo of dependency alerts, grouped Dependabot security-update pull requests, organization-level prioritization, and malware alerts. The Python dependencies are **intentionally vulnerable** fixtures. Do not install them, run the app, or merge Dependabot's fixes into the workshop branch.
 
 ## Goal
 
@@ -10,7 +10,7 @@ Experience GitHub's supply-chain stack in a real repo:
 - **Dependabot alerts** — reviewed advisories matched against the default-branch dependency graph.
 - **Grouped security updates** — one PR can update multiple vulnerable dependencies matched by a group rule.
 - **Organization security overview** — prioritize Dependabot risk across repositories.
-- **Malware alerts** — an optional observation-only npm demo; no malicious package is added here.
+- **Malware alerts** — an optional observation-only demo (npm, PyPI, and more ecosystems); no malicious package is added here.
 - **Dependency review** — a PR check that blocks new vulnerable deps from sneaking in.
 
 ## Learning objectives
@@ -21,7 +21,8 @@ After this lesson you can:
 - Distinguish **Dependabot alerts** (signal) from **Dependabot security update PRs** (action).
 - Explain and inspect a grouped security-update PR.
 - Use the current organization **Security and quality → Dependabot dashboard** view.
-- Explain what npm malware alerts do without downloading a malicious package.
+- Explain what malware alerts do without installing a malicious package.
+- Contrast a Dependabot alert (vulnerable package) with a CodeQL alert on the same file (vulnerable usage).
 
 ## Estimated time
 
@@ -34,7 +35,7 @@ After this lesson you can:
 - The presenter needs write, maintain, admin, or explicitly granted alert access to inspect repository alerts. Repository settings require admin access.
 - Wait for GitHub to parse the manifests and create alerts/PRs. Processing is asynchronous and cannot be guaranteed during a live session.
 - For the organization view, use an organization eligible for the additional security overview views. Availability is plan-dependent: GitHub documents these views for Team organizations with GitHub Secret Protection or GitHub Code Security, and organizations owned by a GitHub Enterprise account. Organization owners and security managers can see organization-wide data; members see only repositories whose alerts they can access.
-- For the optional malware view, separately enable **Dependabot malware alerts** after Dependabot alerts. Malware alerts currently support only the `npm` ecosystem.
+- For the optional malware view, separately enable **Dependabot malware alerts** after Dependabot alerts. Since July 28, 2026 the GitHub Advisory Database also ingests the OpenSSF malicious-packages advisories, so coverage extends beyond npm to PyPI and more ecosystems.
 - `.github/workflows/dependency-review.yml` is optional for this lesson's PR-prevention discussion.
 
 ## What's in this lesson
@@ -44,7 +45,7 @@ After this lesson you can:
 - `app.py` — a tiny Flask app whose imports exercise each vulnerable package.
 - `solution.md` — the operational guide (triage workflow, resolution paths, configuration tips).
 
-> `.github/dependabot.yml` contains a `pip` group with `applies-to: security-updates` and `patterns: ["*"]`. The weekly schedule controls version-update checks; security-update PRs are driven by Dependabot alerts and fix availability, not by that weekly schedule.
+> `.github/dependabot.yml` defines two `pip` groups for this directory: `lesson-ten-security-updates` (`applies-to: security-updates`) and `lesson-ten-version-updates` (`applies-to: version-updates`), both with `patterns: ["*"]`. Expect one grouped PR of each kind. The weekly schedule controls version-update checks; security-update PRs are driven by Dependabot alerts and fix availability, not by that weekly schedule. Since July 2026, version updates also wait out a default 3-day cooldown after a release; security updates still open immediately.
 
 ## Pinned vulnerabilities
 
@@ -108,6 +109,8 @@ Talk track: "An alert is a finding, not a PR. There can be several alerts for on
 3. Show that its manifest diff updates multiple dependencies, then inspect release notes, compatibility information when available, and CI.
 4. Explain that the group is the review unit: one incompatible update can block the whole PR. Split or manually remediate when packages cannot safely ship together.
 
+Then open the PR for `lesson-ten-version-updates`. It bumps the same packages to their latest releases on the weekly schedule, whether or not an advisory exists. Comparing the two PRs is the quickest way to separate **security updates** (minimum change that resolves alerts) from **version updates** (routine freshness).
+
 Do not promise an exact PR count. Dependabot groups only updates that match the rule and can be resolved together. Alerts without a patched version, conflicting constraints, already-open PRs, or temporary processing failures can remain outside the group. A group with only one eligible update still produces a one-dependency PR. Adding the rule can cause Dependabot to close superseded individual PRs and open a grouped PR.
 
 ### 4. Show organization prioritization (3 minutes)
@@ -122,6 +125,12 @@ Talk track: "The repository view answers 'what fixes this project?'; the organiz
 ### 5. Reset (1 minute)
 
 Do not merge the demo PR into the workshop branch. If a temporary branch or PR was created, close it and restore the branch from the default branch. Keep `requirements.txt` and `pyproject.toml` pinned so future cohorts still generate alerts.
+
+## The same file through CodeQL's eyes
+
+`app.py` is also scanned by CodeQL, and it produces six alert types in **Security and quality → Code scanning**: `py/template-injection` (server-side template injection in `/render`), `py/reflective-xss` (three routes), `py/unsafe-deserialization` (`yaml.load`), `py/full-ssrf` (`/fetch`), `py/jinja2/autoescape-false` (`Template(...)`), and `py/flask-debug` (`app.run(debug=True)`).
+
+Talk track: "Dependabot says *this package version is vulnerable*. CodeQL says *this line of our code is exploitable*. The PyYAML advisory matters here precisely because CodeQL shows untrusted input reaching `yaml.load`." The facilitator's 60-minute agenda opens the `py/template-injection` alert from this file. See [Reachability](solution.md#reachability) for how the two signals combine.
 
 ## Dependency review on PRs
 
@@ -141,7 +150,7 @@ For low-risk patch bumps you can auto-merge once CI is green. See:
 
 A common pattern: a workflow that listens for `pull_request` events from `dependabot[bot]`, reads `dependabot/fetch-metadata`, and calls `gh pr merge --auto --squash` when `update-type` is `version-update:semver-patch`.
 
-## Optional observation: npm malware alerts
+## Optional observation: malware alerts
 
 Dependabot can also alert when a dependency on the default branch matches a package marked malicious in the GitHub Advisory Database. This is a separate feature and alert stream from vulnerability alerts.
 
@@ -158,7 +167,7 @@ Never add a known-malicious package, fake a public package name/version, run `np
 
 **Limitations to state aloud**
 
-- Malware alerts currently cover only `npm`; the vulnerable Python fixture will not generate them.
+- Coverage now spans npm, PyPI, and more ecosystems (OpenSSF malicious-packages advisories, July 2026). This fixture pins only legitimate, merely outdated packages, so its Malware view stays empty. Browse examples with the `type:malware` filter at <https://github.com/advisories>.
 - They require Dependabot alerts plus the separate malware-alert setting.
 - Detection is based on the default-branch dependency graph and GitHub-reviewed malware advisories. New or unknown malware can be missed or delayed.
 - Archived repositories are not scanned. A private package whose ecosystem, name, and version collide with a malicious public package can produce a false positive.
@@ -188,7 +197,7 @@ The demo has landed when:
 - Attendees can distinguish an alert from a security-update PR.
 - Attendees can explain `applies-to: security-updates` and identify the grouped PR.
 - Attendees can navigate to the organization Dependabot view.
-- Attendees understand that malware alerts are npm-only today and require no live malicious package.
+- Attendees understand that malware alerts are a separate signal across npm, PyPI, and more, and that demonstrating them requires no live malicious package.
 
 ## Key takeaways
 
@@ -196,7 +205,7 @@ The demo has landed when:
 - Security-update groups reduce PR count but increase the blast radius of each review unit.
 - Dependency review is the **prevention** half — it stops a contributor from re-introducing a vulnerable pin that Dependabot just removed.
 - The schedule in `dependabot.yml` governs version-update checks, not the arrival cadence of security alerts.
-- **Malware alerts are a separate, npm-only signal** and do not justify putting malware in a demo repository.
+- **Malware alerts are a separate signal** (npm, PyPI, and more) and do not justify putting malware in a demo repository.
 
 ## Reset state
 

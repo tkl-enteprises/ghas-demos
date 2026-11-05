@@ -2,8 +2,9 @@
 Shared pytest fixtures for the workshop-infrastructure test suite.
 
 These tests validate static repo invariants — lesson structure, link
-correctness, workflow paths, script smoke, demo-code syntax — NOT security
-properties of the intentionally-vulnerable demo code.
+correctness, workflow paths, script smoke, demo-code syntax. They never assert
+that the demo code is secure; the fixture guards assert that the planted
+vulnerabilities are still present.
 """
 
 from __future__ import annotations

@@ -387,3 +387,157 @@ def test_lesson05_secret_exposure_demo_stays_disabled(repo_root: Path):
     assert re.search(r"^\s{4}if:\s*\$\{\{\s*false\s*\}\}\s*$", workflow, re.MULTILINE)
     assert "fromJSON(secrets.LESSON_05_CREDENTIALS).password" in workflow
     assert 'run: echo "${{ fromJSON(secrets.LESSON_05_CREDENTIALS).password }}"' in workflow
+
+
+# ---------------------------------------------------------------------------
+# Intentional vulnerabilities must survive live demos.
+#
+# Lessons 01, 02 and 04 end with "Generate fix" / "Assign to Copilot" PRs. If
+# one of those PRs is merged, the next cohort silently loses an alert (this
+# happened to lesson 01's `lookup_user` SQL injection in July 2026). These
+# guards turn such a PR red with an explanation instead.
+# ---------------------------------------------------------------------------
+
+INTENTIONAL_SINKS = {
+    "01-code-security-codeql-scanning/vulnerable_app.py": (
+        "\"SELECT id, email FROM users WHERE username = '\" + username + \"'\"",
+        "cursor.execute(query)",
+        '"ping -c 1 " + host',
+        "shell=True",
+        'os.path.join("reports", report_name)',
+        "return eval(expr)",
+        'log.info("Login attempt: user=%s password=%s", username, password)',
+        "hashlib.md5(",
+        'ADMIN_PASSWORD = "',  # hard-coded literal; value deliberately not repeated here
+    ),
+    "01-code-security-codeql-scanning/user_routes.py": (
+        "\"SELECT id, username, email FROM users WHERE username LIKE '%\" + q + \"%'\"",
+        '"SELECT id, total FROM orders WHERE user_id = " + user_id',
+    ),
+    "02-code-security-copilot-autofix/insecure_login.py": (
+        "\"WHERE username = '\" + username + \"' \"",
+        "\"AND password = '\" + password + \"'\"",
+        "cursor.execute(query)",
+    ),
+    "04-code-security-sarif-integration/subprocess_use.py": (
+        'subprocess.check_output(f"ls -la {path}", shell=True)',
+        'f"cat /etc/passwd | grep {user_filter}",\n        shell=True,',
+        'subprocess.check_output(["ping", "-c", "1", target])',
+    ),
+    "04-code-security-sarif-integration/sql_format.py": (
+        "\"SELECT * FROM users WHERE username = '%s'\" % username",
+        "f\"SELECT id, total FROM orders WHERE status = '{status}'\"",
+    ),
+    "04-code-security-sarif-integration/eval_use.py": ("eval(expression)", "exec(code)"),
+    "04-code-security-sarif-integration/unsafe_deserialize.py": (
+        "pickle.loads(blob)",
+        "pickle.load(fh)",
+    ),
+    "04-code-security-sarif-integration/weak_crypto.py": (
+        "hashlib.md5(",
+        "random.randint(0, 9)",
+        "random.seed(seed)",
+    ),
+    "04-code-security-sarif-integration/assert_check.py": (
+        'assert role == "admin"',
+        'ADMIN_PASSWORD = "',  # literal values not repeated: avoid new AI-detected alerts
+        'password: str = "',
+        "app.run(debug=True)",
+    ),
+}
+
+
+@pytest.mark.parametrize("relative_path", sorted(INTENTIONAL_SINKS))
+def test_intentional_vulnerabilities_are_still_present(repo_root: Path, relative_path: str):
+    text = (repo_root / "lessons" / relative_path).read_text(encoding="utf-8")
+    missing = [snippet for snippet in INTENTIONAL_SINKS[relative_path] if snippet not in text]
+    assert not missing, (
+        f"lessons/{relative_path} no longer contains the intentional vulnerability "
+        f"{missing}. A workshop fix (Copilot Autofix, Copilot cloud agent, or a manual "
+        "solution.md change) appears to have been merged. That is expected inside a "
+        "demo PR, but do not merge it: close the PR, or revert it so the next cohort "
+        "still sees the alert."
+    )
+
+
+def test_lesson09_fixtures_match_their_custom_patterns(repo_root: Path):
+    lesson = _lesson(repo_root, "09-secret-protection-custom-patterns")
+    readme = (lesson / "README.md").read_text(encoding="utf-8")
+    patterns = {
+        "internal.py": r"CONTOSO-API-[A-Z0-9]{16,}",
+        "demo_key.py": r"contoso_demo_[a-z0-9]{32}",
+    }
+    for filename, pattern in patterns.items():
+        assert f"`{pattern}`" in readme, f"lesson 09 README should document `{pattern}`"
+        text = (lesson / filename).read_text(encoding="utf-8")
+        assert re.search(rf'"{pattern}"', text), (
+            f"{filename} must keep a quoted value matching the custom pattern {pattern}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Live push-protection demos must not leave real credentials behind.
+# ---------------------------------------------------------------------------
+
+SENSITIVE_ENV_KEY_RE = re.compile(r"(KEY|TOKEN|SECRET|PASSWORD|PAT|CONNECTION_STRING)", re.I)
+GITHUB_FINE_GRAINED_PAT_RE = re.compile(r"github_pat_[A-Za-z0-9_]{22,}")
+GITHUB_CLASSIC_TOKEN_RE = re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,}\b")
+
+
+def _tracked_text_files(repo_root: Path) -> list[Path]:
+    git = shutil.which("git")
+    if git is None or not (repo_root / ".git").exists():
+        pytest.skip("git checkout required to enumerate tracked files")
+    result = subprocess.run(
+        [git, "ls-files", "-z"], cwd=repo_root, capture_output=True, check=True
+    )
+    paths = [repo_root / p for p in result.stdout.decode().split("\0") if p]
+    return [p for p in paths if p.suffix not in {".png", ".jpg", ".gif"} and p.is_file()]
+
+
+def test_env_example_keeps_placeholders_only(repo_root: Path):
+    env_example = _lesson(repo_root, "08-secret-protection-secret-scanning") / ".env.example"
+    filled = [
+        line.split("=", 1)[0]
+        for line in env_example.read_text(encoding="utf-8").splitlines()
+        if "=" in line
+        and not line.lstrip().startswith("#")
+        and SENSITIVE_ENV_KEY_RE.search(line.split("=", 1)[0])
+        and line.split("=", 1)[1].strip()
+    ]
+    assert not filled, (
+        f".env.example must teach the placeholder pattern, but {filled} have values. "
+        "A live push-protection demo probably committed a real token: revoke it, then "
+        "blank the value."
+    )
+
+
+def test_no_env_files_are_tracked(repo_root: Path):
+    tracked = [
+        str(p.relative_to(repo_root))
+        for p in _tracked_text_files(repo_root)
+        if p.name == ".env" or (p.name.startswith(".env.") and p.name != ".env.example")
+    ]
+    assert not tracked, (
+        f"{tracked} are tracked although .gitignore excludes them. They are usually "
+        "left behind by a live push-protection bypass demo: revoke the token and "
+        "delete the file."
+    )
+
+
+def test_no_real_github_tokens_are_committed(repo_root: Path):
+    offenders = []
+    for path in _tracked_text_files(repo_root):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        if GITHUB_FINE_GRAINED_PAT_RE.search(text):
+            offenders.append(f"{path.relative_to(repo_root)} (github_pat_…)")
+        for token in GITHUB_CLASSIC_TOKEN_RE.findall(text):
+            if "FAKE" not in token:
+                offenders.append(f"{path.relative_to(repo_root)} ({token[:4]}…)")
+    assert not offenders, (
+        f"Real-looking GitHub tokens are committed: {offenders}. Workshop fixtures "
+        "must contain FAKE markers; revoke any real token immediately."
+    )

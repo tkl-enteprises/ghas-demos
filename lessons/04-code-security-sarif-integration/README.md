@@ -13,7 +13,7 @@ Show how to ingest 3rd-party SAST results into GitHub Code Scanning via SARIF, u
 After this lesson you can:
 
 - Upload a third-party SARIF file via `github/codeql-action/upload-sarif`.
-- Configure a tool (Bandit) to emit SARIF and identify the four key paths in the SARIF JSON.
+- Configure a tool (Bandit) to emit SARIF and identify the key paths in the SARIF JSON.
 - Filter Code Scanning by **Tool** to separate Bandit findings from CodeQL findings.
 - Use `category:` to keep multiple SARIF uploaders from overwriting each other.
 
@@ -29,7 +29,7 @@ After this lesson you can:
 
 ## Why use SARIF integration
 
-GitHub Code Scanning is a **SARIF receiver**, not just a CodeQL frontend. Any security tool that produces a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/) file — Bandit, Semgrep, Trivy, Checkov, Snyk, KICS, or gitleaks — can upload via `github/codeql-action/upload-sarif@v3` and findings appear alongside CodeQL results. That means triage, dismissals, autofix branches, and PR annotations all happen in one UI. Layer multiple scanners for breadth (Bandit catches Python footguns CodeQL deprioritises; Trivy catches container/IaC issues neither covers).
+GitHub Code Scanning is a **SARIF receiver**, not just a CodeQL frontend. Any security tool that produces a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/) file — Bandit, Semgrep, Trivy, Checkov, Snyk, KICS, or gitleaks — can upload via `github/codeql-action/upload-sarif@v4` and findings appear alongside CodeQL results. That means triage, dismissals, autofix branches, and PR annotations all happen in one UI. Layer multiple scanners for breadth (Bandit catches Python footguns CodeQL deprioritises; Trivy catches container/IaC issues neither covers).
 
 ## How CodeQL and Bandit fit together
 
@@ -51,27 +51,28 @@ Despite its name, `github/codeql-action/upload-sarif` is a generic SARIF uploade
 
 ## Workflow
 
-`.github/workflows/sarif-bandit.yml` (created by the github-config agent):
+[`.github/workflows/sarif-bandit.yml`](../../.github/workflows/sarif-bandit.yml) runs on every push and pull request to `main`. Its core steps (action SHAs shortened here):
 
 ```yaml
-- run: pip install bandit[sarif]
-- run: bandit -r lessons/04-code-security-sarif-integration -f sarif -o bandit.sarif || true
-- uses: github/codeql-action/upload-sarif@v3
+- run: pip install -r lessons/04-code-security-sarif-integration/requirements.txt  # bandit[sarif]==1.9.4
+- run: bandit -r lessons/04-code-security-sarif-integration -f sarif -o bandit.sarif --exit-zero
+- uses: github/codeql-action/upload-sarif@<full-commit-sha> # v4
   with:
     sarif_file: bandit.sarif
     category: bandit
 ```
 
 Notes:
-- `|| true` keeps the job green even when Bandit finds issues — Code Scanning surfaces severity, the workflow shouldn't fail the PR.
+- `--exit-zero` keeps the job green even when Bandit finds issues — Code Scanning surfaces severity, the scan step shouldn't fail the PR.
 - `category: bandit` keeps these findings distinct from CodeQL's, so they don't overwrite each other.
+- The Bandit version is pinned in this lesson's [`requirements.txt`](requirements.txt), so Dependabot proposes scanner upgrades like any other dependency. Upgrading from 1.7.9 to 1.9.4 produced the identical 20 findings.
 - The `.github/codeql/codeql-config.yml` is configured with `paths-ignore: lessons/04-code-security-sarif-integration/**`, so CodeQL skips this folder entirely. Bandit owns it. No duplicate alerts.
 
 ## Hands-on steps
 
 1. **Read each `.py` file in this folder.** Note the variety of issues — weak crypto, pickle, eval, subprocess, SQL injection, asserts-as-auth, hardcoded passwords. Some of these aren't CodeQL's strong suits (it has overlap on SQLi/eval, but Bandit's blacklist-based checks catch the long tail).
 2. **Push a commit or open a PR.** The Bandit workflow runs automatically.
-3. Visit **Security → Code scanning** on the repo. Filter by **Tool = Bandit**.
+3. Visit **Security and quality → Code scanning** on the repo. Filter by **Tool = Bandit**.
 4. Compare a Bandit finding (e.g. MD5 use in `weak_crypto.py`) to a CodeQL finding from lesson 01. Notice both surface in the same UI, with the same dismiss / autofix UX.
 5. Open `sample.sarif` in this folder and locate the matching `results[0]` entry. Cross-reference its `ruleId`, `locations[0].physicalLocation`, and `message.text` to understand SARIF structure.
 
@@ -79,9 +80,9 @@ Notes:
 
 *The Actions tab is the upstream of every screenshot below — green checkmarks on `CodeQL` and `Bandit (SARIF upload)` are what populates the Code Scanning view._
 
-![Code scanning alerts filtered to **Tool: Bandit**, showing rules B303 (MD5 use), B301 (pickle), B307 (eval), B602/B603 (subprocess shell=True), B608 (SQL via format), and B101/B105/B107 (assert / hardcoded passwords).](../../docs/screenshots/04-bandit-sarif-findings.png)
+![Code scanning alerts filtered to **Tool: Bandit**, showing rules B324 (weak MD5 hash), B602 (subprocess shell=True), B201 (Flask debug=True), and B301 (pickle) at the top of 20 open Bandit alerts.](../../docs/screenshots/04-bandit-sarif-findings.png)
 
-*Bandit findings surfaced in `Security → Code scanning` after `upload-sarif@v3` ran. Triage UI is identical to CodeQL's — same dismiss reasons, same alert lifecycle, same PR annotations._
+*Bandit findings surfaced in `Security and quality → Code scanning` after `upload-sarif` ran. The capture predates the lesson renumbering, so its paths show the old `07-sarif-integration` folder; the findings are the same. Triage UI is identical to CodeQL's — same dismiss reasons, same alert lifecycle, same PR annotations._
 
 ## SARIF schema cheat sheet
 
@@ -90,9 +91,9 @@ A SARIF 2.1.0 document is a JSON tree. The four parts you'll touch most:
 | Path | What it is |
 |------|------------|
 | `runs[].tool.driver.name` | Display name in Code Scanning ("Bandit", "Semgrep", "Trivy"). |
-| `runs[].results[].ruleId` | Rule identifier (e.g. `B303`). Used for grouping/filtering. |
+| `runs[].results[].ruleId` | Rule identifier (e.g. `B324`). Used for grouping/filtering. |
 | `runs[].results[].locations[].physicalLocation` | File `uri` + `region` (startLine / startColumn / endLine / endColumn). |
-| `runs[].results[].partialFingerprints` | Stable hash so re-uploads don't create duplicate alerts. |
+| `runs[].results[].partialFingerprints` | Stable hash so re-uploads don't create duplicate alerts. Bandit omits it; `upload-sarif` computes a `primaryLocationLineHash` from the source file before uploading. |
 
 References:
 - SARIF 2.1.0 spec — https://docs.oasis-open.org/sarif/sarif/v2.1.0/
@@ -100,16 +101,16 @@ References:
 
 ## Other tools you can integrate
 
-Any tool that emits SARIF can upload via `github/codeql-action/upload-sarif@v3`. Common picks:
+Any tool that emits SARIF can upload via `github/codeql-action/upload-sarif@v4`. Common picks:
 
-- **Semgrep** — `returntocorp/semgrep-action` (rules across many languages, great for custom org policies)
+- **Semgrep** — run `semgrep ci --sarif` in the `semgrep/semgrep` container; the older `returntocorp/semgrep-action` is deprecated (rules across many languages, great for custom org policies)
 - **Trivy** — `aquasecurity/trivy-action` (container images, IaC, filesystem, dependencies)
 - **Checkov** — `bridgecrewio/checkov-action` (Terraform / CloudFormation / Kubernetes IaC)
 - **Snyk** — `snyk/actions/python@master` (SCA + container, requires Snyk token)
 - **KICS** — `checkmarx/kics-github-action` (IaC scanner from Checkmarx)
 - **gitleaks** — `gitleaks/gitleaks-action` (secret detection, complements GHAS Secret Scanning)
 
-Pattern is always the same: run the tool with `--sarif` / `-f sarif` output, then `upload-sarif` with a unique `category:`.
+Pattern is always the same: run the tool with `--sarif` / `-f sarif` output, then `upload-sarif` with a unique `category:`. Pin third-party scanner actions to a full commit SHA (see [lesson 05](../05-code-security-actions/README.md)): they run with your workflow's token, and hijacked tags of popular actions have been used to steal CI secrets.
 
 ## Where to look
 
@@ -121,13 +122,14 @@ After the workflow runs, filter Code Scanning to just the Bandit findings:
 
 | File | Purpose | Bandit rules |
 |------|---------|--------------|
-| `weak_crypto.py` | MD5 + `random` for security | B303, B311 |
-| `unsafe_deserialize.py` | `pickle.loads` on untrusted bytes | B301 |
-| `eval_use.py` | `eval` / `exec` on input | B307 |
-| `subprocess_use.py` | `subprocess.Popen(..., shell=True)` | B404, B602, B603 |
+| `weak_crypto.py` | MD5 + `random` for security | B324, B311 |
+| `unsafe_deserialize.py` | `import pickle` + `pickle.loads` / `pickle.load` on untrusted bytes | B403, B301 |
+| `eval_use.py` | `eval` / `exec` on input | B307, B102 |
+| `subprocess_use.py` | `subprocess` import, `shell=True`, untrusted argv, partial executable path | B404, B602, B603, B607 |
 | `sql_format.py` | SQL via `%`-format and f-string | B608 |
 | `assert_check.py` | `assert` for auth + hardcoded password + Flask `debug=True` | B101, B105, B107, B201 |
-| `sample.sarif` | Frozen example of Bandit's SARIF output | — |
+| `requirements.txt` | Bandit version used by the workflow (kept current by Dependabot) | — |
+| `sample.sarif` | Two real results from Bandit 1.9.4's SARIF output, frozen for offline reading | — |
 | `solution.md` | Fixes + multi-tool strategy | — |
 
 ## Discussion prompts
@@ -140,7 +142,7 @@ After the workflow runs, filter Code Scanning to just the Bandit findings:
 
 The demo has landed when:
 
-- **Security → Code scanning** shows alerts when filtered to **Tool: Bandit**.
+- **Security and quality → Code scanning** shows 20 open alerts when filtered to **Tool: Bandit**.
 - Attendees can locate one Bandit finding in `sample.sarif` and trace its `ruleId` + `physicalLocation`.
 - Attendees know the upload pattern is identical for any SARIF-emitting tool (Semgrep, Trivy, Checkov, …).
 

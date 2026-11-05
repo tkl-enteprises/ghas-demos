@@ -31,7 +31,7 @@ After this lesson you can:
 
 ## Where the patterns live
 
-> 🛠️ **Custom patterns are not configuration files in source control.** A common misconception is that `.github/secret_scanning.yml` defines custom patterns — it does not. That file supports scanner path exclusions. This lesson uses repo / org / enterprise *Settings* because the AI candidate and dry-run workflow is presented in the GitHub UI.
+> 🛠️ **Custom patterns are not configuration files in source control.** A common misconception is that `.github/secret_scanning.yml` defines custom patterns — it does not. That file only supports `paths-ignore` exclusions. Since July 13, 2026 the REST API can list, create, update, and delete custom patterns at repository, organization, and enterprise level, so definitions can be scripted and reviewed — but dry runs and the final publishing step still happen in the UI. This lesson uses repo / org / enterprise *Settings* because the AI candidate and dry-run workflow is presented there.
 
 This lesson exercises two custom patterns. The facilitator (or a workshop preflight script) configures them once via the UI:
 
@@ -46,8 +46,8 @@ Each Python file in this lesson hard-codes one fake match. Once the patterns are
 
 ### Configure the patterns with AI candidates and a dry run (facilitator preflight)
 
-1. Open `https://github.com/tkl-enteprises/ghas-demos/settings/security_analysis` (or *Settings → Code security*).
-2. Scroll to *Secret scanning → Custom patterns* and click **New pattern**.
+1. Open `https://github.com/tkl-enteprises/ghas-demos/settings/security_analysis` (*Settings → Advanced Security*).
+2. Scroll to *Secret Protection → Custom patterns* and click **New pattern**.
 3. Enter **Pattern name:** `Contoso API Token`, then click **Generate with AI**.
 4. In the generator, provide only fake examples:
    - **I want a regular expression that:** `Matches a literal CONTOSO-API- prefix followed by at least 16 uppercase ASCII letters or digits.`
@@ -64,33 +64,33 @@ Each Python file in this lesson hard-codes one fake match. Once the patterns are
 
 > At organization scope, a dry run can target all repositories or up to 10 selected repositories. At enterprise scope, select up to 10 repositories and remember that only the pattern creator can edit/dry-run it, using repositories where they have admin access.
 
-Once both patterns are published, GHAS rescans automatically and the two demo files in this lesson will show up under **Security → Secret scanning**.
+Once both patterns are published, GHAS rescans automatically and the two demo files in this lesson will show up under **Security and quality → Secret scanning** (Default view).
 
-![Historical Generic AI tab of Security → Secret scanning showing AI-detected password alerts.](../../docs/screenshots/09-secret-scanning-generic-ai.png)
+![Generic view of Security and quality → Secret scanning showing AI-detected password alerts.](../../docs/screenshots/09-secret-scanning-generic-ai.png)
 
-*Preserved historical UI: the current documentation calls this separate list **AI-detected secrets**. It currently detects unstructured passwords; it is not a fallback detector for arbitrary Contoso token shapes. The Contoso fixtures alert only after their custom patterns are published._
+*The **Generic** view lists generic patterns and **AI-detected secrets** such as these passwords. AI detection is not a fallback for arbitrary Contoso token shapes: the Contoso fixtures alert only after their custom patterns are published, and then appear in the **Default** view._
 
 ## Org-level vs repo-level
 
 Custom patterns can be defined at three scopes — pick the one that matches who needs to maintain the pattern:
 
-- **Repo level** (this lesson): repo *Settings → Code security → Secret scanning → Custom patterns*. Quick to iterate, but only protects the one repo. Useful when prototyping a pattern.
-- **Org level**: org *Settings → Code security → Secret scanning → Custom patterns*. Apply to all repos in the org with one click. Recommended for any pattern that's broadly useful.
+- **Repo level** (this lesson): repo *Settings → Advanced Security → Secret Protection → Custom patterns*. Quick to iterate, but only protects the one repo. Useful when prototyping a pattern.
+- **Org level**: org *Settings → Advanced Security → Secret Protection → Custom patterns*. Apply to all repos in the org with one click. Recommended for any pattern that's broadly useful.
 - **Enterprise level**: enterprise admin console → *Code security → Secret scanning → Custom patterns*. Apply across every org in the enterprise. Use for company-wide token formats.
 
 Reference: <https://docs.github.com/en/enterprise-cloud@latest/code-security/how-tos/secure-your-secrets/customize-leak-detection/define-custom-patterns>
 
-In a real workshop, you'd typically promote a working repo-level pattern to org-level once it's proven not to false-positive. None of these scopes are version-controlled in source — pattern lifecycle (draft → review → publish → tune) lives entirely in the GitHub UI.
+In a real workshop, you'd typically promote a working repo-level pattern to org-level once it's proven not to false-positive. None of these scopes are version-controlled in source. The REST API can script pattern definitions, but the lifecycle gates — dry run and publish — still live in the GitHub UI.
 
 ## Hands-on steps
 
 1. Confirm the facilitator preflight above is done — both custom patterns are *Published* in repo settings.
 2. Open `internal.py` and `demo_key.py` in this lesson — both contain a fake string that matches one of the custom patterns.
-3. Visit **Security → Secret scanning** for the repo: <https://github.com/tkl-enteprises/ghas-demos/security/secret-scanning>
+3. Visit **Security and quality → Secret scanning** for the repo: <https://github.com/tkl-enteprises/ghas-demos/security/secret-scanning>
 4. Filter by *Secret type* → look for "Contoso API Token" and "Contoso Workshop Demo Key".
 5. Confirm both alerts are open, with the file path and line number pointing at this lesson.
 6. Review the facilitator's dry-run result (or rerun a draft pattern) and explain why dry run comes before publishing.
-7. Optionally: clone the repo, edit `internal.py` to add another fake `CONTOSO-API-…` value, and watch push protection block your push (works only if you enabled push protection on the published custom pattern and on the repository).
+7. Optionally: on a throwaway branch, add another fake `CONTOSO-API-…` value to `internal.py` (type it out in full — secret scanning reads raw text, so a value split across string concatenation never matches) and watch push protection block your push. Works only if you enabled push protection on the published custom pattern and on the repository; lesson 08's *Push protection demo* has a copy-paste one-liner.
 
 ## Designing custom patterns — checklist
 
@@ -122,14 +122,14 @@ A good custom pattern is **specific** (low false-positive rate) and **anchored**
 
 The demo has landed when:
 
-- **Security → Secret scanning** shows two custom-pattern alerts (`Contoso API Token`, `Contoso Workshop Demo Key`).
+- **Security and quality → Secret scanning** shows the custom-pattern alerts for `internal.py` (`Contoso API Token`) and `demo_key.py` (`Contoso Workshop Demo Key`). Test strings quoted in the Markdown guides can add more `Contoso API Token` alerts; that is expected.
 - Attendees can compare AI-generated candidates, reject an overbroad regex, and explain that dry runs create no alerts.
 - Attendees can describe the difference between repo / org / enterprise pattern scope.
 - (Optional) A push of a new `CONTOSO-API-…` value is blocked by push protection.
 
 ## Key takeaways
 
-- Custom patterns live in **GitHub Settings, not source control** — `.github/secret_scanning.yml` only supports `paths:` exclusions, not pattern definitions.
+- Custom patterns live in **GitHub Settings, not source control** — `.github/secret_scanning.yml` only supports `paths-ignore` exclusions. The REST API (July 2026) can script definitions; dry run and publishing stay in the UI.
 - The AI regex generator is **GA**, requires GitHub Secret Protection, and requires **no Copilot license**; generated candidates still need human review.
 - **Save and dry run** samples up to 1,000 matches without creating alerts. Publish only after tuning.
 - A good custom pattern is **specific** (distinctive prefix + bounded length) and **anchored** (predictable surrounding context).
@@ -144,7 +144,7 @@ The demo has landed when:
 
 This lesson DOES mutate org/repo state because patterns live in Settings:
 
-1. Go to *Settings → Code security → Secret scanning → Custom patterns*.
+1. Go to *Settings → Advanced Security → Secret Protection → Custom patterns*.
 2. **Delete** `Contoso API Token` and `Contoso Workshop Demo Key` if the next cohort should configure them from scratch.
 3. Otherwise leave them in place — the lesson is idempotent and the patterns can stay published between runs.
 

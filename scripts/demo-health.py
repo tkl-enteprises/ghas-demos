@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """
-Workshop demo health check — runs daily via demo-health.yml or on-demand.
+Workshop demo health check — runs daily via demo-health.yml or on demand.
 
-Validates live state of tkl-enteprises/ghas-demos:
-  - Alert counts haven't drifted below expected thresholds
+Validates the live state of tkl-enteprises/ghas-demos:
+  - Every intentional lesson finding in scripts/expected-alerts.json is still
+    open on the default branch (catches a demo fix PR that was merged by mistake)
+  - Open alert counts haven't drifted below expected thresholds
   - Latest CodeQL run on main was successful
   - main-branch ruleset is active
-  - GHAS toggles still enabled
+  - Secret Protection and Dependabot toggles are still enabled
 
-Reads GITHUB_TOKEN from env. Exits 1 if any check fails.
+Reads GITHUB_TOKEN from the environment. Prints a Markdown report to stdout
+(the workflow appends it to the job summary) and exits 1 if any check fails.
+Checks the token cannot read are reported as skipped, not failed.
 """
 
 from __future__ import annotations
@@ -17,17 +21,21 @@ import json
 import os
 import sys
 import urllib.error
-import urllib.parse
 import urllib.request
+from pathlib import Path
 from typing import Any
 
 OWNER = "tkl-enteprises"
 REPO = "ghas-demos"
 API = "https://api.github.com"
+INVENTORY = Path(__file__).resolve().parent / "expected-alerts.json"
 
-EXPECTED_CODE_SCANNING = 25
-EXPECTED_DEPENDABOT = 50
-EXPECTED_SECRET_SCANNING = 1
+# (row label, alerts endpoint, minimum open alerts before the demo looks empty)
+ALERT_COUNT_CHECKS = (
+    ("Code scanning alerts", "code-scanning/alerts", 25),
+    ("Dependabot alerts", "dependabot/alerts", 50),
+    ("Secret scanning alerts", "secret-scanning/alerts", 1),
+)
 EXPECTED_RULESET_NAME = "main-branch-protection"
 
 
@@ -63,220 +71,139 @@ def _request(path: str, token: str) -> tuple[int, Any, dict[str, str]]:
         return 0, {"error": str(e)}, {}
 
 
-def _count_paginated(path: str, token: str, cap: int = 1000) -> tuple[int | None, str | None]:
-    """Count items across all pages of a list endpoint.
+def _next_link(headers: dict[str, str]) -> str | None:
+    link = headers.get("Link") or headers.get("link") or ""
+    for part in link.split(","):
+        part = part.strip()
+        if part.endswith('rel="next"'):
+            start, end = part.find("<"), part.find(">")
+            if start != -1 and end != -1:
+                return part[start + 1 : end]
+    return None
 
-    Returns (count, error_message). On 403/404 returns (None, reason).
-    """
+
+def _list_paginated(path: str, token: str, cap: int = 2000) -> tuple[list | None, str | None]:
+    """Fetch every item of a list endpoint. On 403/404 returns (None, reason)."""
     sep = "&" if "?" in path else "?"
-    page_path = f"{path}{sep}per_page=100"
-    total = 0
-    while page_path and total < cap:
-        status, data, headers = _request(page_path, token)
+    page: str | None = f"{path}{sep}per_page=100"
+    items: list = []
+    while page and len(items) < cap:
+        status, data, headers = _request(page, token)
         if status == 403:
-            return None, "403 forbidden (token lacks scope)"
+            return None, "403 forbidden (token lacks permission)"
         if status == 404:
             return None, "404 not found (feature disabled?)"
         if status != 200:
             return None, f"http {status}"
         if not isinstance(data, list):
             return None, "unexpected response shape"
-        total += len(data)
-        # Parse Link header for next page.
-        link = headers.get("Link") or headers.get("link") or ""
-        next_url = None
-        for part in link.split(","):
-            part = part.strip()
-            if part.endswith('rel="next"'):
-                start = part.find("<")
-                end = part.find(">")
-                if start != -1 and end != -1:
-                    next_url = part[start + 1 : end]
-                break
-        page_path = next_url
-    return total, None
+        items.extend(data)
+        page = _next_link(headers)
+    return items, None
 
 
-def check_code_scanning(token: str) -> dict:
-    count, err = _count_paginated(
+def _row(name: str, expected: str, actual: str, ok: bool | None) -> dict:
+    return {"name": name, "expected": expected, "actual": actual, "ok": ok}
+
+
+def check_alert_count(label: str, endpoint: str, minimum: int, token: str) -> dict:
+    items, err = _list_paginated(f"/repos/{OWNER}/{REPO}/{endpoint}?state=open", token)
+    if err:
+        return _row(label, f"≥ {minimum}", f"skipped — {err}", None)
+    count = len(items or [])
+    return _row(label, f"≥ {minimum}", str(count), count >= minimum)
+
+
+def load_inventory(path: Path = INVENTORY) -> list[dict]:
+    with path.open(encoding="utf-8") as fh:
+        return json.load(fh)["code_scanning"]
+
+
+def missing_expected_alerts(open_alerts: list[dict], expected: list[dict]) -> list[dict]:
+    """Return the inventory entries that have no matching open alert."""
+    present = {
+        (
+            (alert.get("tool") or {}).get("name"),
+            (alert.get("rule") or {}).get("id"),
+            ((alert.get("most_recent_instance") or {}).get("location") or {}).get("path"),
+        )
+        for alert in open_alerts
+    }
+    return [e for e in expected if (e["tool"], e["rule"], e["path"]) not in present]
+
+
+def check_expected_findings(token: str) -> dict:
+    name = "Intentional lesson findings open on main"
+    expected = load_inventory()
+    want = f"{len(expected)}/{len(expected)}"
+    alerts, err = _list_paginated(
         f"/repos/{OWNER}/{REPO}/code-scanning/alerts?state=open", token
     )
     if err:
-        return {
-            "name": "Code scanning alerts",
-            "expected": f"≥ {EXPECTED_CODE_SCANNING}",
-            "actual": f"skipped — {err}",
-            "ok": None,
-        }
-    return {
-        "name": "Code scanning alerts",
-        "expected": f"≥ {EXPECTED_CODE_SCANNING}",
-        "actual": str(count),
-        "ok": count >= EXPECTED_CODE_SCANNING,
-    }
-
-
-def check_dependabot(token: str) -> dict:
-    count, err = _count_paginated(
-        f"/repos/{OWNER}/{REPO}/dependabot/alerts?state=open", token
-    )
-    if err:
-        return {
-            "name": "Dependabot alerts",
-            "expected": f"≥ {EXPECTED_DEPENDABOT}",
-            "actual": f"skipped — {err}",
-            "ok": None,
-        }
-    return {
-        "name": "Dependabot alerts",
-        "expected": f"≥ {EXPECTED_DEPENDABOT}",
-        "actual": str(count),
-        "ok": count >= EXPECTED_DEPENDABOT,
-    }
-
-
-def check_secret_scanning(token: str) -> dict:
-    count, err = _count_paginated(
-        f"/repos/{OWNER}/{REPO}/secret-scanning/alerts?state=open", token
-    )
-    if err:
-        return {
-            "name": "Secret scanning alerts",
-            "expected": f"≥ {EXPECTED_SECRET_SCANNING}",
-            "actual": f"skipped — {err}",
-            "ok": None,
-        }
-    return {
-        "name": "Secret scanning alerts",
-        "expected": f"≥ {EXPECTED_SECRET_SCANNING}",
-        "actual": str(count),
-        "ok": count >= EXPECTED_SECRET_SCANNING,
-    }
+        return _row(name, want, f"skipped — {err}", None)
+    missing = missing_expected_alerts(alerts or [], expected)
+    actual = f"{len(expected) - len(missing)}/{len(expected)}"
+    if missing:
+        listed = "; ".join(
+            f"lesson {e['lesson']} {e['rule']} in {e['path'].rsplit('/', 1)[-1]}"
+            for e in missing[:6]
+        )
+        more = f" (+{len(missing) - 6} more)" if len(missing) > 6 else ""
+        actual += f" — missing: {listed}{more}"
+    return _row(name, want, actual, not missing)
 
 
 def check_codeql_run(token: str) -> dict:
+    name = "Latest CodeQL run on main"
     status, data, _ = _request(
         f"/repos/{OWNER}/{REPO}/actions/workflows/codeql.yml/runs?branch=main&per_page=1",
         token,
     )
     if status == 403:
-        return {
-            "name": "Latest CodeQL run on main",
-            "expected": "success",
-            "actual": "skipped — 403 forbidden",
-            "ok": None,
-        }
+        return _row(name, "success", "skipped — 403 forbidden", None)
     if status != 200 or not isinstance(data, dict):
-        return {
-            "name": "Latest CodeQL run on main",
-            "expected": "success",
-            "actual": f"http {status}",
-            "ok": False,
-        }
+        return _row(name, "success", f"http {status}", False)
     runs = data.get("workflow_runs") or []
     if not runs:
-        return {
-            "name": "Latest CodeQL run on main",
-            "expected": "success",
-            "actual": "no runs found",
-            "ok": False,
-        }
+        return _row(name, "success", "no runs found", False)
     conclusion = runs[0].get("conclusion") or runs[0].get("status") or "unknown"
-    return {
-        "name": "Latest CodeQL run on main",
-        "expected": "success",
-        "actual": str(conclusion),
-        "ok": conclusion == "success",
-    }
+    return _row(name, "success", str(conclusion), conclusion == "success")
 
 
 def check_ruleset(token: str) -> dict:
+    name = "main-branch ruleset"
     status, data, _ = _request(f"/repos/{OWNER}/{REPO}/rulesets", token)
     if status == 403:
-        return {
-            "name": "main-branch ruleset",
-            "expected": "active",
-            "actual": "skipped — 403 forbidden",
-            "ok": None,
-        }
+        return _row(name, "active", "skipped — 403 forbidden", None)
     if status != 200 or not isinstance(data, list):
-        return {
-            "name": "main-branch ruleset",
-            "expected": "active",
-            "actual": f"http {status}",
-            "ok": False,
-        }
-    match = next(
-        (r for r in data if r.get("name") == EXPECTED_RULESET_NAME),
-        None,
-    )
+        return _row(name, "active", f"http {status}", False)
+    match = next((r for r in data if r.get("name") == EXPECTED_RULESET_NAME), None)
     if not match:
-        return {
-            "name": "main-branch ruleset",
-            "expected": "active",
-            "actual": "missing",
-            "ok": False,
-        }
+        return _row(name, "active", "missing", False)
     enforcement = match.get("enforcement") or "unknown"
-    return {
-        "name": "main-branch ruleset",
-        "expected": "active",
-        "actual": str(enforcement),
-        "ok": enforcement == "active",
-    }
+    return _row(name, "active", str(enforcement), enforcement == "active")
 
 
-def check_ghas_toggles(token: str) -> list[dict]:
-    """Inspect the repo's security_and_analysis block.
-
-    Requires admin scope; falls back to "skipped" rows when fields are absent.
-    """
+def check_security_settings(token: str) -> list[dict]:
+    """Inspect the repo's security_and_analysis block (visible to admins only)."""
     status, data, _ = _request(f"/repos/{OWNER}/{REPO}", token)
     if status != 200 or not isinstance(data, dict):
-        return [
-            {
-                "name": "GHAS config",
-                "expected": "enabled",
-                "actual": f"skipped — http {status}",
-                "ok": None,
-            }
-        ]
-    sec = data.get("security_and_analysis")
-    if not isinstance(sec, dict):
-        return [
-            {
-                "name": "GHAS config",
-                "expected": "enabled",
-                "actual": "skipped — needs admin token",
-                "ok": None,
-            }
-        ]
+        return [_row("Security settings", "enabled", f"skipped — http {status}", None)]
+    settings = data.get("security_and_analysis")
+    if not isinstance(settings, dict):
+        return [_row("Security settings", "enabled", "skipped — needs admin token", None)]
     rows: list[dict] = []
     for label, key in (
         ("Secret scanning", "secret_scanning"),
-        ("Secret scanning push protection", "secret_scanning_push_protection"),
+        ("Push protection", "secret_scanning_push_protection"),
         ("Dependabot security updates", "dependabot_security_updates"),
     ):
-        block = sec.get(key)
+        block = settings.get(key)
         if not isinstance(block, dict):
-            rows.append(
-                {
-                    "name": label,
-                    "expected": "enabled",
-                    "actual": "skipped — needs admin token",
-                    "ok": None,
-                }
-            )
+            rows.append(_row(label, "enabled", "skipped — needs admin token", None))
             continue
         state = block.get("status") or "unknown"
-        rows.append(
-            {
-                "name": label,
-                "expected": "enabled",
-                "actual": str(state),
-                "ok": state == "enabled",
-            }
-        )
+        rows.append(_row(label, "enabled", str(state), state == "enabled"))
     return rows
 
 
@@ -286,12 +213,7 @@ def render_table(rows: list[dict]) -> str:
         "|---|---|---|---|",
     ]
     for r in rows:
-        if r["ok"] is True:
-            badge = "✅"
-        elif r["ok"] is False:
-            badge = "❌"
-        else:
-            badge = "⚠️"
+        badge = {True: "✅", False: "❌"}.get(r["ok"], "⚠️")
         lines.append(f"| {r['name']} | {r['expected']} | {r['actual']} | {badge} |")
     return "\n".join(lines)
 
@@ -302,33 +224,24 @@ def main() -> int:
         print("error: GITHUB_TOKEN is not set", file=sys.stderr)
         return 2
 
-    rows: list[dict] = []
-    rows.append(check_code_scanning(token))
-    rows.append(check_dependabot(token))
-    rows.append(check_secret_scanning(token))
-    rows.append(check_codeql_run(token))
-    rows.append(check_ruleset(token))
-    rows.extend(check_ghas_toggles(token))
+    rows: list[dict] = [
+        check_expected_findings(token),
+        *(
+            check_alert_count(label, endpoint, minimum, token)
+            for label, endpoint, minimum in ALERT_COUNT_CHECKS
+        ),
+        check_codeql_run(token),
+        check_ruleset(token),
+        *check_security_settings(token),
+    ]
 
-    table = render_table(rows)
-    header = f"## Workshop demo health — {OWNER}/{REPO}\n\n"
-    output = header + table + "\n"
-
-    print(output)
-
-    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-    if summary_path:
-        try:
-            with open(summary_path, "a", encoding="utf-8") as f:
-                f.write(output)
-        except OSError as e:
-            print(f"warning: could not write GITHUB_STEP_SUMMARY: {e}", file=sys.stderr)
+    print(f"## Workshop demo health — {OWNER}/{REPO}\n")
+    print(render_table(rows))
 
     failures = sum(1 for r in rows if r["ok"] is False)
     skipped = sum(1 for r in rows if r["ok"] is None)
     passed = sum(1 for r in rows if r["ok"] is True)
     print(f"summary: {passed} passed, {failures} failed, {skipped} skipped", file=sys.stderr)
-
     return 1 if failures else 0
 
 

@@ -6,78 +6,111 @@
       "tool": {
         "driver": {
           "name": "Bandit",
-          "version": "1.7.9",
-          "informationUri": "https://bandit.readthedocs.io/",
+          "organization": "PyCQA",
+          "version": "1.9.4",
+          "semanticVersion": "1.9.4",
           "rules": [
             {
-              "id": "B303",
-              "name": "blacklist",
-              "shortDescription": {
-                "text": "Use of insecure MD2, MD4, MD5, or SHA1 hash function."
+              "id": "B324",
+              "name": "hashlib",
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-327"
+                ],
+                "precision": "high"
               },
-              "helpUri": "https://bandit.readthedocs.io/en/latest/blacklists/blacklist_calls.html#b303-md5"
+              "helpUri": "https://bandit.readthedocs.io/en/1.9.4/plugins/b324_hashlib.html"
             },
             {
               "id": "B602",
               "name": "subprocess_popen_with_shell_equals_true",
-              "shortDescription": {
-                "text": "subprocess call with shell=True identified, security issue."
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-78"
+                ],
+                "precision": "high"
               },
-              "helpUri": "https://bandit.readthedocs.io/en/latest/plugins/b602_subprocess_popen_with_shell_equals_true.html"
+              "helpUri": "https://bandit.readthedocs.io/en/1.9.4/plugins/b602_subprocess_popen_with_shell_equals_true.html"
             }
           ]
         }
       },
       "results": [
         {
-          "ruleId": "B303",
-          "level": "warning",
           "message": {
-            "text": "Use of insecure MD5 hash function."
+            "text": "Use of weak MD5 hash for security. Consider usedforsecurity=False"
           },
+          "level": "error",
           "locations": [
             {
               "physicalLocation": {
+                "region": {
+                  "snippet": {
+                    "text": "    return hashlib.md5(password.encode()).hexdigest()\n"
+                  },
+                  "endColumn": 42,
+                  "endLine": 12,
+                  "startColumn": 12,
+                  "startLine": 12
+                },
                 "artifactLocation": {
                   "uri": "lessons/04-code-security-sarif-integration/weak_crypto.py"
                 },
-                "region": {
-                  "startLine": 11,
-                  "startColumn": 12,
-                  "endLine": 11,
-                  "endColumn": 50
+                "contextRegion": {
+                  "snippet": {
+                    "text": "    # ⚠️ B303 — md5 is broken for security; use bcrypt/argon2/sha256+salt.\n    return hashlib.md5(password.encode()).hexdigest()\n\n"
+                  },
+                  "endLine": 13,
+                  "startLine": 11
                 }
               }
             }
           ],
-          "partialFingerprints": {
-            "primaryLocationLineHash": "demo123"
-          }
+          "properties": {
+            "issue_confidence": "HIGH",
+            "issue_severity": "HIGH"
+          },
+          "ruleId": "B324",
+          "ruleIndex": 0
         },
         {
-          "ruleId": "B602",
-          "level": "error",
           "message": {
             "text": "subprocess call with shell=True identified, security issue."
           },
+          "level": "error",
           "locations": [
             {
               "physicalLocation": {
+                "region": {
+                  "snippet": {
+                    "text": "    return subprocess.check_output(f\"ls -la {path}\", shell=True).decode()\n"
+                  },
+                  "endColumn": 65,
+                  "endLine": 11,
+                  "startColumn": 12,
+                  "startLine": 11
+                },
                 "artifactLocation": {
                   "uri": "lessons/04-code-security-sarif-integration/subprocess_use.py"
                 },
-                "region": {
-                  "startLine": 11,
-                  "startColumn": 12,
-                  "endLine": 11,
-                  "endColumn": 70
+                "contextRegion": {
+                  "snippet": {
+                    "text": "    # ⚠️ B602 — shell=True with user input → command injection.\n    return subprocess.check_output(f\"ls -la {path}\", shell=True).decode()\n\n"
+                  },
+                  "endLine": 12,
+                  "startLine": 10
                 }
               }
             }
           ],
-          "partialFingerprints": {
-            "primaryLocationLineHash": "demo456"
-          }
+          "properties": {
+            "issue_confidence": "HIGH",
+            "issue_severity": "HIGH"
+          },
+          "ruleId": "B602",
+          "ruleIndex": 1
         }
       ]
     }

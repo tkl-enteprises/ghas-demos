@@ -8,8 +8,11 @@
 version: 2
 updates:
   # Lesson 10: intentionally-vulnerable Python deps used to demo
-  # supply-chain alerts and grouped security update PRs. The schedule controls
+  # supply-chain alerts and grouped update PRs. The schedule controls
   # version-update checks; security updates are created in response to alerts.
+  # Two groups keep the PR list readable during the demo: one grouped
+  # security-update PR and one grouped version-update PR.
+  # Never merge either PR into the workshop branch.
   - package-ecosystem: "pip"
     directory: "/lessons/10-supply-chain-dependabot"
     schedule:
@@ -20,19 +23,30 @@ updates:
         applies-to: "security-updates"
         patterns:
           - "*"
+      lesson-ten-version-updates:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
     labels:
       - "dependencies"
       - "lesson-10"
 
-  # Keep our GitHub Actions pinned and patched.
+  # Keep our GitHub Actions pinned and patched. One grouped PR keeps the
+  # github/codeql-action init/analyze/upload-sarif steps on the same version;
+  # separate PRs leave them mismatched and the CodeQL job fails.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
     labels:
       - "ci"
 
-  # Lesson 04: Python deps for the Bandit/SARIF demo.
+  # Lesson 04: the Bandit version used by the SARIF workflow
+  # (lessons/04-code-security-sarif-integration/requirements.txt).
   - package-ecosystem: "pip"
     directory: "/lessons/04-code-security-sarif-integration"
     schedule:

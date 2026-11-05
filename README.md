@@ -2,6 +2,7 @@
 
 ![CodeQL](https://github.com/tkl-enteprises/ghas-demos/actions/workflows/codeql.yml/badge.svg)
 ![tests](https://github.com/tkl-enteprises/ghas-demos/actions/workflows/tests.yml/badge.svg)
+![Demo health](https://github.com/tkl-enteprises/ghas-demos/actions/workflows/demo-health.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Lessons: 11](https://img.shields.io/badge/Lessons-11-brightgreen)
 
@@ -34,6 +35,7 @@
 - [Prerequisites](#prerequisites)
 - [Quick start](#quick-start)
 - [Where to look in GitHub UI](#where-to-look-in-github-ui)
+- [Keeping the demo intact](#keeping-the-demo-intact)
 - [License](#license)
 - [Disclaimer](#disclaimer)
 
@@ -54,7 +56,7 @@ That's it for the source-review and UI lessons: no local package installation is
 
 ## Workshop format
 
-- **9 core lessons + 2 optional preview lessons**, each in its own folder under [`lessons/`](lessons/).
+- **11 lessons — 9 core plus 2 optional Code Quality lessons**, each in its own folder under [`lessons/`](lessons/).
 - **Self-contained** — every lesson has its own `README.md` with goal, steps, and where to look in the GitHub UI.
 - **Runnable in any order** — there are no cross-lesson dependencies. Pick the pillar your audience cares about and start there.
 - **Python-first and source-review safe** — the core app examples are Python 3; lesson 05 adds inert workflow fixtures and lessons 06–07 add inert JavaScript quality fixtures. No cloud deployment is required.
@@ -78,7 +80,7 @@ flowchart LR
   P5["Governance"] --> L11["11: Security Overview"]
 ```
 
-> The dashed arrows mark optional public-preview material. **Code Quality follows Code Security because its Standard findings use CodeQL, but it remains a separate GitHub product and workshop pillar.** Lesson 06 covers deterministic reliability and maintainability rules; lesson 07 covers the second, post-merge AI scan. GitHub documents general availability for July 20, 2026. During preview, scans consume GitHub Actions minutes but active-committer and AI-credit usage is not billed; [GA introduces additional usage charges](https://docs.github.com/en/billing/concepts/product-billing/github-code-quality).
+> The dashed arrows mark optional material. **Code Quality follows Code Security because its Standard findings use CodeQL, but it remains a separate GitHub product and workshop pillar.** Lesson 06 covers deterministic reliability and maintainability rules; lesson 07 covers the second, post-merge AI scan. Code Quality has been generally available since July 20, 2026 — $10 per active committer per month plus AI-credit and Actions usage ([billing](https://docs.github.com/en/billing/concepts/product-billing/github-code-quality)) — while its AI findings remain a public preview.
 
 ## Lessons
 
@@ -91,8 +93,8 @@ Lessons are grouped in delivery order: Code Security (01–05), Code Quality (06
 | 03 | Code Security | Custom CodeQL Queries | [`lessons/03-code-security-custom-codeql-queries/`](lessons/03-code-security-custom-codeql-queries/) |
 | 04 | Code Security | SARIF / 3rd-party Tool Integration | [`lessons/04-code-security-sarif-integration/`](lessons/04-code-security-sarif-integration/) |
 | 05 | Code Security | CodeQL for GitHub Actions | [`lessons/05-code-security-actions/`](lessons/05-code-security-actions/) |
-| 06 | Code Quality | Standard findings — CodeQL reliability and maintainability rules (bonus / public preview) | [`lessons/06-code-quality-standard-findings/`](lessons/06-code-quality-standard-findings/) |
-| 07 | Code Quality | AI findings — improve recently merged code (bonus / public preview) | [`lessons/07-code-quality-ai-findings/`](lessons/07-code-quality-ai-findings/) |
+| 06 | Code Quality | Standard findings — CodeQL reliability and maintainability rules (optional) | [`lessons/06-code-quality-standard-findings/`](lessons/06-code-quality-standard-findings/) |
+| 07 | Code Quality | AI findings — improve recently merged code (optional; public preview) | [`lessons/07-code-quality-ai-findings/`](lessons/07-code-quality-ai-findings/) |
 | 08 | Secret Protection | Secret Scanning + Push Protection | [`lessons/08-secret-protection-secret-scanning/`](lessons/08-secret-protection-secret-scanning/) |
 | 09 | Secret Protection | Custom Secret Patterns | [`lessons/09-secret-protection-custom-patterns/`](lessons/09-secret-protection-custom-patterns/) |
 | 10 | Supply Chain | Dependabot / Supply Chain (+ Malware bonus) | [`lessons/10-supply-chain-dependabot/`](lessons/10-supply-chain-dependabot/) |
@@ -113,6 +115,15 @@ Most of the demo value lives in the GitHub UI, not in the source code. Bookmark 
 - **`Security and quality → Secret scanning`** → [https://github.com/tkl-enteprises/ghas-demos/security/secret-scanning](https://github.com/tkl-enteprises/ghas-demos/security/secret-scanning)
 - **`Security and quality → Dependabot`** → [https://github.com/tkl-enteprises/ghas-demos/security/dependabot](https://github.com/tkl-enteprises/ghas-demos/security/dependabot)
 - **`Org → Security overview`** → [https://github.com/orgs/tkl-enteprises/security/overview](https://github.com/orgs/tkl-enteprises/security/overview)
+
+## Keeping the demo intact
+
+Live demos create fix PRs and push-protection bypasses. Two safety nets keep the planted findings available for the next cohort:
+
+- The [`tests`](.github/workflows/tests.yml) workflow fails when a PR removes an intentional vulnerability (for example, a merged Copilot Autofix PR) or when a real token or `.env` file is committed. Expect it to fail on Autofix demo PRs: close them, don't merge.
+- The daily [`Demo health`](.github/workflows/demo-health.yml) workflow checks that every finding listed in [`scripts/expected-alerts.json`](scripts/expected-alerts.json) is still open on `main`.
+
+See [FACILITATOR.md → Reset between sessions](FACILITATOR.md#reset-between-sessions) for the full checklist.
 
 ## License
 

@@ -1,6 +1,6 @@
 # Lesson 07 — Code Quality AI findings
 
-> **Preview behavior is time-sensitive.** AI findings are LLM-generated suggestions for recently merged files. Their count, wording, and availability are not deterministic.
+> **AI findings are still a public preview**, while the rest of Code Quality has been generally available since July 20, 2026. They are LLM-generated suggestions for recently merged files: their count, wording, and availability are not deterministic, and AI-assisted detection is billed as usage (AI credits) on top of the Code Quality license.
 
 ## Goal
 
@@ -52,7 +52,7 @@ These examples increase the likelihood of useful suggestions but cannot guarante
 
 2. **Create the qualifying merge.** Code Quality must already be enabled. Add or change `ai-findings-fixtures.js` on a workshop branch, open a pull request, and merge it into the default branch. The PR merge is the trigger described by GitHub's tutorial.
 
-3. **Wait for the post-merge scan.** Open **Security and quality → Code quality → AI findings**. Results can include findings for up to five recently changed files.
+3. **Wait for the post-merge scan.** Open **Security and quality → Code quality → AI findings**. Results can include up to 5 findings per file in up to 5 recently changed files.
 
    ![Code Quality AI findings grouped by recently changed file](../../docs/screenshots/code-quality-ai-findings.png)
 

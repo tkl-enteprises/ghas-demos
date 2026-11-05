@@ -1,0 +1,197 @@
+{
+  "description": "Intentional code scanning findings that must stay OPEN on the default branch. scripts/demo-health.py checks the live repository against this list, and tests/test_expected_alerts.py checks that every entry is documented. If a workshop demo merges a fix for one of these, revert that PR before the next cohort.",
+  "code_scanning": [
+    {
+      "lesson": "01",
+      "tool": "CodeQL",
+      "rule": "py/sql-injection",
+      "path": "lessons/01-code-security-codeql-scanning/user_routes.py"
+    },
+    {
+      "lesson": "01",
+      "tool": "CodeQL",
+      "rule": "py/clear-text-logging-sensitive-data",
+      "path": "lessons/01-code-security-codeql-scanning/vulnerable_app.py"
+    },
+    {
+      "lesson": "01",
+      "tool": "CodeQL",
+      "rule": "py/code-injection",
+      "path": "lessons/01-code-security-codeql-scanning/vulnerable_app.py"
+    },
+    {
+      "lesson": "01",
+      "tool": "CodeQL",
+      "rule": "py/command-line-injection",
+      "path": "lessons/01-code-security-codeql-scanning/vulnerable_app.py"
+    },
+    {
+      "lesson": "01",
+      "tool": "CodeQL",
+      "rule": "py/hardcoded-credentials",
+      "path": "lessons/01-code-security-codeql-scanning/vulnerable_app.py"
+    },
+    {
+      "lesson": "01",
+      "tool": "CodeQL",
+      "rule": "py/path-injection",
+      "path": "lessons/01-code-security-codeql-scanning/vulnerable_app.py"
+    },
+    {
+      "lesson": "01",
+      "tool": "CodeQL",
+      "rule": "py/sql-injection",
+      "path": "lessons/01-code-security-codeql-scanning/vulnerable_app.py"
+    },
+    {
+      "lesson": "01",
+      "tool": "CodeQL",
+      "rule": "py/weak-sensitive-data-hashing",
+      "path": "lessons/01-code-security-codeql-scanning/vulnerable_app.py"
+    },
+    {
+      "lesson": "02",
+      "tool": "CodeQL",
+      "rule": "py/sql-injection",
+      "path": "lessons/02-code-security-copilot-autofix/insecure_login.py"
+    },
+    {
+      "lesson": "03",
+      "tool": "CodeQL",
+      "rule": "py/tkl/putin-khuylo-false",
+      "path": "lessons/03-code-security-custom-codeql-queries/noncompliant.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B101",
+      "path": "lessons/04-code-security-sarif-integration/assert_check.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B105",
+      "path": "lessons/04-code-security-sarif-integration/assert_check.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B107",
+      "path": "lessons/04-code-security-sarif-integration/assert_check.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B201",
+      "path": "lessons/04-code-security-sarif-integration/assert_check.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B102",
+      "path": "lessons/04-code-security-sarif-integration/eval_use.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B307",
+      "path": "lessons/04-code-security-sarif-integration/eval_use.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B608",
+      "path": "lessons/04-code-security-sarif-integration/sql_format.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B404",
+      "path": "lessons/04-code-security-sarif-integration/subprocess_use.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B602",
+      "path": "lessons/04-code-security-sarif-integration/subprocess_use.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B603",
+      "path": "lessons/04-code-security-sarif-integration/subprocess_use.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B607",
+      "path": "lessons/04-code-security-sarif-integration/subprocess_use.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B301",
+      "path": "lessons/04-code-security-sarif-integration/unsafe_deserialize.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B403",
+      "path": "lessons/04-code-security-sarif-integration/unsafe_deserialize.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B311",
+      "path": "lessons/04-code-security-sarif-integration/weak_crypto.py"
+    },
+    {
+      "lesson": "04",
+      "tool": "Bandit",
+      "rule": "B324",
+      "path": "lessons/04-code-security-sarif-integration/weak_crypto.py"
+    },
+    {
+      "lesson": "05",
+      "tool": "CodeQL",
+      "rule": "actions/unmasked-secret-exposure",
+      "path": ".github/workflows/lesson-05-vulnerable.yml"
+    },
+    {
+      "lesson": "10",
+      "tool": "CodeQL",
+      "rule": "py/flask-debug",
+      "path": "lessons/10-supply-chain-dependabot/app.py"
+    },
+    {
+      "lesson": "10",
+      "tool": "CodeQL",
+      "rule": "py/full-ssrf",
+      "path": "lessons/10-supply-chain-dependabot/app.py"
+    },
+    {
+      "lesson": "10",
+      "tool": "CodeQL",
+      "rule": "py/jinja2/autoescape-false",
+      "path": "lessons/10-supply-chain-dependabot/app.py"
+    },
+    {
+      "lesson": "10",
+      "tool": "CodeQL",
+      "rule": "py/reflective-xss",
+      "path": "lessons/10-supply-chain-dependabot/app.py"
+    },
+    {
+      "lesson": "10",
+      "tool": "CodeQL",
+      "rule": "py/template-injection",
+      "path": "lessons/10-supply-chain-dependabot/app.py"
+    },
+    {
+      "lesson": "10",
+      "tool": "CodeQL",
+      "rule": "py/unsafe-deserialization",
+      "path": "lessons/10-supply-chain-dependabot/app.py"
+    }
+  ]
+}

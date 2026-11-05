@@ -7,7 +7,7 @@ See your first batch of CodeQL alerts on intentionally vulnerable Python code, a
 By the end of this lesson you will be able to:
 
 - Recognise the CodeQL **Code Scanning** workflow run on a pull request.
-- Open the **Security → Code scanning** view in this repository.
+- Open the **Security and quality → Code scanning** view in this repository.
 - Read a CodeQL alert: rule id, severity, source → sink data-flow path.
 - Map an alert back to the line of code that introduced it.
 
@@ -16,7 +16,7 @@ By the end of this lesson you will be able to:
 After this lesson you can:
 
 - Trigger CodeQL by pushing to a branch or opening a PR.
-- Filter alerts by **Tool**, **rule id**, and **severity** in the Security tab.
+- Filter alerts by **Tool**, **rule id**, and **severity** in the **Security and quality** tab.
 - Walk through a source → sink data-flow path inside an alert.
 - Compare a default-suite alert against a custom-query alert (lesson 03).
 
@@ -68,22 +68,23 @@ After CodeQL runs against this lesson, open the [Lesson 01 code scanning alerts]
 | `py/weak-sensitive-data-hashing` | CWE-327 | Medium | `vulnerable_app.py` → `hash_password` |
 | `py/hardcoded-credentials` | CWE-798 | High | `vulnerable_app.py` → `ADMIN_PASSWORD` |
 
-> 💡 You should see between 7 and ~10 alerts depending on whether CodeQL splits some sinks into multiple findings. That is normal.
+> 💡 You should see **9 alerts**: three `py/sql-injection` results (one in `vulnerable_app.py`, two in `user_routes.py`) and one for each other rule. `user_routes.py` reads remote Flask request data; `vulnerable_app.py` reads `sys.argv`, which CodeQL treats as untrusted only because [`codeql-config.yml`](../../.github/codeql/codeql-config.yml) adds the `local` threat model. That contrast is a good talking point: threat models decide what counts as a *source*.
 
 ![Code scanning alerts list filtered to CodeQL — SQL injection, command injection, path injection, code injection, clear-text logging, and weak-crypto findings on the intentionally vulnerable Python files.](../../docs/screenshots/01-code-scanning-alerts.png)
 
-*`Security → Code scanning` for this repo. Filter by **Tool: CodeQL** to reproduce this view._
+*`Security and quality → Code scanning` for this repo. Filter by **Tool: CodeQL** to reproduce this view._
 
 ## Hands-on steps
 
 1. **View the files in this folder.** Open `vulnerable_app.py` and `user_routes.py` and skim the comments above each function — every block names the CodeQL rule it triggers.
 2. **Trigger a scan.** Either push these files to a fork of [`tkl-enteprises/ghas-demos`](https://github.com/tkl-enteprises/ghas-demos) or open a pull request that touches them. The `CodeQL` workflow runs automatically on push and PR.
-3. **Wait for the workflow to complete.** Visit the **Actions** tab and watch the `CodeQL` job. It takes a few minutes the first time. Then open **Security → Code scanning**.
+3. **Wait for the workflow to complete.** Visit the **Actions** tab and watch the `CodeQL` job. It takes a few minutes the first time. Then open **Security and quality → Code scanning**.
 4. **Inspect each alert.** Click an alert (e.g. *SQL query built from user-controlled sources*). Note three things:
    - The **rule id** (top-right) — this is what you grep for in CodeQL docs.
    - The **data-flow path** — CodeQL highlights `request.args[...]` as the *source* and `cursor.execute(...)` as the *sink*. Click "Show paths" to step through every hop.
    - The **severity** and **security-severity** scores — used by branch-protection rules.
-5. **Try Copilot Autofix.** On any alert, click **Generate fix** to see Autofix propose a patch. We dive deeper into Autofix in [lesson 02](../02-code-security-copilot-autofix/README.md).
+5. **Try Copilot Autofix.** On any alert, click **Generate fix** to see Autofix propose a patch. If your enterprise has turned on agentic autofix, that button is replaced by **Assign to Copilot**. We dive deeper into both in [lesson 02](../02-code-security-copilot-autofix/README.md). Don't merge a fix into `main`: the next cohort needs these alerts.
+6. **Discuss triage.** Open the **Dismiss alert** menu without submitting it and compare the reasons: *False positive*, *Used in tests*, *Won't fix*, and — since August 2026 — *Mitigated* (the vulnerable code remains, but an external control such as a WAF or network policy reduces the risk). Dismissed alerts stay closed on later scans, so reopen any alert you dismiss during the workshop.
 
 ![Detail page for a CodeQL Server-Side Template Injection alert with the dataflow path expanded — source highlighted at `request.args[...]`, sink at the template render call, with every intermediate hop listed.](../../docs/screenshots/01-codeql-alert-detail.png)
 
@@ -110,7 +111,7 @@ Use these to drive the workshop conversation after attendees have explored the a
 
 The demo has landed when:
 
-- Attendees can find the SQL-injection alert in the Security tab without prompting.
+- Attendees can find the SQL-injection alert in the **Security and quality** tab without prompting.
 - Attendees articulate, in their own words, what the source → sink path means.
 - Attendees can name at least one rule id from the table above.
 
@@ -122,10 +123,11 @@ The demo has landed when:
 
 ## Reset state
 
-This lesson does not mutate the repo. To reset for the next cohort:
+This lesson does not mutate the repo unless someone merges a fix. To reset for the next cohort:
 
 ```bash
 git checkout main && git pull
+python -m pytest tests/test_demo_fixtures.py -q   # fails if a planted vulnerability was "fixed" on main
 ```
 
-CodeQL alerts auto-update on the next scheduled scan; no manual cleanup required.
+If a fix PR was merged, revert it; the alert reopens on the next CodeQL run. Reopen any alert that was dismissed during the session, because dismissals persist across scans.
