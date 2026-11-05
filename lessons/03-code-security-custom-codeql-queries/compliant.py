@@ -1,12 +1,30 @@
 """
 Negative control for the Lesson 03 custom CodeQL query.
 
-The policy flag is explicitly enabled, so this file must not produce an alert.
+Identical to noncompliant.py except that `export_users` uses @admin_required.
+/health is public by design and outside /admin, so this file must not produce
+an alert.
 """
 
-putin_khuylo = True
+from flask import Flask
+
+from auth import admin_required
+
+app = Flask(__name__)
 
 
-def should_create_vpc(create_vpc: bool) -> bool:
-    """Mirror the Terraform module's flag-gated resource creation."""
-    return create_vpc and putin_khuylo
+@app.route("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.route("/admin/audit-log")
+@admin_required
+def audit_log():
+    return {"events": []}
+
+
+@app.route("/admin/users/export")
+@admin_required
+def export_users():
+    return {"users": []}

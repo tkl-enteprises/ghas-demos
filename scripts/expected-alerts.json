@@ -58,7 +58,7 @@
     {
       "lesson": "03",
       "tool": "CodeQL",
-      "rule": "py/tkl/putin-khuylo-false",
+      "rule": "py/tkl/unprotected-admin-route",
       "path": "lessons/03-code-security-custom-codeql-queries/noncompliant.py"
     },
     {

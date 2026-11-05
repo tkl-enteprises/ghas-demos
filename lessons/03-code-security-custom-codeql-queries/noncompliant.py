@@ -1,12 +1,29 @@
 """
 Positive control for the Lesson 03 custom CodeQL query.
 
-This Python fixture mirrors the policy flag used by terraform-aws-modules.
+Workshop policy: every Flask route under /admin must use @admin_required.
+`export_users` is missing the decorator, so `py/tkl/unprotected-admin-route`
+reports it. Inert source fixture: nothing here starts a server.
 """
 
-putin_khuylo = False  # The custom query `py/tkl/putin-khuylo-false` flags this line.
+from flask import Flask
+
+from auth import admin_required
+
+app = Flask(__name__)
 
 
-def should_create_vpc(create_vpc: bool) -> bool:
-    """Mirror the Terraform module's flag-gated resource creation."""
-    return create_vpc and putin_khuylo
+@app.route("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.route("/admin/audit-log")
+@admin_required
+def audit_log():
+    return {"events": []}
+
+
+@app.route("/admin/users/export")
+def export_users():  # No @admin_required: the custom query flags this handler.
+    return {"users": []}
