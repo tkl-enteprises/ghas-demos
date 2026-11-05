@@ -22,6 +22,10 @@ DEPENDABOT_PINS = (
     "cryptography==2.3",
 )
 
+# Known-malicious pin (GHSA-3pmj-h39m-cfpm) behind lesson 10's malware alert.
+# PyPI no longer serves the project; the test below keeps the fixture inert.
+MALWARE_PIN = "requestsa==2.28.1"
+
 QUALITY_RULE_IDS = {
     "js/template-syntax-in-string-literal",
     "js/useless-assignment-to-local",
@@ -147,7 +151,32 @@ def test_lesson10_vulnerable_baseline_is_documented(repo_root: Path):
             _section(solution, "Fixture integrity"),
         )
     )
-    assert documented_pins == set(DEPENDABOT_PINS)
+    assert documented_pins == set(DEPENDABOT_PINS) | {MALWARE_PIN}
+
+
+def test_lesson10_malware_fixture_stays_inert(repo_root: Path):
+    malware_demo = _lesson(repo_root, "10-supply-chain-dependabot") / "malware-demo"
+    files = sorted(path.name for path in malware_demo.iterdir() if not path.name.startswith("."))
+    assert files == ["requirements.txt"], "malware-demo/ holds only the manifest: no lockfile or code"
+
+    manifest = malware_demo / "requirements.txt"
+    assert _requirements_pins(manifest) == (MALWARE_PIN,)
+    assert re.search(r"\bnever install\b", manifest.read_text(encoding="utf-8"), re.IGNORECASE)
+
+    automation = [
+        *(repo_root / ".github" / "workflows").glob("*.yml"),
+        repo_root / ".github" / "dependabot.yml",
+        *(path for path in (repo_root / "scripts").iterdir() if path.is_file()),
+    ]
+    referencing = [
+        str(path.relative_to(repo_root))
+        for path in automation
+        if "malware-demo" in path.read_text(encoding="utf-8")
+    ]
+    assert not referencing, (
+        f"{referencing} reference the malware fixture. Nothing may install, lock, or "
+        "update malware-demo/requirements.txt."
+    )
 
 
 def test_lesson10_safety_warnings_remain(repo_root: Path):

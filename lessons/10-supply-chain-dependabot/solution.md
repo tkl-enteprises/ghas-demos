@@ -8,6 +8,8 @@ This lesson intentionally pins `Flask==0.12.0`, `Jinja2==2.10`, `Werkzeug==0.14`
 
 Never install these dependencies or execute `app.py`. Keep the manifest warning, exact pins, and the `applies-to: security-updates` group intact when resetting the workshop.
 
+`malware-demo/requirements.txt` pins `requestsa==2.28.1`, the malicious release named in [GHSA-3pmj-h39m-cfpm](https://github.com/advisories/GHSA-3pmj-h39m-cfpm), only to raise the malware alert. PyPI no longer serves the project. Never install that file, generate a lockfile from it, or add its directory to `dependabot.yml`.
+
 ## Triage workflow
 
 When a Dependabot alert lands, walk the same checklist every time:
