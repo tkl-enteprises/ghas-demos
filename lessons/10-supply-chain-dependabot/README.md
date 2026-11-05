@@ -143,6 +143,8 @@ When enabled, the companion `.github/workflows/dependency-review.yml` runs on pu
 
 This is **the** safety net that stops a contributor from re-introducing a vulnerable pin that Dependabot just removed.
 
+It covers malware advisories too: for the pull request that added `malware-demo/requirements.txt`, the dependency-graph comparison reported `requestsa` with GHSA-3pmj-h39m-cfpm as critical. That is why the workflow allowlists this advisory along with the lesson's other intentional pins.
+
 ## Auto-merging Dependabot PRs
 
 For low-risk patch bumps you can auto-merge once CI is green. See:
