@@ -12,12 +12,18 @@ def list_files(path: str) -> str:
 
 
 def run_pipeline(user_filter: str) -> str:
-    # ⚠️ B602 — Popen with shell=True is the canonical command-injection sink.
-    proc = subprocess.Popen(
-        f"cat /etc/passwd | grep {user_filter}",
-        shell=True,
+    # Fixed: pipe two processes together without shell=True to prevent command injection.
+    cat_proc = subprocess.Popen(
+        ["cat", "/etc/passwd"],
         stdout=subprocess.PIPE,
     )
+    proc = subprocess.Popen(
+        ["grep", user_filter],
+        stdin=cat_proc.stdout,
+        stdout=subprocess.PIPE,
+    )
+    if cat_proc.stdout:
+        cat_proc.stdout.close()
     out, _ = proc.communicate()
     return out.decode()
 
