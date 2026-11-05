@@ -84,7 +84,7 @@ No clock times — pace varies wildly by audience. Use these qualitative buckets
 | 07 | Code Quality AI findings (optional; public preview) | short | Post-merge contextual review; include the grammar example and explain nondeterminism. |
 | 08 | Secret Scanning + Push Protection | short | Live `git push` of a fake key is the whole demo — keep it tight. |
 | 09 | Custom Secret Patterns | medium | Org admins love this; ICs less so. Match to your audience. |
-| 10 | Dependabot / Supply Chain (+ Malware bonus) | medium | Walk through both alerts *and* the auto-generated PRs. End with the Malware tab tour. |
+| 10 | Dependabot / Supply Chain (+ Malware bonus) | medium | Walk through both alerts *and* the auto-generated PRs. End with the `requestsa` malware alert. |
 | 11 | Security Overview (Org-level Governance) | short | Pure UI tour. No code. Best as a closer. |
 
 ## Common attendee gotchas
@@ -168,7 +168,7 @@ After a pull request is merged, Code Quality runs a second LLM-powered review ov
 Beyond the built-in patterns, GitHub Secret Protection lets org admins define **custom secret patterns** with regex + an optional pre/post-match heuristic, and since July 2026 manage them through the REST API (dry run and publish stay in the UI). This is how you catch *your own* token formats — internal API keys, employee badge IDs, anything with a recognizable shape. Critically, custom patterns also participate in **push protection**, so they're enforceable, not just observable.
 
 ### 10. Dependabot / Supply Chain
-[Dependabot](https://docs.github.com/en/code-security/dependabot) does three things people often conflate: **alerts** (your dependency has a known CVE), **security updates** (auto-PRs that bump the vulnerable dependency to a patched version), and **version updates** (routine bumps regardless of vulnerabilities). The dependency graph powering all three is also what feeds the [advisory database](https://github.com/advisories), which is the same data Dependabot reads. Lesson 10 also tours the **Malware** view — the supply-chain twin of vulnerability alerts, flagging actually-malicious packages from the Advisory DB (npm, PyPI, and more since July 2026).
+[Dependabot](https://docs.github.com/en/code-security/dependabot) does three things people often conflate: **alerts** (your dependency has a known CVE), **security updates** (auto-PRs that bump the vulnerable dependency to a patched version), and **version updates** (routine bumps regardless of vulnerabilities). The dependency graph powering all three is also what feeds the [advisory database](https://github.com/advisories), which is the same data Dependabot reads. Lesson 10 also opens a **Malware** alert — the supply-chain twin of vulnerability alerts, flagging actually-malicious packages from the Advisory DB (npm, PyPI, and more since July 2026). Its fixture pins `requestsa`, a typosquat of `requests` that PyPI has already removed.
 
 ### 11. Security Overview (Org-level Governance)
 At org scale, per-repo alert pages don't scale. The [Security Overview](https://docs.github.com/en/code-security/security-overview/about-security-overview) tab is the **CISO view**: which repos have which features enabled, where alerts are concentrating by severity, which teams own the most risk, and what *security configurations* are applied across the fleet. This is the product-adoption story — it's the difference between "we enabled Code Security and Secret Protection" and "we manage them."
@@ -225,6 +225,7 @@ Gaps still worth capturing live in your tenant for a follow-up deck:
 
 - 📸 Lesson 02 — the **Copilot Autofix** suggestion diff (before / after acceptance), or the agentic autofix draft PR, on the `py/sql-injection` alert in `insecure_login.py`.
 - 📸 Lesson 03 — the code-scanning list and alert detail for `py/tkl/unprotected-admin-route`, including the rule help rendered from `UnprotectedAdminRoute.md`.
+- 📸 Lesson 10 — the **Malware** view and alert detail for `requestsa`. The earlier empty-state capture was removed when the fixture was added.
 - 📸 Lesson 11 — the **Configurations** page showing the `GitHub recommended` security configuration's feature toggles.
 - 📸 Lesson 11 — a **Security campaigns** detail page (paid feature) with assigned repos and progress bars.
 
@@ -252,7 +253,7 @@ For C-suite, security leadership, or non-technical buyers. Uses one lesson from 
 | 0:00–0:05 | — | Welcome + repo tour (`README.md` only) | Set expectations: repo is *intentionally* vulnerable; every alert is real. |
 | 0:05–0:15 | 01 — CodeQL | Open the [SSTI alert](https://github.com/tkl-enteprises/ghas-demos/security/code-scanning?query=is%3Aopen+branch%3Amain+rule%3Apy%2Ftemplate-injection) (`py/template-injection` in `lessons/10-supply-chain-dependabot/app.py`). Walk the dataflow path source → sink. | Where does this fit in the SDLC? What changes if a developer never opens the PR? |
 | 0:15–0:25 | 08 — Secret Scanning | Live `git push` of a fresh `CONTOSO-API-…` line on a workshop branch (custom pattern from lesson 09 — see *Push protection bypass* mitigations above). | What's our current MTTR on a leaked production secret? |
-| 0:25–0:35 | 10 — Dependabot | Show the grouped pip security-update PR and contrast it with the grouped version-update PR. Walk the advisory annotations. Tour the empty Malware view. | Who owns merging these today? How long do they sit? |
+| 0:25–0:35 | 10 — Dependabot | Show the grouped pip security-update PR and contrast it with the grouped version-update PR. Walk the advisory annotations. Open the `requestsa` malware alert. | Who owns merging these today? How long do they sit? |
 | 0:35–0:50 | 11 — Security Overview | Org-level **Risk** + **Coverage** views. Highlight enablement gaps. | Which 5 repos do we turn this on next? Who signs off? |
 | 0:50–1:00 | — | Q&A + close | Action items: pick the next 5 repos; assign an owner. |
 
@@ -272,7 +273,7 @@ For platform / appsec / senior dev audiences who own day-to-day triage. Covers s
 | 1:00–1:10 | — | ☕ Break | — |
 | 1:10–1:25 | 08 — Secret Scanning | Live custom-pattern push protection block (see lesson 09). Show the secret-scanning Default + Generic tabs. | Why might a low-entropy Azure canary not block? (Push protection covers a subset of high-confidence patterns and applies entropy checks; validity checks don't gate blocking.) |
 | 1:25–1:35 | 09 — Custom Patterns | Settings → Secret scanning → Custom patterns. Walk the two `Contoso …` patterns (pre-published per pre-flight step 6). Push a fresh `contoso_demo_…` and watch it block. | What internal token shapes belong here? (Badge IDs, internal API keys, vendor IDs.) |
-| 1:35–1:45 | 10 — Dependabot | PR list filter `app/dependabot`. Walk the grouped security-update PR. Tour the Malware view. | Auto-merge policy: green CI + Dependabot? Where's the line? |
+| 1:35–1:45 | 10 — Dependabot | PR list filter `app/dependabot`. Walk the grouped security-update PR. Open the `requestsa` malware alert. | Auto-merge policy: green CI + Dependabot? Where's the line? |
 | 1:45–1:55 | 11 — Security Overview | Org **Risk** + **Coverage** + Configurations. | Coverage gap → action plan. |
 | 1:55–2:00 | — | Q&A + close | — |
 
@@ -295,7 +296,7 @@ For mixed appsec + platform engineering audiences who want the full toolkit — 
 | 2:10–2:25 | 07 — Code Quality AI findings | Review the recent-merge grammar and contextual suggestions. | How should nondeterministic suggestions be governed? |
 | 2:25–2:40 | 08 — Secret Scanning | Custom-pattern push block; show the validity-check distinction. | Leaks in commits vs CI logs vs images. |
 | 2:40–3:00 | 09 — Custom Patterns | Walk the Contoso patterns and push-block a fresh demo value. | Pattern hygiene and false positives. |
-| 3:00–3:15 | 10 — Dependabot (+ Malware) | Alerts → update PR → CVSS/EPSS; tour Malware. | Dependabot vs reachability. |
+| 3:00–3:15 | 10 — Dependabot (+ Malware) | Alerts → update PR → CVSS/EPSS; open the `requestsa` malware alert. | Dependabot vs reachability. |
 | 3:15–3:30 | — | ☕ Break | — |
 | 3:30–3:50 | 11 — Security Overview | Org **Risk**, **Coverage**, **Configurations**, and **Campaigns** if available. | 90-day rollout plan. |
 | 3:50–4:00 | — | Wrap, action items, follow-up resources | — |
